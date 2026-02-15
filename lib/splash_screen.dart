@@ -17,9 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const OnboardingScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
       }
     });
@@ -29,12 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF2F5D6E),
-      body: Center(
-        child: Image.asset(
-          'assets/images/logo.png',
-          width: 200,
-        ),
-      ),
+      body: Center(child: Image.asset('assets/images/logo.png', width: 200)),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'role_selection_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -46,14 +47,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
+  void _goToRoles() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLastPage = currentIndex == pages.length - 1;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SafeArea(
         child: Column(
           children: [
-            // Pages
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -67,7 +76,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // IMAGE — same visual size for all assets
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 400),
                           opacity: animate ? 1.0 : 0.0,
@@ -86,10 +94,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 40),
-
-                        // TEXT — fade + slide up
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 350),
                           opacity: animate ? 1.0 : 0.0,
@@ -117,8 +122,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     height: 1.5,
-                                    color: const Color(0xFF2F5D6E)
-                                        .withOpacity(0.65),
+                                    color: const Color(
+                                      0xFF2F5D6E,
+                                    ).withOpacity(0.65),
                                   ),
                                 ),
                               ],
@@ -132,29 +138,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // DOT INDICATORS
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                pages.length,
-                (index) => AnimatedContainer(
+              children: List.generate(pages.length, (index) {
+                final isActive = currentIndex == index;
+                final size = isActive ? 10.0 : 8.0;
+
+                return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: const EdgeInsets.symmetric(horizontal: 5),
-                  width: currentIndex == index ? 10 : 8,
-                  height: 8,
+                  width: size,
+                  height: size,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: currentIndex == index
-                        ? const Color(0xFF2F5D6E)
-                        : Colors.grey.shade400,
+                    color:
+                        isActive
+                            ? const Color(0xFF2F5D6E)
+                            : Colors.grey.shade400,
                   ),
-                ),
-              ),
+                );
+              }),
             ),
 
             const SizedBox(height: 32),
 
-            // NEXT / GET STARTED BUTTON
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: SizedBox(
@@ -162,13 +169,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (currentIndex < pages.length - 1) {
+                    if (!isLastPage) {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                       );
                     } else {
-                      // TODO: Navigate to Login screen
+                      _goToRoles();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -181,17 +188,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF2F5D6E),
-                          Color(0xFF9EC3D1),
-                        ],
+                        colors: [Color(0xFF2F5D6E), Color(0xFF9EC3D1)],
                       ),
                     ),
                     child: Center(
                       child: Text(
-                        currentIndex == pages.length - 1
-                            ? "Get started"
-                            : "Next  >",
+                        isLastPage ? "Get started" : "Next  >",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -206,20 +208,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: 14),
 
-            // SKIP
-            TextButton(
-              onPressed: () {
-                // TODO: Navigate to Login screen
-              },
-              child: const Text(
-                "Skip",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF2F5D6E),
+            if (!isLastPage)
+              TextButton(
+                onPressed: _goToRoles,
+                child: const Text(
+                  "Skip",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF2F5D6E),
+                  ),
                 ),
-              ),
-            ),
+              )
+            else
+              const SizedBox(height: 48),
 
             const SizedBox(height: 24),
           ],
@@ -229,7 +231,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-// Typed model — null-safe & professional
 class _OnboardingPage {
   final String title;
   final String description;
