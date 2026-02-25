@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'patient_home_screen.dart';
+import '../../Patients/Presentation/patient_home_screen.dart';
 
 class PatientLoginScreen extends StatefulWidget {
   const PatientLoginScreen({super.key});

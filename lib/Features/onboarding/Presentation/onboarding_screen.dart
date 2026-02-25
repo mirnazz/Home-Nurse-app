@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'role_selection_screen.dart';
+import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
+
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -50,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _goToRoles() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+      MaterialPageRoute(builder: (_) => const PatientLoginScreen()),
     );
   }
 
