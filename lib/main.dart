@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
+import 'Features/onboarding/Presentation/splash_screen.dart';
+import 'Features/auth/Presentation/login_screen.dart';
+import 'Features/Patients/Presentation/patient_home_screen.dart';
+import 'Features/auth/Presentation/forgot_password_screen.dart';
+import 'Features/auth/Presentation/SignUpScreen.dart';
+import 'Features/nurse_verification/nurse_pending_screen.dart';
+import 'Features/nurse_verification/nurse_rejected_screen.dart';
+import 'Features/Nurse/nurse_home_screen.dart';
+import 'package:nurse_app/Features/nurse_verification/nurse_resubmission_screen.dart';
 
 void main() {
   runApp(const NurseApp());
@@ -10,9 +18,19 @@ class NurseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      home: const SplashScreen(),
+      routes: {
+        "/login": (_) => const LoginScreen(),
+        "/Signup": (_) => const SignUpScreen(),
+        "/patientHome": (_) => const PatientHomeScreen(),
+        "/ForgotPassword": (_) => const ForgotPasswordScreen(),
+        "/HomeNurse": (_) => const NurseHomeScreen(),
+        "/NursePending": (_) => const NursePendingScreen(),
+        "/NurseRejected": (_) => const NurseRejectedScreen(),
+        "/NurseResubmit": (_) => const NurseResubmissionScreen(),
+      },
     );
   }
 }
