@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-
 import 'Features/onboarding/Presentation/splash_screen.dart';
 import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
-import 'Features/auth/Presentation/patient_signup_screen.dart';
+import 'Features/auth/Presentation/SignUpScreen.dart';
+import 'Features/nurse_verification/nurse_pending_screen.dart';
+import 'Features/nurse_verification/nurse_rejected_screen.dart';
+import 'Features/Nurse/nurse_home_screen.dart';
+import 'package:nurse_app/Features/nurse_verification/nurse_resubmission_screen.dart';
 
 void main() {
   runApp(const NurseApp());
@@ -19,11 +22,14 @@ class NurseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
       routes: {
-        "/patientLogin": (_) => const PatientLoginScreen(),
-        "/patientSignup": (_) => const Placeholder(),
+        "/login": (_) => const LoginScreen(),
+        "/Signup": (_) => const SignUpScreen(),
         "/patientHome": (_) => const PatientHomeScreen(),
-        "/patientForgot": (_) => const PatientForgotPasswordScreen(),
-        "/patientSignup": (_) => const SignUpScreen(),
+        "/ForgotPassword": (_) => const ForgotPasswordScreen(),
+        "/HomeNurse": (_) => const NurseHomeScreen(),
+        "/NursePending": (_) => const NursePendingScreen(),
+        "/NurseRejected": (_) => const NurseRejectedScreen(),
+        "/NurseResubmit": (_) => const NurseResubmissionScreen(),
       },
     );
   }

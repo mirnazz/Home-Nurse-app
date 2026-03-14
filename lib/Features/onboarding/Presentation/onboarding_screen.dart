@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
-
+import 'package:nurse_app/core/theme/api/app_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -48,10 +48,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _goToRoles() {
+  Future<void> _goToRoles() async {
+    await AppStorage.setSeenOnboardingTrue();
+
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const PatientLoginScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 

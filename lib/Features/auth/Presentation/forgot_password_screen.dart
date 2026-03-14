@@ -1,7 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/core/theme/api/api_service.dart';
 
-class PatientForgotPasswordScreen extends StatelessWidget {
-  const PatientForgotPasswordScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final TextEditingController emailController = TextEditingController();
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> handleForgotPassword() async {
+    FocusScope.of(context).unfocus();
+
+    final email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please enter your email")));
+      return;
+    }
+
+    if (!email.contains("@") || !email.contains(".")) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email")),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final result = await ApiService.forgotPassword(email: email);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result)));
+    } catch (e) {
+      if (!mounted) return;
+
+      final errorText = e.toString().replaceFirst("Exception: ", "");
+
+      String displayMessage = errorText;
+
+      if (errorText.contains("SocketException") ||
+          errorText.contains("Connection timed out") ||
+          errorText.contains("timed out")) {
+        displayMessage =
+            "The server took too long to respond. Check backend/email settings and try again.";
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(displayMessage)));
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +144,6 @@ class PatientForgotPasswordScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 26),
-
               const Text(
                 "Email Address",
                 style: TextStyle(
@@ -83,10 +154,10 @@ class PatientForgotPasswordScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               TextField(
+                controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: deco(),
               ),
-
               const SizedBox(height: 18),
               const Text(
                 "We’ll send a reset link to your email.",
@@ -96,19 +167,12 @@ class PatientForgotPasswordScreen extends StatelessWidget {
                   color: Color(0xFF6B7280),
                 ),
               ),
-
               const Spacer(),
-
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // بعدين لما نربط Firebase رح نحط sendEmail هون
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Reset link sent (demo).")),
-                    );
-                  },
+                  onPressed: isLoading ? null : handleForgotPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primary,
                     shape: RoundedRectangleBorder(
@@ -116,14 +180,24 @@ class PatientForgotPasswordScreen extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    "Send Reset Link",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Text(
+                            "Send Reset Link",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ],

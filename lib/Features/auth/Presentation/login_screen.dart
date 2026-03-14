@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../Patients/Presentation/patient_home_screen.dart';
 
-class PatientLoginScreen extends StatefulWidget {
-  const PatientLoginScreen({super.key});
+import 'package:nurse_app/core/theme/api/api_service.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_home_screen.dart';
+import 'package:nurse_app/Features/nurse_verification/nurse_pending_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_home_screen.dart';
+import 'package:nurse_app/Features/nurse_verification/nurse_rejected_screen.dart';
+import 'package:nurse_app/core/theme/api/token_storage.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<PatientLoginScreen> createState() => _PatientLoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _PatientLoginScreenState extends State<PatientLoginScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   bool obscure = true;
+  bool isLoading = false;
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,22 +61,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: primary,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Login",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-        ),
-      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -67,7 +69,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 60),
                 const Center(
                   child: Text(
                     "Welcome Back!",
@@ -81,7 +83,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 const SizedBox(height: 10),
                 const Center(
                   child: Text(
-                    "Sign in to continue booking services",
+                    "Sign in to continue",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13.5,
@@ -90,7 +92,6 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 40),
 
                 const Text(
@@ -103,6 +104,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 TextField(
+                  controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: fieldDecoration(
                     hint: "your.email@example.com",
@@ -122,6 +124,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 TextField(
+                  controller: passwordController,
                   obscureText: obscure,
                   decoration: fieldDecoration(
                     hint: "Enter your password",
@@ -141,9 +144,8 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, "/patientForgot");
-                    },
+                    onPressed:
+                        () => Navigator.pushNamed(context, "/ForgotPassword"),
                     child: const Text(
                       "Forgot Password?",
                       style: TextStyle(
@@ -160,14 +162,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PatientHomeScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary,
                       shape: RoundedRectangleBorder(
@@ -175,19 +170,30 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Text(
+                              "Login",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
                   ),
                 ),
 
-                const SizedBox(height: 50),
+                const SizedBox(height: 22),
 
+                // ✅ إنشاء حساب (اختياري)
                 Row(
                   children: const [
                     Expanded(
@@ -216,7 +222,10 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                   height: 54,
                   child: OutlinedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, "/patientSignup");
+                      // عدّلي الوجهة حسب شاشتك
+                      Navigator.pushNamed(context, "/Signup");
+                      // أو:
+                      // Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: primary, width: 1.4),
@@ -240,5 +249,83 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _login() async {
+    final email = emailController.text.trim();
+    final pass = passwordController.text;
+
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email")),
+      );
+      return;
+    }
+    if (pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your password")),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      // (اختياري) تنظيف توكن قديم قبل اللوجن
+      await TokenStorage.clearToken();
+
+      // 1) Login -> يحفظ JWT داخل TokenStorage (عندك داخل ApiService.login)
+      await ApiService.login(email: email, password: pass);
+
+      // 2) GetMe -> نعرف الدور + status
+      final me = await ApiService.getMe();
+
+      if (!mounted) return;
+
+      // ✅ roles List
+      final roles = (me['roles'] as List?) ?? [];
+      final role = roles.isNotEmpty ? roles.first.toString() : '';
+
+      // ✅ verificationStatus (ممكن يرجع null)
+      final verificationStatus = (me['verificationStatus'] ?? '').toString();
+
+      // 3) Routing
+      if (role == 'Nurse') {
+        if (verificationStatus == 'Pending') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const NursePendingScreen()),
+          );
+          return;
+        }
+
+        if (verificationStatus == 'Rejected') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
+          );
+          return;
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const NurseHomeScreen()),
+        );
+        return;
+      }
+
+      // Patient
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 }
