@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
+import 'package:nurse_app/Features/auth/screens/login_screen.dart';
 
 
 class OnboardingScreen extends StatefulWidget {
@@ -20,18 +20,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       description:
           "Connect with verified registered nurses\nfor quality healthcare services in the\ncomfort of your home",
       image: "assets/onboarding/care.png",
+      visualScale: 1.0,
     ),
     _OnboardingPage(
       title: "Verified & Trusted\nNurses",
       description:
           "All nurses are licensed professionals,\nbackground-checked and verified by\nour admin team",
       image: "assets/onboarding/verified.png",
+      visualScale: 1.0,
     ),
     _OnboardingPage(
       title: "Book Anytime,\nAnywhere",
       description:
           "Schedule nursing services 24/7 with\ninstant booking confirmations and\nreal-time updates",
       image: "assets/onboarding/booking.png",
+      visualScale: 0.70,
     ),
   ];
 
@@ -53,6 +56,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       context,
       MaterialPageRoute(builder: (_) => const PatientLoginScreen()),
     );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -88,9 +97,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             child: SizedBox(
                               width: 220,
                               height: 220,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
-                                child: Image.asset(page.image),
+                              child: Center(
+                                child: FractionallySizedBox(
+                                  widthFactor: page.visualScale,
+                                  heightFactor: page.visualScale,
+                                  child: FittedBox(
+                                    fit: BoxFit.contain,
+                                    child: Image.asset(page.image),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -236,10 +251,12 @@ class _OnboardingPage {
   final String title;
   final String description;
   final String image;
+  final double visualScale;
 
   const _OnboardingPage({
     required this.title,
     required this.description,
     required this.image,
+    this.visualScale = 1.0,
   });
 }

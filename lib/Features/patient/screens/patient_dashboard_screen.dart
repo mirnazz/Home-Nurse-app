@@ -12,7 +12,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
     const bg = Color(0xFFF6F7F9);
 
     return Scaffold(
@@ -20,39 +19,49 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            children: const [
-              _HomeHeader(),
-              SizedBox(height: 14),
+            children: [
+              const _HomeHeader(),
+              const SizedBox(height: 14),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _RateExperienceCard(),
-                    SizedBox(height: 18),
-                    _SectionTitle(title: "Quick Services"),
-                    SizedBox(height: 12),
-                    _QuickServicesRow(),
-                    SizedBox(height: 16),
-                    _StatsRow(),
-                    SizedBox(height: 18),
-                    _SectionTitleWithAction(
+                    const _RateExperienceCard(),
+                    const SizedBox(height: 18),
+                    const _SectionTitle(title: "Quick Services"),
+                    const SizedBox(height: 12),
+                    const _QuickServicesRow(),
+                    const SizedBox(height: 16),
+                    const _StatsRow(),
+                    const SizedBox(height: 18),
+                    const _SectionTitleWithAction(
                       title: "Upcoming Appointments",
                       action: "View All",
                     ),
-                    SizedBox(height: 12),
-                    _UpcomingAppointments(),
-                    SizedBox(height: 18),
-                    _SectionTitleWithAction(
+                    const SizedBox(height: 12),
+                    const _UpcomingAppointments(),
+                    const SizedBox(height: 18),
+                    const _SectionTitleWithAction(
                       title: "Recommended for You",
                       action: "See All",
                       subtitle: "Based on location, ratings & availability",
                     ),
-                    SizedBox(height: 10),
-                    _LocationCard(),
-                    SizedBox(height: 12),
-                    _RecommendedCard(),
-                    SizedBox(height: 80),
+                    const SizedBox(height: 10),
+                    _LocationCard(
+                      onChanged: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Change location - to be implemented when location services are connected',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    const _RecommendedCard(),
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
@@ -116,7 +125,7 @@ class _HomeHeader extends StatelessWidget {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.16),
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Stack(
@@ -401,7 +410,7 @@ class _ServiceTile extends StatelessWidget {
             height: 42,
             width: 42,
             decoration: BoxDecoration(
-              color: primary.withOpacity(0.12),
+              color: primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: primary),
@@ -676,7 +685,9 @@ class _AppointmentCard extends StatelessWidget {
 }
 
 class _LocationCard extends StatelessWidget {
-  const _LocationCard();
+  const _LocationCard({this.onChanged});
+
+  final VoidCallback? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -725,7 +736,7 @@ class _LocationCard extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: null,
+            onPressed: onChanged,
             child: Text(
               "Change",
               style: TextStyle(fontWeight: FontWeight.w900, color: primary),
