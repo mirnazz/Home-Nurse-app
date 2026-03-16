@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:nurse_app/core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_pending_screen.dart';
 
 class NurseResubmissionScreen extends StatefulWidget {
@@ -23,6 +23,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
   final addressController = TextEditingController();
   final locationController = TextEditingController();
   final nationalIdController = TextEditingController();
+  final licenseNumberController = TextEditingController();
   final specializationController = TextEditingController();
   final experienceYearsController = TextEditingController();
 
@@ -36,6 +37,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     addressController.dispose();
     locationController.dispose();
     nationalIdController.dispose();
+    licenseNumberController.dispose();
     specializationController.dispose();
     experienceYearsController.dispose();
     super.dispose();
@@ -55,6 +57,14 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: primary, width: 1.2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red, width: 1.2),
       ),
     );
   }
@@ -86,14 +96,11 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     final ok = _formKey.currentState?.validate() ?? false;
     if (!ok) return;
 
-    if (nationalIdFile == null ||
-        licenseFile == null ||
-        profilePhotoFile == null) {
+    final experienceYears = int.tryParse(experienceYearsController.text.trim());
+    if (experienceYears == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Please upload National ID, License, and Profile Photo",
-          ),
+          content: Text("Experience years must be a valid number"),
         ),
       );
       return;
@@ -102,23 +109,28 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     setState(() => isLoading = true);
 
     try {
-      await ApiService.submitNurseRegistrationMultipart(
+      final account = await ApiService.getAccount();
+      final fullName = (account["fullName"] ?? "").toString();
+
+      await ApiService.updateNursePersonalInfo(
+        fullName: fullName,
         phoneNumber: phoneController.text.trim(),
-        address: addressController.text.trim(),
         location: locationController.text.trim(),
-        nationalIdNumber: nationalIdController.text.trim(),
+        address: addressController.text.trim(),
+        bio: "",
+      );
+
+      await ApiService.updateNurseProfessionalDetails(
+        licenseNumber: licenseNumberController.text.trim(),
         specialization: specializationController.text.trim(),
-        experienceYears: experienceYearsController.text.trim(),
-        nationalIdFile: nationalIdFile!,
-        licenseFile: licenseFile!,
-        profilePhotoFile: profilePhotoFile!,
+        experienceYears: experienceYears,
       );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Submitted successfully. Waiting for admin approval."),
+          content: Text("Resubmitted successfully. Waiting for admin approval."),
         ),
       );
 
@@ -198,10 +210,9 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color:
-                        file == null
-                            ? const Color(0xFF6B7280)
-                            : const Color(0xFF111827),
+                    color: file == null
+                        ? const Color(0xFF6B7280)
+                        : const Color(0xFF111827),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -254,8 +265,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                         Icons.close_rounded,
                         color: Color(0xFF111827),
                       ),
-                      onPressed:
-                          isLoading ? null : () => Navigator.pop(context),
+                      onPressed: isLoading ? null : () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -297,7 +307,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                         children: [
                           _sectionTitle(
                             "Update your details",
-                            "Fix the requested items and upload clear documents.\nAfter submitting, your status will return to Pending.",
+                            "Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.",
                           ),
                           const SizedBox(height: 14),
 
@@ -374,6 +384,22 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                 const SizedBox(height: 12),
 
                                 TextFormField(
+                                  controller: licenseNumberController,
+                                  decoration: _dec(
+                                    hint: "License number",
+                                    icon: Icons.assignment_ind_outlined,
+                                  ),
+                                  validator: (v) {
+                                    final s = (v ?? "").trim();
+                                    if (s.isEmpty) {
+                                      return "License number is required";
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+
+                                TextFormField(
                                   controller: specializationController,
                                   decoration: _dec(
                                     hint: "Specialization (e.g., ICU)",
@@ -435,7 +461,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                         children: [
                           _sectionTitle(
                             "Documents",
-                            "Upload clear photos or PDF files.\nMake sure all information is readable.",
+                            "Files are selected locally for now.\nBackend upload is not connected yet in the current API service.",
                           ),
                           const SizedBox(height: 14),
 
@@ -446,12 +472,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                             icon: Icons.perm_identity_outlined,
                             onPick: () async {
                               final f = await _pickFile(
-                                allowedExtensions: [
-                                  "png",
-                                  "jpg",
-                                  "jpeg",
-                                  "pdf",
-                                ],
+                                allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
                               );
                               if (f != null && mounted) {
                                 setState(() => nationalIdFile = f);
@@ -467,12 +488,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                             icon: Icons.assignment_outlined,
                             onPick: () async {
                               final f = await _pickFile(
-                                allowedExtensions: [
-                                  "png",
-                                  "jpg",
-                                  "jpeg",
-                                  "pdf",
-                                ],
+                                allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
                               );
                               if (f != null && mounted) {
                                 setState(() => licenseFile = f);
@@ -495,6 +511,25 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                               }
                             },
                           ),
+
+                          const SizedBox(height: 14),
+
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: const Text(
+                              "Note: document upload is currently pending backend support. The selected files are not sent yet with the current API service.",
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -513,24 +548,23 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                           ),
                         ),
                         onPressed: isLoading ? null : _submit,
-                        child:
-                            isLoading
-                                ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                : const Text(
-                                  "Submit for Review",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 16,
-                                  ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
+                              )
+                            : const Text(
+                                "Submit for Review",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
                   ],

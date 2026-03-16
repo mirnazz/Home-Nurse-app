@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/theme/api/app_storage.dart';
-import 'package:nurse_app/core/theme/api/token_storage.dart';
-import 'package:nurse_app/core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/app_storage.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/onboarding/Presentation/onboarding_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_home_screen.dart';
-import 'package:nurse_app/Features/Nurse/nurse_home_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_dashboard_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_rejected_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_pending_screen.dart';
 import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const NurseHomeScreen()),
+          MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
         );
         return;
       }

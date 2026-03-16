@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
-import 'package:nurse_app/core/theme/api/app_storage.dart';
+import 'package:nurse_app/Core/theme/api/app_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

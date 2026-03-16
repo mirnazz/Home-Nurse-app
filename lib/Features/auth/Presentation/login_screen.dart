@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:nurse_app/core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_home_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_pending_screen.dart';
-import 'package:nurse_app/Features/Nurse/nurse_home_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_dashboard_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_rejected_screen.dart';
-import 'package:nurse_app/core/theme/api/token_storage.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -252,80 +252,96 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    final email = emailController.text.trim();
-    final pass = passwordController.text;
+  final email = emailController.text.trim();
+  final pass = passwordController.text;
 
-    if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid email")),
-      );
-      return;
-    }
-    if (pass.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your password")),
-      );
-      return;
-    }
+  if (email.isEmpty || !email.contains('@')) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter a valid email")),
+    );
+    return;
+  }
 
-    setState(() => isLoading = true);
+  if (pass.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter your password")),
+    );
+    return;
+  }
 
-    try {
-      // (اختياري) تنظيف توكن قديم قبل اللوجن
-      await TokenStorage.clearToken();
+  setState(() => isLoading = true);
 
-      // 1) Login -> يحفظ JWT داخل TokenStorage (عندك داخل ApiService.login)
-      await ApiService.login(email: email, password: pass);
+  try {
+    await TokenStorage.clearToken();
 
-      // 2) GetMe -> نعرف الدور + status
-      final me = await ApiService.getMe();
+    await ApiService.login(email: email, password: pass);
 
-      if (!mounted) return;
+    final me = await ApiService.getMe();
 
-      // ✅ roles List
-      final roles = (me['roles'] as List?) ?? [];
-      final role = roles.isNotEmpty ? roles.first.toString() : '';
+    if (!mounted) return;
 
-      // ✅ verificationStatus (ممكن يرجع null)
-      final verificationStatus = (me['verificationStatus'] ?? '').toString();
+    final role = (me['role'] ?? '').toString().trim();
+    final verificationStatus =
+        (me['verificationStatus'] ?? '').toString().trim();
 
-      // 3) Routing
-      if (role == 'Nurse') {
-        if (verificationStatus == 'Pending') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const NursePendingScreen()),
-          );
-          return;
-        }
+    debugPrint('GET ME => $me');
+    debugPrint('ROLE => $role');
+    debugPrint('STATUS => $verificationStatus');
 
-        if (verificationStatus == 'Rejected') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
-          );
-          return;
-        }
-
+    if (role == 'Nurse') {
+      if (verificationStatus == 'Pending') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const NurseHomeScreen()),
+          MaterialPageRoute(builder: (_) => const NursePendingScreen()),
         );
         return;
       }
 
-      // Patient
+      if (verificationStatus == 'Rejected') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
+        );
+        return;
+      }
+
+      if (verificationStatus == 'Approved') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Unknown nurse verification status: $verificationStatus",
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (role == 'Patient') {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
-    } finally {
-      if (mounted) setState(() => isLoading = false);
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Unknown role: $role")),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+  } finally {
+    if (mounted) setState(() => isLoading = false);
   }
 }
+  }
+

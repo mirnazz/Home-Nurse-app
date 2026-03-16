@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
-import 'package:nurse_app/core/theme/api/api_service.dart';
 
 class NurseRegistrationScreen extends StatefulWidget {
   final String email;
@@ -34,7 +34,6 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
   File? profilePhotoFile;
 
   bool isLoading = false;
-
   bool _isPickingImage = false;
 
   final List<String> jordanGovernorates = [
@@ -226,6 +225,25 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
                 controlAffinity: ListTileControlAffinity.trailing,
               ),
 
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: const Text(
+                  "Note: image upload is currently pending backend support. Your text data will be submitted now.",
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
               SizedBox(
@@ -370,12 +388,17 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
       return;
     }
 
-    if (!agreeToTerms ||
-        nationalIdFile == null ||
-        licenseFile == null ||
-        profilePhotoFile == null) {
+    if (!agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please complete all required fields")),
+        const SnackBar(content: Text("Please confirm the information")),
+      );
+      return;
+    }
+
+    final experienceYears = int.tryParse(experienceController.text.trim());
+    if (experienceYears == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Experience years must be a valid number")),
       );
       return;
     }
@@ -383,28 +406,33 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
     setState(() => isLoading = true);
 
     try {
-      await ApiService.submitNurseRegistrationMultipart(
+      final account = await ApiService.getAccount();
+      final fullName = (account["fullName"] ?? "").toString();
+
+      await ApiService.updateNursePersonalInfo(
+        fullName: fullName,
         phoneNumber: phoneController.text.trim(),
-        address: areaController.text.trim(),
         location: selectedGovernorate!,
-        nationalIdNumber: nationalIdController.text.trim(),
+        address: areaController.text.trim(),
+        bio: "",
+      );
+
+      await ApiService.updateNurseProfessionalDetails(
+        licenseNumber: nationalIdController.text.trim(),
         specialization: specializationController.text.trim(),
-        experienceYears: experienceController.text.trim(),
-        nationalIdFile: nationalIdFile!,
-        licenseFile: licenseFile!,
-        profilePhotoFile: profilePhotoFile!,
+        experienceYears: experienceYears,
       );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registration submitted (Pending)")),
+        const SnackBar(content: Text("Registration submitted successfully")),
       );
 
       Navigator.pushReplacementNamed(context, "/NursePending");
     } catch (e) {
       if (!mounted) return;
-      print("NURSE SUBMIT ERROR => $e");
+      debugPrint("NURSE SUBMIT ERROR => $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));

@@ -6,8 +6,9 @@ import 'Features/auth/Presentation/forgot_password_screen.dart';
 import 'Features/auth/Presentation/SignUpScreen.dart';
 import 'Features/nurse_verification/nurse_pending_screen.dart';
 import 'Features/nurse_verification/nurse_rejected_screen.dart';
-import 'Features/Nurse/nurse_home_screen.dart';
+
 import 'package:nurse_app/Features/nurse_verification/nurse_resubmission_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_dashboard_screen.dart';
 
 void main() {
   runApp(const NurseApp());
@@ -26,10 +27,11 @@ class NurseApp extends StatelessWidget {
         "/Signup": (_) => const SignUpScreen(),
         "/patientHome": (_) => const PatientHomeScreen(),
         "/ForgotPassword": (_) => const ForgotPasswordScreen(),
-        "/HomeNurse": (_) => const NurseHomeScreen(),
+        "/NurseDashboard": (_) => const NurseDashboardScreen(),
         "/NursePending": (_) => const NursePendingScreen(),
         "/NurseRejected": (_) => const NurseRejectedScreen(),
         "/NurseResubmit": (_) => const NurseResubmissionScreen(),
+        
       },
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Registration/Presentation/nurse_registration_screen.dart';
-import 'package:nurse_app/core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 
 enum UserRole { patient, nurse }
 

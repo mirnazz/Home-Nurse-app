@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -10,6 +11,22 @@ class PatientHomeScreen extends StatefulWidget {
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int currentTab = 0;
 
+  Future<void> _logout() async {
+    try {
+      await TokenStorage.clearToken();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
@@ -20,10 +37,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            children: const [
-              _HomeHeader(),
-              SizedBox(height: 14),
-              Padding(
+            children: [
+              _HomeHeader(onLogout: _logout),
+              const SizedBox(height: 14),
+              const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +86,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader();
+  final VoidCallback onLogout;
+
+  const _HomeHeader({required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +160,38 @@ class _HomeHeader extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 10),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    onLogout();
+                  }
+                },
+                icon: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                ),
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Logout'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
