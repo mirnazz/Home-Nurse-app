@@ -283,7 +283,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushReplacementNamed(context, "/patientLogin");
+          Navigator.pushReplacementNamed(context, "/login");
         }
       },
       child: Padding(

@@ -137,7 +137,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
               const SizedBox(height: 6),
 
               DropdownButtonFormField<String>(
-                initialValue: selectedGovernorate,
+                value: selectedGovernorate,
                 hint: const Text("Select governorate"),
                 items:
                     jordanGovernorates

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
 class NurseDashboardScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                     currentTabIndex: 1,
                     onTabChanged: (i) => setState(() => currentTab = i),
                   ),
-                  _PlaceholderTab(title: "Calendar"),
+                  const NurseAvailabilityScreen(),
                   _PlaceholderTab(title: "Requests"),
                   _PlaceholderTab(title: "Transactions"),
                 ],
