@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
+import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -27,56 +28,59 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
+  Widget _buildHomeBody() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _HomeHeader(onLogout: _logout),
+            const SizedBox(height: 14),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _RateExperienceCard(),
+                  SizedBox(height: 18),
+                  _SectionTitle(title: "Quick Services"),
+                  SizedBox(height: 12),
+                  _QuickServicesRow(),
+                  SizedBox(height: 16),
+                  _StatsRow(),
+                  SizedBox(height: 18),
+                  _SectionTitleWithAction(
+                    title: "Upcoming Appointments",
+                    action: "View All",
+                  ),
+                  SizedBox(height: 12),
+                  _UpcomingAppointments(),
+                  SizedBox(height: 18),
+                  _SectionTitleWithAction(
+                    title: "Recommended for You",
+                    action: "See All",
+                    subtitle: "Based on location, ratings & availability",
+                  ),
+                  SizedBox(height: 10),
+                  _LocationCard(),
+                  SizedBox(height: 12),
+                  _RecommendedCard(),
+                  SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
     const bg = Color(0xFFF6F7F9);
 
     return Scaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _HomeHeader(onLogout: _logout),
-              const SizedBox(height: 14),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _RateExperienceCard(),
-                    SizedBox(height: 18),
-                    _SectionTitle(title: "Quick Services"),
-                    SizedBox(height: 12),
-                    _QuickServicesRow(),
-                    SizedBox(height: 16),
-                    _StatsRow(),
-                    SizedBox(height: 18),
-                    _SectionTitleWithAction(
-                      title: "Upcoming Appointments",
-                      action: "View All",
-                    ),
-                    SizedBox(height: 12),
-                    _UpcomingAppointments(),
-                    SizedBox(height: 18),
-                    _SectionTitleWithAction(
-                      title: "Recommended for You",
-                      action: "See All",
-                      subtitle: "Based on location, ratings & availability",
-                    ),
-                    SizedBox(height: 10),
-                    _LocationCard(),
-                    SizedBox(height: 12),
-                    _RecommendedCard(),
-                    SizedBox(height: 80),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: currentTab == 1 ? const BrowseNursesScreen() : _buildHomeBody(),
       bottomNavigationBar: _BottomNav(
         currentIndex: currentTab,
         onChanged: (i) => setState(() => currentTab = i),
@@ -196,37 +200,6 @@ class _HomeHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          const _SearchBar(),
-        ],
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  const _SearchBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, color: Color(0xFF9CA3AF)),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              "Search nurses or services...",
-              style: TextStyle(
-                color: Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         ],
       ),
     );
