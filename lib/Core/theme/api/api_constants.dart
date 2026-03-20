@@ -1,44 +1,99 @@
 class ApiConstants {
+  // =========================
+  // Base
+  // =========================
   static const String baseUrl = "http://localhost:5235";
 
   // =========================
   // Auth
   // =========================
-  static const String login = "/api/Auth/login";
-  static const String register = "/api/Auth/register";
-  static const String forgotPassword = "/api/Auth/forgot-password";
-  static const String resetPassword = "/api/Auth/reset-password";
+  static const String login = "/api/auth/login";
+  static const String register = "/api/auth/register";
+  static const String forgotPassword = "/api/auth/forgot-password";
+  static const String resetPassword = "/api/auth/reset-password";
 
   // =========================
   // Account
   // =========================
-  static const String me = "/api/Account/me";
+  static const String me = "/api/account/me";
 
   // =========================
-  // Nurse - Sprint 2
+  // Nurse - Profile
   // =========================
+  static const String nurseProfileBase = "/api/nurse";
 
-  // Personal information
-  static const String nursePersonalInfo = "/api/Nurse/profile/personal-info";
+  static const String nursePersonalInfo =
+      "$nurseProfileBase/profile/personal-info";
 
-  // Professional details
   static const String nurseProfessionalDetails =
-      "/api/Nurse/profile/professional-details";
+      "$nurseProfileBase/profile/professional-details";
 
-  // Nurse services
-  static const String nurseServices = "/api/Nurse/services";
+  static const String nurseServices =
+      "$nurseProfileBase/services";
 
-  // NEW: Service catalog
-  static const String nurseServiceCatalog = "/api/Nurse/service-catalog";
+  static const String nurseServiceCatalog =
+      "$nurseProfileBase/service-catalog";
 
-  // Get full nurse profile
-  static const String nurseProfile = "/api/Nurse/profile";
+  static const String nurseProfile =
+      "$nurseProfileBase/profile";
 
-  // NEW: Update full profile multipart endpoint
-  static const String nurseUpdateProfile = "/api/Nurse/update-profile";
+  static const String nurseUpdateProfile =
+      "$nurseProfileBase/update-profile";
+
+  // =========================
+  // Nurse Availability
+  // =========================
+  static const String nurseWeeklyAvailability =
+      "$nurseProfileBase/weekly-availability";
+
+  static const String nurseWeeklyToggle =
+      "$nurseProfileBase/availability/weekly/toggle";
+
+  static const String nurseDayDetails =
+      "$nurseProfileBase/availability/day-details";
+
+  static const String nurseDayOverride =
+      "$nurseProfileBase/availability/override";
+
+  static const String nurseDayBlock =
+      "$nurseProfileBase/availability/block-day";
+
+  static const String nurseDayUnblock =
+      "$nurseProfileBase/availability/override";
+
+  // =========================
+  // Patient - Nurses
+  // =========================
+  static const String patientBase = "/api/patient";
+
+  static const String patientBrowseNurses =
+      "$patientBase/nurses/browse";
+
+  static const String patientNurseDetails =
+      "$patientBase/nurses"; 
+  // usage: /api/patient/nurses/{nurseId}
+
+  static const String patientNurseServices =
+      "$patientBase/nurses";
+  // usage: /api/patient/nurses/{nurseId}/services
+
+  static const String patientAvailableDates =
+      "$patientBase/nurses";
+  // usage: /api/patient/nurses/{nurseId}/available-dates
+
+  static const String patientAvailableSlots =
+      "$patientBase/nurses";
+  // usage: /api/patient/nurses/{nurseId}/available-slots
+
+  // =========================
+  // Patient - Bookings
+  // =========================
+  static const String patientBookings =
+      "$patientBase/bookings";
 
   // =========================
   // Admin
   // =========================
-  static const String pendingNurses = "/api/Admin/pending-nurses";
+  static const String pendingNurses =
+      "/api/admin/pending-nurses";
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
 
@@ -11,6 +12,27 @@ class PatientHomeScreen extends StatefulWidget {
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int currentTab = 0;
+  String _userName = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final me = await ApiService.getMe();
+
+      if (!mounted) return;
+
+      setState(() {
+        _userName = (me['fullName'] ?? me['userName'] ?? 'User').toString();
+      });
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+    }
+  }
 
   Future<void> _logout() async {
     try {
@@ -33,7 +55,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _HomeHeader(onLogout: _logout),
+            _HomeHeader(
+              onLogout: _logout,
+              name: _userName,
+            ),
             const SizedBox(height: 14),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 18),
@@ -91,8 +116,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
 class _HomeHeader extends StatelessWidget {
   final VoidCallback onLogout;
+  final String name;
 
-  const _HomeHeader({required this.onLogout});
+  const _HomeHeader({
+    required this.onLogout,
+    required this.name,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +140,11 @@ class _HomeHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Welcome back,",
                       style: TextStyle(
                         color: Colors.white70,
@@ -123,10 +152,10 @@ class _HomeHeader extends StatelessWidget {
                         fontSize: 13,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      "John",
-                      style: TextStyle(
+                      name,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                         fontSize: 22,

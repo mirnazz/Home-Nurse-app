@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
@@ -42,6 +44,38 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await TokenStorage.clearToken();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,14 +86,17 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
             : IndexedStack(
                 index: currentTab,
                 children: [
-                  _HomeContent(nurseName: nurseName),
+                  _HomeContent(
+                    nurseName: nurseName,
+                    onLogout: _logout,
+                  ),
                   NurseProfileScreen(
                     currentTabIndex: 1,
                     onTabChanged: (i) => setState(() => currentTab = i),
                   ),
                   const NurseAvailabilityScreen(),
-                  _PlaceholderTab(title: "Requests"),
-                  _PlaceholderTab(title: "Transactions"),
+                  const _PlaceholderTab(title: "Requests"),
+                  const _PlaceholderTab(title: "Transactions"),
                 ],
               ),
       ),
@@ -73,8 +110,12 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 
 class _HomeContent extends StatelessWidget {
   final String nurseName;
+  final VoidCallback onLogout;
 
-  const _HomeContent({required this.nurseName});
+  const _HomeContent({
+    required this.nurseName,
+    required this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +123,10 @@ class _HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NurseHeader(name: nurseName),
+          _NurseHeader(
+            name: nurseName,
+            onLogout: onLogout,
+          ),
           const SizedBox(height: 18),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -132,8 +176,12 @@ class _PlaceholderTab extends StatelessWidget {
 
 class _NurseHeader extends StatelessWidget {
   final String name;
+  final VoidCallback onLogout;
 
-  const _NurseHeader({required this.name});
+  const _NurseHeader({
+    required this.name,
+    required this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -186,37 +234,58 @@ class _NurseHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+              Row(
+                children: [
+                  Container(
+                    height: 44,
+                    width: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        height: 8,
-                        width: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFF4D4D),
-                          shape: BoxShape.circle,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            height: 8,
+                            width: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF4D4D),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: onLogout,
+                    child: Container(
+                      height: 44,
+                      width: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                        size: 22,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -369,8 +438,8 @@ class _ThisWeekSummaryCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+        children: const [
+          Text(
             "This Week Summary",
             style: TextStyle(
               color: Colors.white,
@@ -378,10 +447,10 @@ class _ThisWeekSummaryCard extends StatelessWidget {
               fontSize: 16,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
+            children: [
               _WeekStat(value: "18", label: "Completed"),
               _WeekStat(value: "2", label: "Cancelled"),
               _WeekStat(value: "580", label: "JOD Earned"),

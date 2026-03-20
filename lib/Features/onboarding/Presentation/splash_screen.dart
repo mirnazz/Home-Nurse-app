@@ -52,40 +52,68 @@ class _SplashScreenState extends State<SplashScreen> {
       final me = await ApiService.getMe();
       if (!mounted) return;
 
-      final roles = (me['roles'] as List?) ?? [];
-      final role = roles.isNotEmpty ? roles.first.toString() : '';
+      final rawRoles = me['roles'];
+String role = '';
 
-      final verificationStatus = (me['verificationStatus'] ?? '').toString();
+if (rawRoles is List && rawRoles.isNotEmpty) {
+  role = rawRoles.first.toString().trim().toLowerCase();
+} else {
+  role = (me['role'] ?? me['roleType'] ?? '')
+      .toString()
+      .trim()
+      .toLowerCase();
+}
 
-      if (role == 'Nurse') {
-        if (verificationStatus == 'Pending') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const NursePendingScreen()),
-          );
-          return;
-        }
+final verificationStatus = (me['verificationStatus'] ?? '')
+    .toString()
+    .trim()
+    .toLowerCase();
 
-        if (verificationStatus == 'Rejected') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
-          );
-          return;
-        }
+debugPrint('SPLASH GET ME => $me');
+debugPrint('SPLASH ROLE => $role');
+debugPrint('SPLASH STATUS => $verificationStatus');
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
-        );
-        return;
-      }
+if (role == 'nurse') {
+  if (verificationStatus == 'pending') {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const NursePendingScreen()),
+    );
+    return;
+  }
 
-      // Patient
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
-      );
+  if (verificationStatus == 'rejected') {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
+    );
+    return;
+  }
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
+  );
+  return;
+}
+
+if (role == 'patient') {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+  );
+  return;
+}
+
+// إذا الدور مش معروف، امسحي التوكن وارجعي لوجن
+await TokenStorage.clearToken();
+
+if (!mounted) return;
+
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (_) => const LoginScreen()),
+); 
     } catch (_) {
       // token invalid / unauthorized / server down
       await TokenStorage.clearToken();

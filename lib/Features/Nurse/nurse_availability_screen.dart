@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 
 class NurseAvailabilityScreen extends StatefulWidget {
@@ -13,15 +14,11 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   DateTime _selectedDate = DateTime.now();
   final Set<String> _blockedDates = {};
 
-  final Map<String, List<_TimeSlot>> _weeklySlots = {
-    'Monday': [const _TimeSlot(start: '08:00', end: '16:00')],
-    'Tuesday': [const _TimeSlot(start: '08:00', end: '16:00')],
-    'Wednesday': [],
-    'Thursday': [],
-    'Friday': [],
-    'Saturday': [],
-    'Sunday': [],
-  };
+  // Only shows days that have slots from API
+  Map<String, List<_TimeSlot>> _weeklySlots = {};
+
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -30,25 +27,50 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   }
 
   Future<void> _loadAvailability() async {
-    // TODO(Abeer): replace mock data with a real backend call.
-    // Suggested flow:
-    //   final response = await ApiService.getNurseAvailability();
-    //   setState(() {
-    //     _weeklySlots = mapResponseToWeeklySlots(response['weeklySlots']);
-    //     _blockedDates = Set<String>.from(response['blockedDates'] ?? []);
-    //   });
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await ApiService.getWeeklyAvailability();
+      final Map<String, List<_TimeSlot>> mapped = {};
+
+      for (final item in response) {
+        final day = (item['dayOfWeek'] ?? '').toString();
+        if (day.isEmpty) continue;
+
+        mapped.putIfAbsent(day, () => []);
+        mapped[day]!.add(
+          _TimeSlot(
+            id: item['weeklyAvailabilityId'] is int
+                ? item['weeklyAvailabilityId'] as int
+                : int.tryParse(item['weeklyAvailabilityId'].toString()),
+            start: (item['startTime'] ?? '').toString(),
+            end: (item['endTime'] ?? '').toString(),
+            isActive: item['isActive'] == true,
+          ),
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _weeklySlots = mapped;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   Future<void> _saveAvailability() async {
-    // TODO(Abeer): push availability payload to backend.
-    // Suggested flow:
-    //   await ApiService.updateNurseAvailability(
-    //     weeklySlots: mapWeeklySlotsToPayload(_weeklySlots),
-    //     blockedDates: _blockedDates.toList(),
-    //   );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Availability saved successfully')),
+      const SnackBar(
+        content: Text('Changes are saved automatically after each action'),
+      ),
     );
   }
 
@@ -59,20 +81,91 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => const _AddTimeSlotSheet(),
     );
-    if (result == null) return;
-    setState(() {
-      _weeklySlots[result.day] = [
-        ...(_weeklySlots[result.day] ?? []),
-        _TimeSlot(start: result.start, end: result.end),
-      ];
-    });
+
+    if (result == null || !mounted) return;
+
+    try {
+      setState(() => _isSaving = true);
+      await ApiService.addWeeklyAvailability(
+        dayOfWeek: result.day,
+        startTime: '${result.start}:00',
+        endTime: '${result.end}:00',
+      );
+      await _loadAvailability();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Time slot added successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _openManageDaySheet(DateTime date) async {
     final weekdayName = _weekdayName(date.weekday);
     final slots = List<_TimeSlot>.from(_weeklySlots[weekdayName] ?? []);
     final dateKey = _dateKey(date);
-    final isBlocked = _blockedDates.contains(dateKey);
+
+    // FIX: parse new backend response structure
+    // { defaultWorkingHours, dayOverride: { isBlocked, startTime, endTime }, bookedAppointments }
+    List<Map<String, String>> daySlots = [];
+    bool hasOverride = false;
+    bool blocked = _blockedDates.contains(dateKey);
+
+    try {
+      final response = await ApiService.getDayAvailability(date: dateKey);
+
+      // FIX: backend returns dayOverride object, not isBlocked at top level
+      final dayOverride = response['dayOverride'];
+      if (dayOverride != null && dayOverride is Map) {
+        blocked = dayOverride['isBlocked'] == true;
+        hasOverride = true;
+
+        // If not blocked, show the override hours
+        if (!blocked) {
+          final start = dayOverride['startTime']?.toString() ?? '';
+          final end = dayOverride['endTime']?.toString() ?? '';
+          if (start.isNotEmpty && end.isNotEmpty) {
+            daySlots = [{'startTime': start, 'endTime': end}];
+          }
+        }
+      } else {
+        hasOverride = false;
+        blocked = false;
+
+        // FIX: use defaultWorkingHours from backend response
+        final defaultHours = response['defaultWorkingHours'];
+        if (defaultHours != null && defaultHours is Map) {
+          final start = defaultHours['startTime']?.toString() ?? '';
+          final end = defaultHours['endTime']?.toString() ?? '';
+          if (start.isNotEmpty && end.isNotEmpty) {
+            daySlots = [{'startTime': start, 'endTime': end}];
+          }
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (blocked) {
+          _blockedDates.add(dateKey);
+        } else {
+          _blockedDates.remove(dateKey);
+        }
+      });
+    } catch (_) {
+      // silently fall back to local state
+    }
+
+    if (!mounted) return;
+
+    // Capture navigator and messenger BEFORE sheet opens (safe after async)
+    final nav = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     await showModalBottomSheet(
       context: context,
@@ -81,33 +174,107 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       builder: (ctx) => _ManageDaySheet(
         date: date,
         slots: slots,
-        isBlocked: isBlocked,
-        onBlock: () {
-          setState(() => _blockedDates.add(dateKey));
-          Navigator.pop(ctx);
-        },
-        onUnblock: () {
-          setState(() => _blockedDates.remove(dateKey));
-          Navigator.pop(ctx);
-        },
-        onOverrideHours: (start, end) {
-          // TODO(Abeer): persist date-specific override to backend.
-          // ApiService.setDateOverride(date: date, start: start, end: end);
-          Navigator.pop(ctx);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Working hours overridden: $start – $end for this date',
+        apiDaySlots: daySlots,
+        hasOverride: hasOverride,
+        isBlocked: blocked,
+        onBlock: () async {
+          try {
+            await ApiService.blockDayAvailability(date: dateKey);
+            nav.pop();
+            if (!mounted) return;
+            setState(() => _blockedDates.add(dateKey));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Day blocked successfully')),
+            );
+          } catch (e) {
+            nav.pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', '')),
               ),
-            ),
-          );
+            );
+          }
+        },
+        onUnblock: () async {
+          try {
+            await ApiService.unblockDayAvailability(date: dateKey);
+            nav.pop();
+            if (!mounted) return;
+            setState(() => _blockedDates.remove(dateKey));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Day unblocked successfully')),
+            );
+          } catch (e) {
+            nav.pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', '')),
+              ),
+            );
+          }
+        },
+        onOverrideHours: (start, end) async {
+          try {
+            await ApiService.overrideDayAvailability(
+              date: dateKey,
+              startTime: start,
+              endTime: end,
+            );
+            nav.pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('Working hours overridden: $start - $end'),
+              ),
+            );
+          } catch (e) {
+            nav.pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', '')),
+              ),
+            );
+          }
         },
       ),
     );
   }
 
-  void _disableSlot(String day, int index) {
-    setState(() => _weeklySlots[day]?.removeAt(index));
+  Future<void> _disableSlot(String day, int index) async {
+    final slot = _weeklySlots[day]?[index];
+    if (slot == null || slot.id == null) return;
+
+    try {
+      await ApiService.deleteWeeklyAvailability(slot.id!);
+      await _loadAvailability();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Slot deleted successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
+
+  Future<void> _toggleSlot(String day, int index) async {
+    final slot = _weeklySlots[day]?[index];
+    if (slot == null || slot.id == null) return;
+
+    try {
+      await ApiService.toggleWeeklyAvailability(slot.id!);
+      await _loadAvailability();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Slot status updated')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   String _dateKey(DateTime d) =>
@@ -115,145 +282,174 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 
   String _weekdayName(int weekday) {
     const names = [
-      '',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      '', 'Monday', 'Tuesday', 'Wednesday',
+      'Thursday', 'Friday', 'Saturday', 'Sunday',
     ];
     return names[weekday];
   }
 
   @override
   Widget build(BuildContext context) {
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
+    final daysWithSlots = _weeklySlots.keys.toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Manage Availability',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2433),
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Tap any date to manage or block it',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 14),
-              _CalendarCard(
-                selectedDate: _selectedDate,
-                blockedDates: _blockedDates,
-                onDateTapped: (date) {
-                  setState(() => _selectedDate = date);
-                  _openManageDaySheet(date);
-                },
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x12000000),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(
-                      child: Text(
-                        'Weekly Schedule',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: Color(0xFF1D2433),
-                        ),
+                    const Text(
+                      'Manage Availability',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1D2433),
                       ),
                     ),
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Tap any date to manage or block it',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
                       ),
-                      onPressed: _openAddTimeSlotSheet,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add Time Slot'),
+                    ),
+                    const SizedBox(height: 14),
+                    _CalendarCard(
+                      selectedDate: _selectedDate,
+                      blockedDates: _blockedDates,
+                      onDateTapped: (date) {
+                        setState(() => _selectedDate = date);
+                        _openManageDaySheet(date);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x12000000),
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Weekly Schedule',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: Color(0xFF1D2433),
+                              ),
+                            ),
+                          ),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _isSaving ? null : _openAddTimeSlotSheet,
+                            icon: _isSaving
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.add, size: 18),
+                            label: const Text('Add Time Slot'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (daysWithSlots.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                size: 52,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No schedule set yet',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tap "Add Time Slot" to set your working hours',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade400,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ...daysWithSlots.map((day) {
+                        final daySlots =
+                            _weeklySlots[day] ?? const <_TimeSlot>[];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _DayScheduleCard(
+                            day: day,
+                            slots: daySlots,
+                            onDisable: (index) => _disableSlot(day, index),
+                            onToggle: (index) => _toggleSlot(day, index),
+                          ),
+                        );
+                      }),
+                    const SizedBox(height: 6),
+                    _QuickSettingsCard(
+                      onCopyWeekdays: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Quick settings are UI-only for now')),
+                        );
+                      },
+                      onSetWeekend: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Quick settings are UI-only for now')),
+                        );
+                      },
+                      onBlockDays: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Use the calendar to block specific days')),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-              ...days.map((day) {
-                final daySlots = _weeklySlots[day] ?? const <_TimeSlot>[];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _DayScheduleCard(
-                    day: day,
-                    slots: daySlots,
-                    onDisable: (index) => _disableSlot(day, index),
-                  ),
-                );
-              }),
-              const SizedBox(height: 6),
-              _QuickSettingsCard(
-                onCopyWeekdays: () {
-                  setState(() {
-                    const t = _TimeSlot(start: '08:00', end: '16:00');
-                    _weeklySlots['Monday'] = [t];
-                    _weeklySlots['Tuesday'] = [t];
-                    _weeklySlots['Wednesday'] = [t];
-                    _weeklySlots['Thursday'] = [t];
-                    _weeklySlots['Friday'] = [t];
-                  });
-                },
-                onSetWeekend: () {
-                  setState(() {
-                    const t = _TimeSlot(start: '10:00', end: '14:00');
-                    _weeklySlots['Saturday'] = [t];
-                    _weeklySlots['Sunday'] = [t];
-                  });
-                },
-                onBlockDays: () {
-                  setState(() {
-                    _weeklySlots['Friday'] = [];
-                    _weeklySlots['Saturday'] = [];
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -264,17 +460,15 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
+                  borderRadius: BorderRadius.circular(14)),
             ),
             icon: const Icon(Icons.save_outlined, color: Colors.white),
             label: const Text(
               'Save Availability',
               style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-              ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16),
             ),
           ),
         ),
@@ -283,7 +477,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   }
 }
 
-// ─── Improved Calendar Card ───────────────────────────────────────────────────
+// =========================
+// Calendar Card
+// =========================
 
 class _CalendarCard extends StatefulWidget {
   final DateTime selectedDate;
@@ -306,15 +502,18 @@ class _CalendarCardState extends State<_CalendarCard> {
   @override
   void initState() {
     super.initState();
-    _displayMonth = DateTime(widget.selectedDate.year, widget.selectedDate.month);
+    _displayMonth =
+        DateTime(widget.selectedDate.year, widget.selectedDate.month);
   }
 
   void _prevMonth() => setState(() {
-        _displayMonth = DateTime(_displayMonth.year, _displayMonth.month - 1);
+        _displayMonth =
+            DateTime(_displayMonth.year, _displayMonth.month - 1);
       });
 
   void _nextMonth() => setState(() {
-        _displayMonth = DateTime(_displayMonth.year, _displayMonth.month + 1);
+        _displayMonth =
+            DateTime(_displayMonth.year, _displayMonth.month + 1);
       });
 
   @override
@@ -323,15 +522,14 @@ class _CalendarCardState extends State<_CalendarCard> {
     final month = _displayMonth.month;
     final daysInMonth = DateUtils.getDaysInMonth(year, month);
     final today = DateTime.now();
-
-    // Flutter weekday: Mon=1 … Sun=7. Convert to Sunday-first offset (Sun=0 … Sat=6)
-    final rawWeekday = DateTime(year, month, 1).weekday; // 1-7
-    final startOffset = rawWeekday % 7; // Mon→1, Tue→2, … Sat→6, Sun→0
+    final firstWeekday = DateTime(year, month, 1).weekday;
+    final startOffset = firstWeekday % 7;
 
     final dayCells = <Widget>[];
     for (int i = 0; i < startOffset; i++) {
       dayCells.add(const SizedBox.shrink());
     }
+
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(year, month, day);
       final isSelected = date.year == widget.selectedDate.year &&
@@ -368,8 +566,9 @@ class _CalendarCardState extends State<_CalendarCard> {
                 fontWeight:
                     isSelected || isToday ? FontWeight.w900 : FontWeight.w600,
                 fontSize: 13,
-                decoration:
-                    isBlocked ? TextDecoration.lineThrough : TextDecoration.none,
+                decoration: isBlocked
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
               ),
             ),
           ),
@@ -385,10 +584,7 @@ class _CalendarCardState extends State<_CalendarCard> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
+              color: Color(0x12000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -399,10 +595,9 @@ class _CalendarCardState extends State<_CalendarCard> {
               Text(
                 '${_monthName(month)} $year',
                 style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2433),
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1D2433)),
               ),
               const Spacer(),
               _NavButton(icon: Icons.chevron_left, onTap: _prevMonth),
@@ -414,13 +609,8 @@ class _CalendarCardState extends State<_CalendarCard> {
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _WeekLabel('S'),
-              _WeekLabel('M'),
-              _WeekLabel('T'),
-              _WeekLabel('W'),
-              _WeekLabel('T'),
-              _WeekLabel('F'),
-              _WeekLabel('S'),
+              _WeekLabel('S'), _WeekLabel('M'), _WeekLabel('T'),
+              _WeekLabel('W'), _WeekLabel('T'), _WeekLabel('F'), _WeekLabel('S'),
             ],
           ),
           const SizedBox(height: 6),
@@ -438,19 +628,8 @@ class _CalendarCardState extends State<_CalendarCard> {
 
   String _monthName(int m) {
     const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      '', 'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return months[m];
   }
@@ -459,7 +638,6 @@ class _CalendarCardState extends State<_CalendarCard> {
 class _NavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-
   const _NavButton({required this.icon, required this.onTap});
 
   @override
@@ -468,13 +646,11 @@ class _NavButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 32,
-        height: 32,
+        width: 32, height: 32,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(8),
-        ),
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 20, color: const Color(0xFF374151)),
       ),
     );
@@ -483,49 +659,43 @@ class _NavButton extends StatelessWidget {
 
 class _WeekLabel extends StatelessWidget {
   final String text;
-
   const _WeekLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 32,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Color(0xFF9CA3AF),
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
+      child: Text(text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w700,
+              fontSize: 12)),
     );
   }
 }
 
-// ─── Manage Day Bottom Sheet ──────────────────────────────────────────────────
+// =========================
+// Manage Day Sheet
+// =========================
 
 enum _SheetMode { normal, override, block }
 
 class _ManageDaySheet extends StatefulWidget {
   final DateTime date;
   final List<_TimeSlot> slots;
+  final List<Map<String, String>> apiDaySlots;
+  final bool hasOverride;
   final bool isBlocked;
   final VoidCallback onBlock;
   final VoidCallback onUnblock;
   final void Function(String start, String end) onOverrideHours;
 
-  // TODO(Abeer): replace mockAppointments with real data from the API.
-  // Call: ApiService.getAppointmentsForDate(date: date)
-  // Expected response: List<Map> with keys: 'time', 'service', 'patient'
-  static const List<Map<String, String>> mockAppointments = [
-    {'time': '10:00 AM', 'service': 'IV Therapy', 'patient': 'Ahmad M.'},
-    {'time': '02:00 PM', 'service': 'Wound Care', 'patient': 'Layla K.'},
-  ];
-
   const _ManageDaySheet({
     required this.date,
     required this.slots,
+    required this.apiDaySlots,
+    required this.hasOverride,
     required this.isBlocked,
     required this.onBlock,
     required this.onUnblock,
@@ -542,31 +712,8 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
   TimeOfDay _overrideEnd = const TimeOfDay(hour: 16, minute: 0);
 
   static String _formatDate(DateTime d) {
-    const weekdays = [
-      '',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+    const weekdays = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     return '${weekdays[d.weekday]}, ${months[d.month]} ${d.day}, ${d.year}';
   }
 
@@ -575,102 +722,75 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
 
   Future<void> _pickStart() async {
     final p = await showTimePicker(context: context, initialTime: _overrideStart);
-    if (p != null) setState(() => _overrideStart = p);
+    if (p != null && mounted) setState(() => _overrideStart = p);
   }
 
   Future<void> _pickEnd() async {
     final p = await showTimePicker(context: context, initialTime: _overrideEnd);
-    if (p != null) setState(() => _overrideEnd = p);
+    if (p != null && mounted) setState(() => _overrideEnd = p);
   }
 
   @override
   Widget build(BuildContext context) {
-    final defaultHours = widget.slots.isNotEmpty
+    final fallbackHours = widget.slots.isNotEmpty
         ? '${widget.slots.first.start} - ${widget.slots.first.end}'
         : null;
+    final apiHours = widget.apiDaySlots.isNotEmpty
+        ? widget.apiDaySlots.map((e) => '${e['startTime']} - ${e['endTime']}').join('\n')
+        : null;
+    final defaultHours = apiHours ?? fallbackHours;
     final dateStr = _formatDate(widget.date);
-    final apptCount = _ManageDaySheet.mockAppointments.length;
 
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        18,
-        20,
-        MediaQuery.of(context).viewInsets.bottom + 28,
-      ),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 28),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag handle
             Center(
               child: Container(
-                width: 36,
-                height: 4,
+                width: 36, height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(99),
-                ),
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(99)),
               ),
             ),
-
-            // Title row
             Row(
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 42, height: 42,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.calendar_today_outlined,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.calendar_today_outlined,
+                      color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Manage Day',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
-                          color: Color(0xFF1D2433),
-                        ),
-                      ),
-                      Text(
-                        dateStr,
-                        style: const TextStyle(
-                          color: Color(0xFF6B7280),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
+                      const Text('Manage Day',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1D2433))),
+                      Text(dateStr,
+                          style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600, fontSize: 13)),
                     ],
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Color(0xFF374151)),
-                ),
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Color(0xFF374151))),
               ],
             ),
             const SizedBox(height: 16),
             const Divider(height: 1, color: Color(0xFFEEF0F3)),
             const SizedBox(height: 16),
-
-            // Default working hours card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -682,103 +802,40 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.access_time_outlined, color: AppColors.primary, size: 15),
-                      SizedBox(width: 6),
-                      Text(
-                        'Default Working Hours',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: const [
+                    Icon(Icons.access_time_outlined, color: AppColors.primary, size: 15),
+                    SizedBox(width: 6),
+                    Text('Working Hours', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
+                  ]),
                   const SizedBox(height: 6),
                   Text(
                     defaultHours ?? 'No scheduled hours for this day',
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: defaultHours != null ? 22 : 14,
-                      color: const Color(0xFF1D2433),
-                    ),
+                        fontWeight: FontWeight.w900,
+                        fontSize: defaultHours != null ? 20 : 14,
+                        color: const Color(0xFF1D2433)),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'From your weekly schedule',
+                  Text(
+                    widget.isBlocked
+                        ? '🔴 This day is blocked'
+                        : widget.hasOverride
+                            ? 'Custom override applied'
+                            : 'From your weekly schedule',
                     style: TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                        color: widget.isBlocked
+                            ? const Color(0xFFDC2626)
+                            : const Color(0xFF6B7280),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-
-            // Booked appointments
-            Row(
-              children: [
-                const Icon(Icons.remove_red_eye_outlined, color: Color(0xFF374151), size: 17),
-                const SizedBox(width: 6),
-                Text(
-                  'Booked Appointments ($apptCount)',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                    color: Color(0xFF1D2433),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ..._ManageDaySheet.mockAppointments.map(
-              (appt) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            appt['time']!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF374151),
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            appt['service']!,
-                            style: const TextStyle(
-                              color: Color(0xFF6B7280),
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      appt['patient']!,
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
             const Divider(height: 1, color: Color(0xFFEEF0F3)),
             const SizedBox(height: 12),
 
-            // ── Normal mode: action tiles ────────────────────────────────────
             if (_mode == _SheetMode.normal) ...[
               _ActionTile(
                 icon: Icons.edit_outlined,
@@ -790,9 +847,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               const SizedBox(height: 8),
               _ActionTile(
                 icon: widget.isBlocked ? Icons.check_circle_outline : Icons.block,
-                iconColor: widget.isBlocked
-                    ? const Color(0xFF059669)
-                    : const Color(0xFFDC2626),
+                iconColor: widget.isBlocked ? const Color(0xFF059669) : const Color(0xFFDC2626),
                 label: widget.isBlocked ? 'Unblock This Day' : 'Block This Day',
                 subtitle: widget.isBlocked
                     ? 'Make this day available again'
@@ -803,181 +858,100 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               ),
             ],
 
-            // ── Override mode: inline time pickers ───────────────────────────
             if (_mode == _SheetMode.override) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F4F7),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFBFDFE8)),
-                ),
+                    color: const Color(0xFFE6F4F7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBFDFE8))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Set custom working hours for $dateStr',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
+                    Text('Set custom hours for $dateStr',
+                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 14),
-                    const Text(
-                      'Start Time',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                    ),
+                    const Text('Start Time', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 6),
-                    _TimePickerField(
-                      value: _overrideStart.format(context),
-                      onTap: _pickStart,
-                    ),
+                    _TimePickerField(value: _overrideStart.format(context), onTap: _pickStart),
                     const SizedBox(height: 12),
-                    const Text(
-                      'End Time',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                    ),
+                    const Text('End Time', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 6),
-                    _TimePickerField(
-                      value: _overrideEnd.format(context),
-                      onTap: _pickEnd,
-                    ),
+                    _TimePickerField(value: _overrideEnd.format(context), onTap: _pickEnd),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setState(() => _mode = _SheetMode.normal),
-                      style: OutlinedButton.styleFrom(
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => setState(() => _mode = _SheetMode.normal),
+                    style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151)),
-                      ),
-                    ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => widget.onOverrideHours(
-                        _time24(_overrideStart),
-                        _time24(_overrideEnd),
-                      ),
-                      style: ElevatedButton.styleFrom(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => widget.onOverrideHours(_time24(_overrideStart), _time24(_overrideEnd)),
+                    style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Save Override',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-                      ),
-                    ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
+                    child: const Text('Save Override', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                   ),
-                ],
-              ),
+                ),
+              ]),
             ],
 
-            // ── Block mode: confirmation ─────────────────────────────────────
             if (_mode == _SheetMode.block) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFFECACA)),
-                ),
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFECACA))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Block $dateStr?',
-                      style: const TextStyle(
-                        color: Color(0xFFDC2626),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                    ),
+                    Text('Block $dateStr?',
+                        style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 15)),
                     const SizedBox(height: 6),
                     const Text(
-                      'This day will be marked as unavailable. Patients will not be able to book appointments.',
-                      style: TextStyle(
-                        color: Color(0xFF991B1B),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('⚠️ ', style: TextStyle(fontSize: 13)),
-                        Expanded(
-                          child: Text(
-                            'This will cancel $apptCount existing appointment(s)!',
-                            style: const TextStyle(
-                              color: Color(0xFF991B1B),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                        'This day will be marked as unavailable. Patients will not be able to book appointments.',
+                        style: TextStyle(color: Color(0xFF991B1B), fontSize: 13, fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setState(() => _mode = _SheetMode.normal),
-                      style: OutlinedButton.styleFrom(
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => setState(() => _mode = _SheetMode.normal),
+                    style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151)),
-                      ),
-                    ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: widget.onBlock,
-                      style: ElevatedButton.styleFrom(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: widget.onBlock,
+                    style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDC2626),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Block Day',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-                      ),
-                    ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
+                    child: const Text('Block Day', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                   ),
-                ],
-              ),
+                ),
+              ]),
             ],
           ],
         ),
@@ -989,7 +963,6 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
 class _TimePickerField extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
-
   const _TimePickerField({required this.value, required this.onTap});
 
   @override
@@ -1001,24 +974,14 @@ class _TimePickerField extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFDCE3ED)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.access_time, color: Color(0xFF94A3B8), size: 18),
-            const SizedBox(width: 10),
-            Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF334155),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFDCE3ED))),
+        child: Row(children: [
+          const Icon(Icons.access_time, color: Color(0xFF94A3B8), size: 18),
+          const SizedBox(width: 10),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF334155), fontSize: 14)),
+        ]),
       ),
     );
   }
@@ -1032,11 +995,8 @@ class _ActionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ActionTile({
-    required this.icon,
-    required this.iconColor,
-    required this.label,
-    required this.subtitle,
-    required this.onTap,
+    required this.icon, required this.iconColor,
+    required this.label, required this.subtitle, required this.onTap,
   });
 
   @override
@@ -1047,56 +1007,34 @@ class _ActionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: iconColor, size: 22),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
-                      color: Color(0xFF1D2433),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE5E7EB))),
+        child: Row(children: [
+          Icon(icon, color: iconColor, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF1D2433))),
+              const SizedBox(height: 2),
+              Text(subtitle, style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12.5, fontWeight: FontWeight.w500)),
+            ]),
+          ),
+        ]),
       ),
     );
   }
 }
 
-// ─── Day Schedule Card ────────────────────────────────────────────────────────
-
 class _DayScheduleCard extends StatelessWidget {
   final String day;
   final List<_TimeSlot> slots;
   final ValueChanged<int> onDisable;
+  final ValueChanged<int> onToggle;
 
   const _DayScheduleCard({
-    required this.day,
-    required this.slots,
-    required this.onDisable,
+    required this.day, required this.slots,
+    required this.onDisable, required this.onToggle,
   });
 
   @override
@@ -1105,103 +1043,68 @@ class _DayScheduleCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                day,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2433),
-                ),
-              ),
-              const Spacer(),
-              if (slots.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    '${slots.length} slot${slots.length == 1 ? '' : 's'}',
-                    style: const TextStyle(
-                      color: Color(0xFF059669),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 11.5,
+          Row(children: [
+            Text(day, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(99)),
+              child: Text('${slots.length} slot${slots.length == 1 ? '' : 's'}',
+                  style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.w800, fontSize: 11.5)),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          ...slots.asMap().entries.map((entry) {
+            final index = entry.key;
+            final slot = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(12)),
+                child: Row(children: [
+                  Icon(slot.isActive ? Icons.access_time : Icons.block,
+                      size: 16, color: slot.isActive ? AppColors.primary : const Color(0xFF9CA3AF)),
+                  const SizedBox(width: 6),
+                  Text('${slot.start} - ${slot.end}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: slot.isActive ? const Color(0xFF374151) : const Color(0xFF9CA3AF),
+                          decoration: slot.isActive ? TextDecoration.none : TextDecoration.lineThrough)),
+                  const Spacer(),
+                  Tooltip(
+                    message: slot.isActive ? 'Deactivate slot' : 'Activate slot',
+                    child: IconButton(
+                      onPressed: () => onToggle(index),
+                      icon: Icon(slot.isActive ? Icons.visibility : Icons.visibility_off,
+                          color: slot.isActive ? const Color(0xFF059669) : const Color(0xFF9CA3AF)),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (slots.isEmpty)
-            const Text(
-              'No time slots set for this day',
-              style: TextStyle(
-                color: Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+                  TextButton.icon(
+                    onPressed: () => onDisable(index),
+                    icon: const Icon(Icons.delete_outline, size: 15),
+                    label: const Text('Delete'),
+                    style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFDC2626),
+                        visualDensity: VisualDensity.compact),
+                  ),
+                ]),
               ),
-            )
-          else
-            ...slots.asMap().entries.map((entry) {
-              final index = entry.key;
-              final slot = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${slot.start} - ${slot.end}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF374151),
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: () => onDisable(index),
-                        icon: const Icon(Icons.block, size: 15),
-                        label: const Text('Disable'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFDC2626),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+            );
+          }),
         ],
       ),
     );
   }
 }
-
-// ─── Quick Settings ───────────────────────────────────────────────────────────
 
 class _QuickSettingsCard extends StatelessWidget {
   final VoidCallback onCopyWeekdays;
@@ -1209,9 +1112,7 @@ class _QuickSettingsCard extends StatelessWidget {
   final VoidCallback onBlockDays;
 
   const _QuickSettingsCard({
-    required this.onCopyWeekdays,
-    required this.onSetWeekend,
-    required this.onBlockDays,
+    required this.onCopyWeekdays, required this.onSetWeekend, required this.onBlockDays,
   });
 
   @override
@@ -1219,39 +1120,17 @@ class _QuickSettingsCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Quick Settings',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 15,
-            ),
-          ),
+          const Text('Quick Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
           const SizedBox(height: 10),
-          _QuickSettingButton(
-            label: 'Copy to All Weekdays',
-            subtitle: 'Apply Monday schedule to Tue–Fri',
-            onTap: onCopyWeekdays,
-          ),
+          _QuickSettingButton(label: 'Copy to All Weekdays', subtitle: 'Apply Monday schedule to Tue-Fri', onTap: onCopyWeekdays),
           const SizedBox(height: 8),
-          _QuickSettingButton(
-            label: 'Set Weekend Availability',
-            subtitle: 'Configure Saturday & Sunday hours',
-            onTap: onSetWeekend,
-          ),
+          _QuickSettingButton(label: 'Set Weekend Availability', subtitle: 'Configure Saturday & Sunday hours', onTap: onSetWeekend),
           const SizedBox(height: 8),
-          _QuickSettingButton(
-            label: 'Block Specific Days',
-            subtitle: 'Mark days when you\'re unavailable',
-            onTap: onBlockDays,
-          ),
+          _QuickSettingButton(label: 'Block Specific Days', subtitle: "Mark days when you're unavailable", onTap: onBlockDays),
         ],
       ),
     );
@@ -1262,12 +1141,7 @@ class _QuickSettingButton extends StatelessWidget {
   final String label;
   final String subtitle;
   final VoidCallback onTap;
-
-  const _QuickSettingButton({
-    required this.label,
-    required this.subtitle,
-    required this.onTap,
-  });
+  const _QuickSettingButton({required this.label, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1278,41 +1152,20 @@ class _QuickSettingButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.86),
-                fontWeight: FontWeight.w500,
-                fontSize: 11.5,
-              ),
-            ),
-          ],
-        ),
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(12)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
+          const SizedBox(height: 3),
+          Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.86), fontWeight: FontWeight.w500, fontSize: 11.5)),
+        ]),
       ),
     );
   }
 }
 
-// ─── Add Time Slot Sheet ──────────────────────────────────────────────────────
-
 class _AddTimeSlotSheet extends StatefulWidget {
   const _AddTimeSlotSheet();
-
   @override
   State<_AddTimeSlotSheet> createState() => _AddTimeSlotSheetState();
 }
@@ -1323,14 +1176,13 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
   TimeOfDay endTime = const TimeOfDay(hour: 16, minute: 0);
 
   Future<void> _pickStartTime() async {
-    final picked =
-        await showTimePicker(context: context, initialTime: startTime);
-    if (picked != null) setState(() => startTime = picked);
+    final picked = await showTimePicker(context: context, initialTime: startTime);
+    if (picked != null && mounted) setState(() => startTime = picked);
   }
 
   Future<void> _pickEndTime() async {
     final picked = await showTimePicker(context: context, initialTime: endTime);
-    if (picked != null) setState(() => endTime = picked);
+    if (picked != null && mounted) setState(() => endTime = picked);
   }
 
   String _time24(TimeOfDay t) =>
@@ -1338,210 +1190,97 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-
-    final durationMinutes = (endTime.hour * 60 + endTime.minute) -
-        (startTime.hour * 60 + startTime.minute);
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final durationMinutes = (endTime.hour * 60 + endTime.minute) - (startTime.hour * 60 + startTime.minute);
     final validDuration = durationMinutes > 0;
-    final summaryDuration =
-        validDuration ? '${durationMinutes ~/ 60} hours' : 'Invalid range';
+    final summaryDuration = validDuration ? '${durationMinutes ~/ 60}h ${durationMinutes % 60}m' : 'Invalid range';
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        18,
-        20,
-        MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
+          color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                const Icon(
-                  Icons.access_time_rounded,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Add Working Hours',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const Text(
-              'Set your weekly schedule',
-              style: TextStyle(
-                color: Color(0xFF6B7280),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Center(child: Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(99)))),
+            Row(children: [
+              const Icon(Icons.access_time_rounded, color: AppColors.primary),
+              const SizedBox(width: 10),
+              const Expanded(child: Text('Add Working Hours',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1F2937)))),
+              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+            ]),
+            const Text('Set your weekly schedule',
+                style: TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
             const SizedBox(height: 18),
-            const Text(
-              'Select Day *',
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
+            const Text('Select Day *', style: TextStyle(fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 8, runSpacing: 8,
               children: days.map((day) {
                 final isSelected = selectedDay == day;
                 return ChoiceChip(
-                  label: Text(day),
-                  selected: isSelected,
+                  label: Text(day), selected: isSelected,
                   onSelected: (_) => setState(() => selectedDay = day),
                   selectedColor: AppColors.primary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF4B5563),
-                    fontWeight: FontWeight.w700,
-                  ),
+                      color: isSelected ? Colors.white : const Color(0xFF4B5563),
+                      fontWeight: FontWeight.w700),
                   backgroundColor: const Color(0xFFF8FAFC),
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
                 );
               }).toList(),
             ),
             const SizedBox(height: 16),
-            _TimeField(
-              label: 'Start Time *',
-              value: startTime.format(context),
-              onTap: _pickStartTime,
-            ),
+            _TimeField(label: 'Start Time *', value: startTime.format(context), onTap: _pickStartTime),
             const SizedBox(height: 12),
-            _TimeField(
-              label: 'End Time *',
-              value: endTime.format(context),
-              onTap: _pickEndTime,
-            ),
+            _TimeField(label: 'End Time *', value: endTime.format(context), onTap: _pickEndTime),
             const SizedBox(height: 14),
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6F4F7),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFBFE5EA)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        color: AppColors.primary,
-                        size: 16,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Summary',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _SummaryRow(label: 'Day:', value: selectedDay),
-                  _SummaryRow(
-                    label: 'Hours:',
-                    value:
-                        '${startTime.format(context)} - ${endTime.format(context)}',
-                  ),
-                  _SummaryRow(label: 'Duration:', value: summaryDuration),
-                ],
-              ),
+              width: double.infinity, padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFFE6F4F7), borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFBFE5EA))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Row(children: [
+                  Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 16),
+                  SizedBox(width: 6),
+                  Text('Summary', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F2937))),
+                ]),
+                const SizedBox(height: 8),
+                _SummaryRow(label: 'Day:', value: selectedDay),
+                _SummaryRow(label: 'Hours:', value: '${startTime.format(context)} - ${endTime.format(context)}'),
+                _SummaryRow(label: 'Duration:', value: summaryDuration),
+              ]),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFDE68A)),
-              ),
+              decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFDE68A))),
               child: const Text(
                 'Note: The system will automatically generate available booking slots based on your working hours and service durations.',
-                style: TextStyle(
-                  color: Color(0xFF92400E),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: Color(0xFF92400E), fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 16),
             SizedBox(
-              width: double.infinity,
-              height: 50,
+              width: double.infinity, height: 50,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 onPressed: () {
                   if (!validDuration) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('End time must be after start time'),
-                      ),
-                    );
+                        const SnackBar(content: Text('End time must be after start time')));
                     return;
                   }
-                  Navigator.pop(
-                    context,
-                    _AddSlotResult(
-                      day: selectedDay,
-                      start: _time24(startTime),
-                      end: _time24(endTime),
-                    ),
-                  );
+                  Navigator.pop(context, _AddSlotResult(day: selectedDay, start: _time24(startTime), end: _time24(endTime)));
                 },
-                child: const Text(
-                  'Add Working Hours',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
-                ),
+                child: const Text('Add Working Hours',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
               ),
             ),
           ],
@@ -1554,7 +1293,6 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
 class _SummaryRow extends StatelessWidget {
   final String label;
   final String value;
-
   const _SummaryRow({required this.label, required this.value});
 
   @override
@@ -1564,22 +1302,8 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF1D2433),
-              fontWeight: FontWeight.w800,
-              fontSize: 13,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600, fontSize: 13)),
+          Text(value, style: const TextStyle(color: Color(0xFF1D2433), fontWeight: FontWeight.w800, fontSize: 13)),
         ],
       ),
     );
@@ -1590,12 +1314,7 @@ class _TimeField extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
-
-  const _TimeField({
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
+  const _TimeField({required this.label, required this.value, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1610,24 +1329,13 @@ class _TimeField extends StatelessWidget {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFDCE3ED)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.access_time, color: Color(0xFF94A3B8)),
-                const SizedBox(width: 10),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF334155),
-                  ),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDCE3ED))),
+            child: Row(children: [
+              const Icon(Icons.access_time, color: Color(0xFF94A3B8)),
+              const SizedBox(width: 10),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF334155))),
+            ]),
           ),
         ),
       ],
@@ -1635,19 +1343,18 @@ class _TimeField extends StatelessWidget {
   }
 }
 
-// ─── Models ───────────────────────────────────────────────────────────────────
-
 class _TimeSlot {
+  final int? id;
   final String start;
   final String end;
+  final bool isActive;
 
-  const _TimeSlot({required this.start, required this.end});
+  const _TimeSlot({this.id, required this.start, required this.end, this.isActive = true});
 }
 
 class _AddSlotResult {
   final String day;
   final String start;
   final String end;
-
   const _AddSlotResult({required this.day, required this.start, required this.end});
 }
