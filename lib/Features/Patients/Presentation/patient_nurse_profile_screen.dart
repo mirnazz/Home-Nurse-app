@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_request_service_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
 
 class PatientNurseProfileData {
   final String nurseId;
@@ -367,7 +370,53 @@ class PatientNurseProfileScreen extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO(Abeer): Navigate to booking flow with selected nurse profile.
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => PatientRequestServiceScreen(
+                        nurseId: profile.nurseId,
+                        nurseName: profile.fullName,
+                        nurseSubtitle: profile.headline,
+                        nurseInitials: initials,
+                        // Temporary test payload until API integration is ready.
+                        serviceOptions: const [
+                          PatientServiceOption(
+                            id: 'service_1',
+                            title: 'IV Therapy',
+                            durationLabel: 'Duration: 60 min',
+                            priceJod: 50,
+                          ),
+                          PatientServiceOption(
+                            id: 'service_2',
+                            title: 'Wound Care & Dressing',
+                            durationLabel: 'Duration: 45 min',
+                            priceJod: 30,
+                          ),
+                          PatientServiceOption(
+                            id: 'service_3',
+                            title: 'Post-Surgery Care',
+                            durationLabel: 'Duration: 90 min',
+                            priceJod: 45,
+                          ),
+                          PatientServiceOption(
+                            id: 'service_4',
+                            title: 'Medication Management',
+                            durationLabel: 'Duration: 30 min',
+                            priceJod: 25,
+                          ),
+                        ],
+                        availableTimeSlots: const [
+                          '09:00',
+                          '10:00',
+                          '11:00',
+                          '12:00',
+                          '14:00',
+                          '15:00',
+                          '16:00',
+                          '17:00',
+                        ],
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2F7F8D),
@@ -394,55 +443,14 @@ class PatientNurseProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x14000000),
-                  blurRadius: 14,
-                  offset: Offset(0, -8),
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              currentIndex: 1,
-              onTap: (index) {
-                if (index == 1) return;
-                if (index == 0) {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                }
-              },
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.white,
-              selectedItemColor: primary,
-              unselectedItemColor: const Color(0xFF9CA3AF),
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-              elevation: 0,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.group_outlined),
-                  label: 'Nurses',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_month_outlined),
-                  label: 'Appointments',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.payments_outlined),
-                  label: 'Payments',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.menu_rounded),
-                  label: 'More',
-                ),
-              ],
-            ),
+          PatientBottomNavBar(
+            currentIndex: 1,
+            onTap: (index) {
+              if (index == 1) return;
+              if (index == 0) {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+            },
           ),
         ],
       ),
