@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
 class PatientHomeScreen extends StatefulWidget {
-  const PatientHomeScreen({super.key});
+  final List<PatientPendingReviewItem> pendingReviewRequests;
+  final Future<List<PatientPendingReviewItem>> Function()? onFetchPendingReviewRequests;
+  final Future<void> Function(PatientRatingSubmissionDraft draft)? onSubmitReview;
+
+  const PatientHomeScreen({
+    super.key,
+    this.pendingReviewRequests = const [],
+    this.onFetchPendingReviewRequests,
+    this.onSubmitReview,
+  });
 
   @override
   State<PatientHomeScreen> createState() => _PatientHomeScreenState();
@@ -11,6 +22,68 @@ class PatientHomeScreen extends StatefulWidget {
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int currentTab = 0;
+  bool _isLoadingPendingReviews = false;
+  late List<PatientPendingReviewItem> _pendingReviewRequests;
+
+  @override
+  void initState() {
+    super.initState();
+    _pendingReviewRequests = widget.pendingReviewRequests.isNotEmpty
+        ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
+        : List<PatientPendingReviewItem>.from(_previewPendingReviewRequests);
+    _fetchPendingReviews();
+  }
+
+  Future<void> _fetchPendingReviews() async {
+    final fetcher = widget.onFetchPendingReviewRequests;
+    if (fetcher == null) return;
+
+    setState(() => _isLoadingPendingReviews = true);
+    try {
+      final requests = await fetcher();
+      if (!mounted) return;
+      setState(() => _pendingReviewRequests = requests);
+    } catch (_) {
+      // TODO(Abeer): handle backend fetch errors using app-level error strategy.
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPendingReviews = false);
+      }
+    }
+  }
+
+  Future<void> _openReviewBottomSheet(PatientPendingReviewItem request) async {
+    final draft = await showModalBottomSheet<PatientRatingSubmissionDraft>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PatientReviewBottomSheet(request: request),
+    );
+
+    if (draft == null || !mounted) return;
+
+    try {
+      final submitter = widget.onSubmitReview;
+      if (submitter != null) {
+        await submitter(draft);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _pendingReviewRequests.removeWhere((item) => item.requestId == request.requestId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thanks! Your review was submitted.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Review submission failed: $e')),
+      );
+    }
+  }
 
   Future<void> _logout() async {
     try {
@@ -35,36 +108,52 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           children: [
             _HomeHeader(onLogout: _logout),
             const SizedBox(height: 14),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _RateExperienceCard(),
-                  SizedBox(height: 18),
-                  _SectionTitle(title: "Quick Services"),
-                  SizedBox(height: 12),
-                  _QuickServicesRow(),
-                  SizedBox(height: 16),
-                  _StatsRow(),
-                  SizedBox(height: 18),
-                  _SectionTitleWithAction(
+                  if (_isLoadingPendingReviews) ...[
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                  ] else if (_pendingReviewRequests.isNotEmpty) ...[
+                    _RateExperienceCard(
+                      request: _pendingReviewRequests.first,
+                      onWriteReview: () => _openReviewBottomSheet(_pendingReviewRequests.first),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                  const _SectionTitle(title: "Quick Services"),
+                  const SizedBox(height: 12),
+                  const _QuickServicesRow(),
+                  const SizedBox(height: 16),
+                  const _StatsRow(),
+                  const SizedBox(height: 18),
+                  const _SectionTitleWithAction(
                     title: "Upcoming Appointments",
                     action: "View All",
                   ),
-                  SizedBox(height: 12),
-                  _UpcomingAppointments(),
-                  SizedBox(height: 18),
-                  _SectionTitleWithAction(
+                  const SizedBox(height: 12),
+                  const _UpcomingAppointments(),
+                  const SizedBox(height: 18),
+                  const _SectionTitleWithAction(
                     title: "Recommended for You",
                     action: "See All",
                     subtitle: "Based on location, ratings & availability",
                   ),
-                  SizedBox(height: 10),
-                  _LocationCard(),
-                  SizedBox(height: 12),
-                  _RecommendedCard(),
-                  SizedBox(height: 80),
+                  const SizedBox(height: 10),
+                  const _LocationCard(),
+                  const SizedBox(height: 12),
+                  const _RecommendedCard(),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -280,7 +369,13 @@ class _SectionTitleWithAction extends StatelessWidget {
 }
 
 class _RateExperienceCard extends StatelessWidget {
-  const _RateExperienceCard();
+  final PatientPendingReviewItem request;
+  final VoidCallback onWriteReview;
+
+  const _RateExperienceCard({
+    required this.request,
+    required this.onWriteReview,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -303,11 +398,11 @@ class _RateExperienceCard extends StatelessWidget {
             child: const Icon(Icons.star_rounded, color: Color(0xFFFFA000)),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Rate Your Experience",
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
@@ -316,8 +411,8 @@ class _RateExperienceCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  "Help others by sharing your feedback\nabout Noor Ibrahim",
-                  style: TextStyle(
+                  "Help others by sharing your feedback\nabout ${request.nurseName}",
+                  style: const TextStyle(
                     fontSize: 12.5,
                     height: 1.25,
                     fontWeight: FontWeight.w600,
@@ -331,7 +426,7 @@ class _RateExperienceCard extends StatelessWidget {
           SizedBox(
             height: 34,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onWriteReview,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF8A00),
                 elevation: 0,
@@ -355,6 +450,16 @@ class _RateExperienceCard extends StatelessWidget {
     );
   }
 }
+
+const List<PatientPendingReviewItem> _previewPendingReviewRequests = [
+  PatientPendingReviewItem(
+    requestId: 'preview_request_1',
+    appointmentId: 'preview_appointment_1',
+    serviceName: 'Post-Surgery Care',
+    nurseName: 'Noor Ibrahim',
+    completedAt: null,
+  ),
+];
 
 class _QuickServicesRow extends StatelessWidget {
   const _QuickServicesRow();

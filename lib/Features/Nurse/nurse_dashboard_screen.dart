@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
@@ -58,7 +59,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                     onTabChanged: (i) => setState(() => currentTab = i),
                   ),
                   const NurseAvailabilityScreen(),
-                  _PlaceholderTab(title: "Requests"),
+                  const NurseRequestsScreen(),
                   _PlaceholderTab(title: "Transactions"),
                 ],
               ),
