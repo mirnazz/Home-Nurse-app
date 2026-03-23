@@ -3,9 +3,21 @@ import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
 class PatientHomeScreen extends StatefulWidget {
-  const PatientHomeScreen({super.key});
+  final List<PatientPendingReviewItem> pendingReviewRequests;
+  final Future<List<PatientPendingReviewItem>> Function()?
+      onFetchPendingReviewRequests;
+  final Future<void> Function(PatientRatingSubmissionDraft draft)? onSubmitReview;
+
+  const PatientHomeScreen({
+    super.key,
+    this.pendingReviewRequests = const [],
+    this.onFetchPendingReviewRequests,
+    this.onSubmitReview,
+  });
 
   @override
   State<PatientHomeScreen> createState() => _PatientHomeScreenState();
@@ -19,10 +31,18 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int? _browseServiceId;
   String? _browseLocation;
 
+  bool _isLoadingPendingReviews = false;
+  late List<PatientPendingReviewItem> _pendingReviewRequests;
+
   @override
   void initState() {
     super.initState();
+    _pendingReviewRequests = widget.pendingReviewRequests.isNotEmpty
+        ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
+        : List<PatientPendingReviewItem>.from(_previewPendingReviewRequests);
+
     _loadUserData();
+    _fetchPendingReviews();
   }
 
   Future<void> _loadUserData() async {
@@ -36,6 +56,64 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       });
     } catch (e) {
       debugPrint('Error loading user data: $e');
+    }
+  }
+
+  Future<void> _fetchPendingReviews() async {
+    final fetcher = widget.onFetchPendingReviewRequests;
+    if (fetcher == null) return;
+
+    setState(() => _isLoadingPendingReviews = true);
+
+    try {
+      final requests = await fetcher();
+      if (!mounted) return;
+
+      setState(() {
+        _pendingReviewRequests = requests;
+      });
+    } catch (_) {
+      // handle later with app-level error strategy
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPendingReviews = false);
+      }
+    }
+  }
+
+  Future<void> _openReviewBottomSheet(PatientPendingReviewItem request) async {
+    final draft = await showModalBottomSheet<PatientRatingSubmissionDraft>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PatientReviewBottomSheet(request: request),
+    );
+
+    if (draft == null || !mounted) return;
+
+    try {
+      final submitter = widget.onSubmitReview;
+      if (submitter != null) {
+        await submitter(draft);
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _pendingReviewRequests
+            .removeWhere((item) => item.requestId == request.requestId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thanks! Your review was submitted.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Review submission failed: $e')),
+      );
     }
   }
 
@@ -96,6 +174,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         onSearchTap: _openBrowseDefault,
         onQuickServiceTap: _openBrowseWithService,
         onRecommendedSeeAllTap: _openBrowseDefault,
+        isLoadingPendingReviews: _isLoadingPendingReviews,
+        pendingReviewRequests: _pendingReviewRequests,
+        onWriteReview: _openReviewBottomSheet,
       ),
       BrowseNursesScreen(
         key: ValueKey(
@@ -130,6 +211,9 @@ class PatientHomeContent extends StatelessWidget {
   final VoidCallback onSearchTap;
   final ValueChanged<int> onQuickServiceTap;
   final VoidCallback onRecommendedSeeAllTap;
+  final bool isLoadingPendingReviews;
+  final List<PatientPendingReviewItem> pendingReviewRequests;
+  final ValueChanged<PatientPendingReviewItem> onWriteReview;
 
   const PatientHomeContent({
     super.key,
@@ -138,6 +222,9 @@ class PatientHomeContent extends StatelessWidget {
     required this.onSearchTap,
     required this.onQuickServiceTap,
     required this.onRecommendedSeeAllTap,
+    required this.isLoadingPendingReviews,
+    required this.pendingReviewRequests,
+    required this.onWriteReview,
   });
 
   @override
@@ -160,8 +247,26 @@ class PatientHomeContent extends StatelessWidget {
                     onTap: onSearchTap,
                   ),
                   const SizedBox(height: 18),
-                  const _RateExperienceCard(),
-                  const SizedBox(height: 18),
+                  if (isLoadingPendingReviews) ...[
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ] else if (pendingReviewRequests.isNotEmpty) ...[
+                    _RateExperienceCard(
+                      request: pendingReviewRequests.first,
+                      onWriteReview: () =>
+                          onWriteReview(pendingReviewRequests.first),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                   const _SectionTitle(title: "Quick Services"),
                   const SizedBox(height: 12),
                   _QuickServicesRow(
@@ -465,7 +570,13 @@ class _SectionTitleWithAction extends StatelessWidget {
 }
 
 class _RateExperienceCard extends StatelessWidget {
-  const _RateExperienceCard();
+  final PatientPendingReviewItem request;
+  final VoidCallback onWriteReview;
+
+  const _RateExperienceCard({
+    required this.request,
+    required this.onWriteReview,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -488,21 +599,21 @@ class _RateExperienceCard extends StatelessWidget {
             child: const Icon(Icons.star_rounded, color: Color(0xFFFFA000)),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Rate Your Experience",
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF8A4B00),
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  "Help others by sharing your feedback\nabout Noor Ibrahim",
-                  style: TextStyle(
+                  "Help others by sharing your feedback\nabout ${request.nurseName}",
+                  style: const TextStyle(
                     fontSize: 12.5,
                     height: 1.25,
                     fontWeight: FontWeight.w600,
@@ -516,7 +627,7 @@ class _RateExperienceCard extends StatelessWidget {
           SizedBox(
             height: 34,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onWriteReview,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF8A00),
                 elevation: 0,
@@ -540,6 +651,16 @@ class _RateExperienceCard extends StatelessWidget {
     );
   }
 }
+
+const List<PatientPendingReviewItem> _previewPendingReviewRequests = [
+  PatientPendingReviewItem(
+    requestId: 'preview_request_1',
+    appointmentId: 'preview_appointment_1',
+    serviceName: 'Post-Surgery Care',
+    nurseName: 'Noor Ibrahim',
+    completedAt: null,
+  ),
+];
 
 class _QuickServicesRow extends StatelessWidget {
   final ValueChanged<int> onServiceTap;
@@ -950,7 +1071,7 @@ class _LocationCard extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(
+          const TextButton(
             onPressed: null,
             child: Text(
               "Change",
@@ -1135,6 +1256,3 @@ class _Chip extends StatelessWidget {
     );
   }
 }
-
-
-
