@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
@@ -169,7 +170,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      body: currentTab == 1 ? const BrowseNursesScreen() : _buildHomeBody(),
+      body: IndexedStack(
+        index: currentTab,
+        children: [
+          _buildHomeBody(),
+          const BrowseNursesScreen(),
+          const PatientAppointmentsScreen(),
+          _PatientTabPlaceholder(title: 'Payments', message: 'Payment history will appear here.'),
+          _PatientTabPlaceholder(title: 'More', message: 'Settings and more coming soon.'),
+        ],
+      ),
       bottomNavigationBar: _BottomNav(
         currentIndex: currentTab,
         onChanged: (i) => setState(() => currentTab = i),
@@ -1029,6 +1039,50 @@ class _Chip extends StatelessWidget {
           fontSize: 11.5,
           fontWeight: FontWeight.w800,
           color: Color(0xFF2F7F8D),
+        ),
+      ),
+    );
+  }
+}
+
+class _PatientTabPlaceholder extends StatelessWidget {
+  final String title;
+  final String message;
+
+  const _PatientTabPlaceholder({required this.title, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2F7F8D);
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.construction_rounded, size: 48, color: primary.withOpacity(0.5)),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D2433),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

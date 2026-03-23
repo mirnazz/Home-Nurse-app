@@ -21,7 +21,7 @@ class NurseApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const PatientHomeScreen(),
+      home: const NurseDashboardScreen(),
       routes: {
         "/login": (_) => const LoginScreen(),
         "/Signup": (_) => const SignUpScreen(),

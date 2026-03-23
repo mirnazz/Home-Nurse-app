@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
-import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
 class NurseDashboardScreen extends StatefulWidget {
@@ -58,7 +58,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                     currentTabIndex: 1,
                     onTabChanged: (i) => setState(() => currentTab = i),
                   ),
-                  const NurseAvailabilityScreen(),
+                  const NurseAppointmentsScreen(),
                   const NurseRequestsScreen(),
                   _PlaceholderTab(title: "Transactions"),
                 ],
@@ -831,8 +831,8 @@ class _NurseBottomNav extends StatelessWidget {
             label: "Profile",
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            label: "Calendar",
+            icon: Icon(Icons.calendar_month_outlined),
+            label: "Appointments",
           ),
           BottomNavigationBarItem(
             icon: Stack(
