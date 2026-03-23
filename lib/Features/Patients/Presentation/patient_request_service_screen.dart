@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_confirm_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
@@ -8,8 +9,6 @@ class PatientRequestServiceScreen extends StatefulWidget {
   final String nurseName;
   final String nurseSubtitle;
   final String nurseInitials;
-  final List<PatientServiceOption> serviceOptions;
-  final List<String> availableTimeSlots;
   final DateTime? initialDate;
   final String? initialAddress;
   final String? initialNotes;
@@ -20,8 +19,6 @@ class PatientRequestServiceScreen extends StatefulWidget {
     required this.nurseName,
     required this.nurseSubtitle,
     required this.nurseInitials,
-    required this.serviceOptions,
-    required this.availableTimeSlots,
     this.initialDate,
     this.initialAddress,
     this.initialNotes,
@@ -42,12 +39,21 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   late final TextEditingController _addressController;
   late final TextEditingController _notesController;
 
+  bool _isLoading = true;
+  bool _isLoadingSlots = false;
+  String? _errorMessage;
+
+  List<PatientServiceOption> _serviceOptions = [];
+  List<DateTime> _availableDates = [];
+  List<String> _availableTimeSlots = [];
+
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate;
     _addressController = TextEditingController(text: widget.initialAddress ?? '');
     _notesController = TextEditingController(text: widget.initialNotes ?? '');
+    _loadInitialData();
   }
 
   @override
@@ -57,17 +63,136 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
     super.dispose();
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final initial = _selectedDate ?? now;
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: initial.isBefore(now) ? now : initial,
-      firstDate: DateTime(now.year, now.month, now.day),
-      lastDate: DateTime(now.year + 2),
-    );
-    if (selected == null) return;
-    setState(() => _selectedDate = selected);
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final servicesJson = await ApiService.getPatientNurseServices(
+        nurseId: widget.nurseId,
+      );
+
+      final datesJson = await ApiService.getPatientAvailableDates(
+        nurseId: widget.nurseId,
+        daysAhead: 14,
+      );
+
+      final services = servicesJson.map((item) {
+        final map = item as Map<String, dynamic>;
+        final int serviceId = ((map['serviceId'] ?? 0) as num).toInt();
+        final String serviceName = (map['serviceName'] ?? '').toString();
+        final int duration = ((map['durationInMinutes'] ?? 0) as num).toInt();
+        final double price = ((map['price'] ?? 0) as num).toDouble();
+
+        return PatientServiceOption(
+          id: serviceId.toString(),
+          title: serviceName,
+          durationLabel: 'Duration: $duration min',
+          priceJod: price,
+        );
+      }).toList();
+
+      final dates = datesJson
+          .map((e) => DateTime.tryParse(e))
+          .whereType<DateTime>()
+          .map((d) => DateTime(d.year, d.month, d.day))
+          .toList();
+
+      DateTime? selectedDate = _selectedDate;
+      if (selectedDate != null) {
+        final normalized = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+        final exists = dates.any((d) => _isSameDate(d, normalized));
+        if (!exists) {
+          selectedDate = null;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _serviceOptions = services;
+          _availableDates = dates;
+          _selectedDate = selectedDate;
+        });
+      }
+
+      if (_selectedService != null && _selectedDate != null) {
+        await _loadAvailableSlots();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadAvailableSlots() async {
+    if (_selectedService == null || _selectedDate == null) {
+      setState(() {
+        _availableTimeSlots = [];
+        _selectedTimeSlot = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSlots = true;
+      _availableTimeSlots = [];
+      _selectedTimeSlot = null;
+    });
+
+    try {
+      final slots = await ApiService.getPatientAvailableSlots(
+        nurseId: widget.nurseId,
+        serviceId: int.parse(_selectedService!.id),
+        date: _formatDate(_selectedDate!),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _availableTimeSlots = slots;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _availableTimeSlots = [];
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingSlots = false);
+      }
+    }
+  }
+
+  void _onSelectService(PatientServiceOption service) async {
+    setState(() {
+      _selectedService = service;
+      _selectedTimeSlot = null;
+    });
+
+    await _loadAvailableSlots();
+  }
+
+  void _onSelectDate(DateTime date) async {
+    setState(() {
+      _selectedDate = date;
+      _selectedTimeSlot = null;
+    });
+
+    await _loadAvailableSlots();
   }
 
   void _goToReview() {
@@ -98,6 +223,16 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
         builder: (_) => PatientReviewConfirmScreen(draft: payload),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
@@ -134,83 +269,151 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _NurseCard(
-                    initials: widget.nurseInitials,
-                    name: widget.nurseName,
-                    subtitle: widget.nurseSubtitle,
-                  ),
-                  const SizedBox(height: 16),
-                  const _InputLabel('Select Service Type *'),
-                  const SizedBox(height: 8),
-                  if (widget.serviceOptions.isEmpty)
-                    const _EmptyState(text: 'Services will appear here after API integration.')
-                  else
-                    ...widget.serviceOptions.map(
-                      (service) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _ServiceTile(
-                          service: service,
-                          selected: _selectedService?.id == service.id,
-                          onTap: () => setState(() => _selectedService = service),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null && _serviceOptions.isEmpty && _availableDates.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: _loadInitialData,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _NurseCard(
+                              initials: widget.nurseInitials,
+                              name: widget.nurseName,
+                              subtitle: widget.nurseSubtitle,
+                            ),
+                            const SizedBox(height: 16),
+
+                            const _InputLabel('Select Service Type *'),
+                            const SizedBox(height: 8),
+                            if (_serviceOptions.isEmpty)
+                              const _EmptyState(text: 'No services available for this nurse.')
+                            else
+                              ..._serviceOptions.map(
+                                (service) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _ServiceTile(
+                                    service: service,
+                                    selected: _selectedService?.id == service.id,
+                                    onTap: () => _onSelectService(service),
+                                  ),
+                                ),
+                              ),
+
+                            const SizedBox(height: 8),
+
+                            const _InputLabel('Select Date *'),
+                            const SizedBox(height: 8),
+                            if (_availableDates.isEmpty)
+                              const _EmptyState(text: 'No available dates found.')
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _availableDates.map((date) {
+                                  final selected =
+                                      _selectedDate != null && _isSameDate(_selectedDate!, date);
+                                  return _DateChip(
+                                    text: _formatDate(date),
+                                    selected: selected,
+                                    onTap: () => _onSelectDate(date),
+                                  );
+                                }).toList(),
+                              ),
+
+                            const SizedBox(height: 14),
+
+                            const _InputLabel('Select Available Time Slot *'),
+                            const SizedBox(height: 8),
+                            if (_selectedService == null || _selectedDate == null)
+                              const _EmptyState(
+                                text: 'Select a service and date to view available time slots.',
+                              )
+                            else if (_isLoadingSlots)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(child: CircularProgressIndicator()),
+                              )
+                            else if (_availableTimeSlots.isEmpty)
+                              const _EmptyState(text: 'No available time slots for this date.')
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _availableTimeSlots
+                                    .map(
+                                      (slot) => _TimeChip(
+                                        text: slot,
+                                        selected: _selectedTimeSlot == slot,
+                                        onTap: () => setState(() => _selectedTimeSlot = slot),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+
+                            const SizedBox(height: 14),
+
+                            const _InputLabel('Service Address *'),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _addressController,
+                              decoration: _inputDecoration('Enter your complete address')
+                                  .copyWith(
+                                prefixIcon: const Icon(Icons.location_on_outlined),
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            const _InputLabel('Additional Notes (Optional)'),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _notesController,
+                              maxLines: 4,
+                              decoration: _inputDecoration(
+                                'Any special instructions or medical information...',
+                              ).copyWith(
+                                prefixIcon: const Icon(Icons.note_alt_outlined),
+                              ),
+                            ),
+
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: 14),
+                              Text(
+                                _errorMessage!,
+                                style: const TextStyle(
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 8),
-                  const _InputLabel('Select Date *'),
-                  const SizedBox(height: 8),
-                  _DateInput(
-                    text: _selectedDate == null
-                        ? ''
-                        : '${_selectedDate!.year.toString().padLeft(4, '0')}-'
-                            '${_selectedDate!.month.toString().padLeft(2, '0')}-'
-                            '${_selectedDate!.day.toString().padLeft(2, '0')}',
-                    onTap: _pickDate,
-                  ),
-                  const SizedBox(height: 14),
-                  const _InputLabel('Select Available Time Slot *'),
-                  const SizedBox(height: 8),
-                  if (widget.availableTimeSlots.isEmpty)
-                    const _EmptyState(text: 'Available slots will appear here after API integration.')
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: widget.availableTimeSlots
-                          .map(
-                            (slot) => _TimeChip(
-                              text: slot,
-                              selected: _selectedTimeSlot == slot,
-                              onTap: () => setState(() => _selectedTimeSlot = slot),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  const SizedBox(height: 14),
-                  const _InputLabel('Service Address *'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _addressController,
-                    decoration: _inputDecoration('Enter your complete address')
-                        .copyWith(prefixIcon: const Icon(Icons.location_on_outlined)),
-                  ),
-                  const SizedBox(height: 14),
-                  const _InputLabel('Additional Notes (Optional)'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _notesController,
-                    maxLines: 4,
-                    decoration: _inputDecoration(
-                      'Any special instructions or medical information...',
-                    ).copyWith(prefixIcon: const Icon(Icons.note_alt_outlined)),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -223,12 +426,17 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: _goToReview,
+                onPressed: _isLoading ? null : _goToReview,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
                 child: const Text('Review and Confirm'),
               ),
@@ -273,11 +481,13 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 class _StepTab extends StatelessWidget {
   final String title;
   final bool selected;
+
   const _StepTab({required this.title, required this.selected});
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? Colors.white : Colors.white70;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -380,6 +590,7 @@ class _ServiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -388,7 +599,9 @@ class _ServiceTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? primary : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? primary : const Color(0xFFE5E7EB)),
+          border: Border.all(
+            color: selected ? primary : const Color(0xFFE5E7EB),
+          ),
         ),
         child: Row(
           children: [
@@ -430,8 +643,48 @@ class _ServiceTile extends StatelessWidget {
   }
 }
 
+class _DateChip extends StatelessWidget {
+  final String text;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DateChip({
+    required this.text,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2F7F8D);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? primary : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? primary : const Color(0xFFE5E7EB),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF374151),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _InputLabel extends StatelessWidget {
   final String text;
+
   const _InputLabel(this.text);
 
   @override
@@ -447,45 +700,11 @@ class _InputLabel extends StatelessWidget {
   }
 }
 
-class _DateInput extends StatelessWidget {
-  final String text;
-  final VoidCallback onTap;
-  const _DateInput({required this.text, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF6B7280)),
-            const SizedBox(width: 10),
-            Text(
-              text.isEmpty ? 'Select date' : text,
-              style: TextStyle(
-                color: text.isEmpty ? const Color(0xFF9CA3AF) : const Color(0xFF1F2937),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _TimeChip extends StatelessWidget {
   final String text;
   final bool selected;
   final VoidCallback onTap;
+
   const _TimeChip({
     required this.text,
     required this.selected,
@@ -522,6 +741,7 @@ class _TimeChip extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   final String text;
+
   const _EmptyState({required this.text});
 
   @override

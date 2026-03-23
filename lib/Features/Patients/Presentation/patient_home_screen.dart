@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -13,6 +14,10 @@ class PatientHomeScreen extends StatefulWidget {
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int currentTab = 0;
   String _userName = 'User';
+
+  String? _browseSearch;
+  int? _browseServiceId;
+  String? _browseLocation;
 
   @override
   void initState() {
@@ -50,46 +55,139 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
-  Widget _buildHomeBody() {
+  void _openBrowseDefault() {
+    setState(() {
+      _browseSearch = null;
+      _browseServiceId = null;
+      _browseLocation = null;
+      currentTab = 1;
+    });
+  }
+
+  void _openBrowseWithService(int serviceCatalogId) {
+    setState(() {
+      _browseSearch = null;
+      _browseServiceId = serviceCatalogId;
+      _browseLocation = null;
+      currentTab = 1;
+    });
+  }
+
+  void _onBottomNavTap(int index) {
+    setState(() {
+      currentTab = index;
+
+      if (index == 1) {
+        _browseSearch = null;
+        _browseServiceId = null;
+        _browseLocation = null;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const bg = Color(0xFFF6F7F9);
+
+    final pages = [
+      PatientHomeContent(
+        name: _userName,
+        onLogout: _logout,
+        onSearchTap: _openBrowseDefault,
+        onQuickServiceTap: _openBrowseWithService,
+        onRecommendedSeeAllTap: _openBrowseDefault,
+      ),
+      BrowseNursesScreen(
+        key: ValueKey(
+          'browse-${_browseSearch ?? ''}-${_browseServiceId ?? 'all'}-${_browseLocation ?? 'all'}',
+        ),
+        initialSearch: _browseSearch,
+        initialServiceCatalogId: _browseServiceId,
+        initialLocation: _browseLocation,
+      ),
+      const _PlaceholderTab(title: 'Appointments'),
+      const _PlaceholderTab(title: 'Payments'),
+      const _PlaceholderTab(title: 'More'),
+    ];
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: IndexedStack(
+        index: currentTab,
+        children: pages,
+      ),
+      bottomNavigationBar: PatientBottomNavBar(
+        currentIndex: currentTab,
+        onTap: _onBottomNavTap,
+      ),
+    );
+  }
+}
+
+class PatientHomeContent extends StatelessWidget {
+  final String name;
+  final VoidCallback onLogout;
+  final VoidCallback onSearchTap;
+  final ValueChanged<int> onQuickServiceTap;
+  final VoidCallback onRecommendedSeeAllTap;
+
+  const PatientHomeContent({
+    super.key,
+    required this.name,
+    required this.onLogout,
+    required this.onSearchTap,
+    required this.onQuickServiceTap,
+    required this.onRecommendedSeeAllTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: [
             _HomeHeader(
-              onLogout: _logout,
-              name: _userName,
+              onLogout: onLogout,
+              name: name,
             ),
             const SizedBox(height: 14),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _RateExperienceCard(),
-                  SizedBox(height: 18),
-                  _SectionTitle(title: "Quick Services"),
-                  SizedBox(height: 12),
-                  _QuickServicesRow(),
-                  SizedBox(height: 16),
-                  _StatsRow(),
-                  SizedBox(height: 18),
-                  _SectionTitleWithAction(
+                  _SearchEntryCard(
+                    onTap: onSearchTap,
+                  ),
+                  const SizedBox(height: 18),
+                  const _RateExperienceCard(),
+                  const SizedBox(height: 18),
+                  const _SectionTitle(title: "Quick Services"),
+                  const SizedBox(height: 12),
+                  _QuickServicesRow(
+                    onServiceTap: onQuickServiceTap,
+                  ),
+                  const SizedBox(height: 16),
+                  const _StatsRow(),
+                  const SizedBox(height: 18),
+                  const _SectionTitleWithAction(
                     title: "Upcoming Appointments",
                     action: "View All",
                   ),
-                  SizedBox(height: 12),
-                  _UpcomingAppointments(),
-                  SizedBox(height: 18),
+                  const SizedBox(height: 12),
+                  const _UpcomingAppointments(),
+                  const SizedBox(height: 18),
                   _SectionTitleWithAction(
                     title: "Recommended for You",
                     action: "See All",
                     subtitle: "Based on location, ratings & availability",
+                    onActionTap: onRecommendedSeeAllTap,
                   ),
-                  SizedBox(height: 10),
-                  _LocationCard(),
-                  SizedBox(height: 12),
-                  _RecommendedCard(),
-                  SizedBox(height: 80),
+                  const SizedBox(height: 10),
+                  const _LocationCard(),
+                  const SizedBox(height: 12),
+                  const _RecommendedCard(),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -98,17 +196,23 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       ),
     );
   }
+}
+
+class _PlaceholderTab extends StatelessWidget {
+  final String title;
+
+  const _PlaceholderTab({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFFF6F7F9);
-
-    return Scaffold(
-      backgroundColor: bg,
-      body: currentTab == 1 ? const BrowseNursesScreen() : _buildHomeBody(),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: currentTab,
-        onChanged: (i) => setState(() => currentTab = i),
+    return Center(
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF374151),
+        ),
       ),
     );
   }
@@ -235,8 +339,58 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
+class _SearchEntryCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SearchEntryCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8ECF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 12,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.search, color: Color(0xFF6B7280)),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "Search nurses by name or specialty...",
+                style: TextStyle(
+                  color: Color(0xFF9CA3AF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Color(0xFF9CA3AF),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   final String title;
+
   const _SectionTitle({required this.title});
 
   @override
@@ -256,11 +410,13 @@ class _SectionTitleWithAction extends StatelessWidget {
   final String title;
   final String action;
   final String? subtitle;
+  final VoidCallback? onActionTap;
 
   const _SectionTitleWithAction({
     required this.title,
     required this.action,
     this.subtitle,
+    this.onActionTap,
   });
 
   @override
@@ -294,7 +450,7 @@ class _SectionTitleWithAction extends StatelessWidget {
           ),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: onActionTap,
           child: Text(
             action,
             style: const TextStyle(
@@ -386,37 +542,45 @@ class _RateExperienceCard extends StatelessWidget {
 }
 
 class _QuickServicesRow extends StatelessWidget {
-  const _QuickServicesRow();
+  final ValueChanged<int> onServiceTap;
+
+  const _QuickServicesRow({
+    required this.onServiceTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _ServiceTile(
             icon: Icons.water_drop_outlined,
             label: "IV\nTherapy",
+            onTap: () => onServiceTap(1),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.favorite_border,
             label: "Wound\nCare",
+            onTap: () => onServiceTap(2),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.medical_services_outlined,
             label: "Post-\nSurgery",
+            onTap: () => onServiceTap(4),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.medication_outlined,
             label: "Medication",
+            onTap: () => onServiceTap(5),
           ),
         ),
       ],
@@ -427,50 +591,59 @@ class _QuickServicesRow extends StatelessWidget {
 class _ServiceTile extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
-  const _ServiceTile({required this.icon, required this.label});
+  const _ServiceTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8ECF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 42,
-            width: 42,
-            decoration: BoxDecoration(
-              color: primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8ECF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 12,
+              offset: Offset(0, 8),
             ),
-            child: Icon(icon, color: primary),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF374151),
-              height: 1.1,
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: primary),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF374151),
+                height: 1.1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -781,7 +954,10 @@ class _LocationCard extends StatelessWidget {
             onPressed: null,
             child: Text(
               "Change",
-              style: TextStyle(fontWeight: FontWeight.w900, color: primary),
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: primary,
+              ),
             ),
           ),
         ],
@@ -936,6 +1112,7 @@ class _RecommendedCard extends StatelessWidget {
 
 class _Chip extends StatelessWidget {
   final String text;
+
   const _Chip({required this.text});
 
   @override
@@ -959,60 +1136,5 @@ class _Chip extends StatelessWidget {
   }
 }
 
-class _BottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onChanged;
 
-  const _BottomNav({required this.currentIndex, required this.onChanged});
 
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-
-    return Container(
-      padding: const EdgeInsets.only(top: 6),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 14,
-            offset: Offset(0, -8),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onChanged,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: primary,
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group_outlined),
-            label: "Nurses",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: "Appointments",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.payments_outlined),
-            label: "Payments",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_rounded),
-            label: "More",
-          ),
-        ],
-      ),
-    );
-  }
-}

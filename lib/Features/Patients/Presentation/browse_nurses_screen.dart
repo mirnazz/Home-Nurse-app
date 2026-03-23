@@ -4,7 +4,16 @@ import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_nurse_profile_screen.dart';
 
 class BrowseNursesScreen extends StatefulWidget {
-  const BrowseNursesScreen({super.key});
+  final String? initialSearch;
+  final int? initialServiceCatalogId;
+  final String? initialLocation;
+
+  const BrowseNursesScreen({
+    super.key,
+    this.initialSearch,
+    this.initialServiceCatalogId,
+    this.initialLocation,
+  });
 
   @override
   State<BrowseNursesScreen> createState() => _BrowseNursesScreenState();
@@ -16,7 +25,6 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final ApiService _apiService = ApiService();
 
   Timer? _debounce;
 
@@ -76,6 +84,11 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
   @override
   void initState() {
     super.initState();
+
+    _searchController.text = widget.initialSearch ?? '';
+    _selectedServiceCatalogId = widget.initialServiceCatalogId;
+    _selectedLocation = widget.initialLocation;
+
     _searchController.addListener(_onSearchChanged);
     _scrollController.addListener(_handleScroll);
     _fetchNurses(reset: true);
@@ -157,7 +170,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isInitialLoading = false;
         _isLoadingMore = false;
       });
@@ -202,6 +215,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
     setState(() {
       _selectedServiceCatalogId = null;
       _selectedLocation = null;
+      _searchController.clear();
     });
     _fetchNurses(reset: true);
   }
@@ -442,8 +456,9 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilters =
-        _selectedServiceCatalogId != null || _selectedLocation != null;
+    final hasActiveFilters = _selectedServiceCatalogId != null ||
+        _selectedLocation != null ||
+        _searchController.text.trim().isNotEmpty;
 
     return Container(
       color: _primary,
@@ -506,6 +521,17 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
+                      if (_searchController.text.trim().isNotEmpty)
+                        _TopFilterChip(
+                          label: _searchController.text.trim(),
+                          onRemove: () {
+                            _searchController.clear();
+                            _fetchNurses(reset: true);
+                          },
+                        ),
+                      if (_searchController.text.trim().isNotEmpty &&
+                          (_selectedServiceLabel != null || _selectedLocation != null))
+                        const SizedBox(width: 8),
                       if (_selectedServiceLabel != null)
                         _TopFilterChip(
                           label: _selectedServiceLabel!,
@@ -516,8 +542,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                             _fetchNurses(reset: true);
                           },
                         ),
-                      if (_selectedServiceLabel != null &&
-                          _selectedLocation != null)
+                      if (_selectedServiceLabel != null && _selectedLocation != null)
                         const SizedBox(width: 8),
                       if (_selectedLocation != null)
                         _TopFilterChip(
@@ -612,8 +637,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                         ),
                                         const SizedBox(height: 14),
                                         ElevatedButton(
-                                          onPressed: () =>
-                                              _fetchNurses(reset: true),
+                                          onPressed: () => _fetchNurses(reset: true),
                                           child: const Text('Retry'),
                                         ),
                                       ],
@@ -641,16 +665,13 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                           18,
                                         ),
                                         itemCount:
-                                            _visibleItems.length +
-                                            (_isLoadingMore ? 1 : 0),
+                                            _visibleItems.length + (_isLoadingMore ? 1 : 0),
                                         separatorBuilder: (_, __) =>
                                             const SizedBox(height: 10),
                                         itemBuilder: (context, index) {
                                           if (index >= _visibleItems.length) {
                                             return const Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 10,
-                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 10),
                                               child: Center(
                                                 child: CircularProgressIndicator(
                                                   strokeWidth: 2,
@@ -662,9 +683,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                           return _NurseCard(
                                             item: _visibleItems[index],
                                             onViewProfile: () =>
-                                                _openNurseProfile(
-                                              _visibleItems[index],
-                                            ),
+                                                _openNurseProfile(_visibleItems[index]),
                                           );
                                         },
                                       ),

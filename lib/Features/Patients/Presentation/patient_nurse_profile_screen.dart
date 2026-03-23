@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_request_service_screen.dart';
-import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
 
 class PatientNurseProfileData {
   final String nurseId;
@@ -32,24 +31,9 @@ class PatientNurseProfileData {
     required this.servicesOffered,
   });
 
-  // TODO(Abeer): Wire this model to the profile endpoint response.
-  // Expected shape:
-  // {
-  //   "nurseId": "...",
-  //   "fullName": "...",
-  //   "profileImageUrl": "...",
-  //   "headline": "...",
-  //   "rating": 0.0,
-  //   "reviewsCount": 0,
-  //   "experienceYears": 0,
-  //   "location": "...",
-  //   "address": "...",
-  //   "availabilityLabel": "...",
-  //   "certificateUrl": "...",
-  //   "servicesOffered": ["..."]
-  // }
   factory PatientNurseProfileData.fromApiJson(Map<String, dynamic> json) {
     final rawServices = (json['servicesOffered'] as List?) ?? const [];
+
     return PatientNurseProfileData(
       nurseId: (json['nurseId'] ?? '').toString(),
       fullName: (json['fullName'] ?? '').toString(),
@@ -76,6 +60,7 @@ class PatientNurseProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
     const screenBg = Color(0xFFF4F6F8);
+
     final initials = profile.fullName
         .split(' ')
         .where((e) => e.isNotEmpty)
@@ -106,21 +91,19 @@ class PatientNurseProfileScreen extends StatelessWidget {
                         CircleAvatar(
                           radius: 25,
                           backgroundColor: const Color(0xFFE7F1F3),
-                          backgroundImage:
-                              profile.profileImageUrl.isNotEmpty
-                                  ? NetworkImage(profile.profileImageUrl)
-                                  : null,
-                          child:
-                              profile.profileImageUrl.isEmpty
-                                  ? Text(
-                                    initials,
-                                    style: const TextStyle(
-                                      color: primary,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 20,
-                                    ),
-                                  )
-                                  : null,
+                          backgroundImage: profile.profileImageUrl.isNotEmpty
+                              ? NetworkImage(profile.profileImageUrl)
+                              : null,
+                          child: profile.profileImageUrl.isEmpty
+                              ? Text(
+                                  initials,
+                                  style: const TextStyle(
+                                    color: primary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : null,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -202,7 +185,6 @@ class PatientNurseProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Location row ──────────────────────────────────────────
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
@@ -257,10 +239,7 @@ class PatientNurseProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // ── Availability ──────────────────────────────────────────
                   _SectionCard(
                     title: 'Availability',
                     child: Row(
@@ -294,10 +273,7 @@ class PatientNurseProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 14),
-
-                  // ── Qualifications ────────────────────────────────────────
                   _SectionCard(
                     title: 'Qualifications & Certifications',
                     child: Column(
@@ -313,10 +289,7 @@ class PatientNurseProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 14),
-
-                  // ── Services Offered ──────────────────────────────────────
                   _SectionCard(
                     title: 'Services Offered',
                     child: profile.servicesOffered.isEmpty
@@ -377,43 +350,6 @@ class PatientNurseProfileScreen extends StatelessWidget {
                         nurseName: profile.fullName,
                         nurseSubtitle: profile.headline,
                         nurseInitials: initials,
-                        // Temporary test payload until API integration is ready.
-                        serviceOptions: const [
-                          PatientServiceOption(
-                            id: 'service_1',
-                            title: 'IV Therapy',
-                            durationLabel: 'Duration: 60 min',
-                            priceJod: 50,
-                          ),
-                          PatientServiceOption(
-                            id: 'service_2',
-                            title: 'Wound Care & Dressing',
-                            durationLabel: 'Duration: 45 min',
-                            priceJod: 30,
-                          ),
-                          PatientServiceOption(
-                            id: 'service_3',
-                            title: 'Post-Surgery Care',
-                            durationLabel: 'Duration: 90 min',
-                            priceJod: 45,
-                          ),
-                          PatientServiceOption(
-                            id: 'service_4',
-                            title: 'Medication Management',
-                            durationLabel: 'Duration: 30 min',
-                            priceJod: 25,
-                          ),
-                        ],
-                        availableTimeSlots: const [
-                          '09:00',
-                          '10:00',
-                          '11:00',
-                          '12:00',
-                          '14:00',
-                          '15:00',
-                          '16:00',
-                          '17:00',
-                        ],
                       ),
                     ),
                   );
@@ -461,6 +397,7 @@ class PatientNurseProfileScreen extends StatelessWidget {
 class _ProfileTab extends StatelessWidget {
   final String text;
   final bool selected;
+
   const _ProfileTab({required this.text, required this.selected});
 
   @override
@@ -488,11 +425,10 @@ class _ProfileTab extends StatelessWidget {
   }
 }
 
-
-
 class _SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
+
   const _SectionCard({required this.title, required this.child});
 
   @override
@@ -533,6 +469,7 @@ class _SectionCard extends StatelessWidget {
 
 class _CheckLine extends StatelessWidget {
   final String text;
+
   const _CheckLine(this.text);
 
   @override
@@ -556,4 +493,3 @@ class _CheckLine extends StatelessWidget {
     );
   }
 }
-

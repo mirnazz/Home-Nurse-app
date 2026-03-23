@@ -1,16 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_request_submitted_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
 
-class PatientReviewConfirmScreen extends StatelessWidget {
+class PatientReviewConfirmScreen extends StatefulWidget {
   final PatientServiceRequestDraft draft;
 
   const PatientReviewConfirmScreen({super.key, required this.draft});
 
   @override
+  State<PatientReviewConfirmScreen> createState() =>
+      _PatientReviewConfirmScreenState();
+}
+
+class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen> {
+  bool _isSubmitting = false;
+
+  Future<void> _submitRequest() async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final result = await ApiService.createBooking(
+        nurseId: widget.draft.nurseId,
+        serviceId: int.parse(widget.draft.service.id),
+        date:
+            '${widget.draft.date.year.toString().padLeft(4, '0')}-'
+            '${widget.draft.date.month.toString().padLeft(2, '0')}-'
+            '${widget.draft.date.day.toString().padLeft(2, '0')}',
+        startTime: widget.draft.timeSlot,
+        serviceAddress: widget.draft.address,
+        additionalNotes: widget.draft.notes.trim().isEmpty
+            ? null
+            : widget.draft.notes.trim(),
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => PatientRequestSubmittedScreen(
+            bookingResponse: result,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
+
+    final draft = widget.draft;
+
     final formattedDate =
         '${draft.date.year.toString().padLeft(4, '0')}-'
         '${draft.date.month.toString().padLeft(2, '0')}-'
@@ -113,26 +171,36 @@ class PatientReviewConfirmScreen extends StatelessWidget {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PatientRequestSubmittedScreen(draft: draft),
-                    ),
-                  );
-                },
+                onPressed: _isSubmitting ? null : _submitRequest,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
-                child: const Text('Submit Request'),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Submit Request'),
               ),
             ),
           ),
           PatientBottomNavBar(
             currentIndex: 1,
             onTap: (index) {
+              if (_isSubmitting) return;
+
               if (index == 0) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } else if (index == 1) {
@@ -149,11 +217,13 @@ class PatientReviewConfirmScreen extends StatelessWidget {
 class _StepTab extends StatelessWidget {
   final String title;
   final bool selected;
+
   const _StepTab({required this.title, required this.selected});
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? Colors.white : Colors.white70;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
