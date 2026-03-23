@@ -7,15 +7,32 @@ import 'package:nurse_app/Features/Patients/Presentation/patient_service_request
 class PatientReviewConfirmScreen extends StatefulWidget {
   final PatientServiceRequestDraft draft;
 
-  const PatientReviewConfirmScreen({super.key, required this.draft});
+  const PatientReviewConfirmScreen({
+    super.key,
+    required this.draft,
+  });
 
   @override
   State<PatientReviewConfirmScreen> createState() =>
       _PatientReviewConfirmScreenState();
 }
 
-class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen> {
+class _PatientReviewConfirmScreenState
+    extends State<PatientReviewConfirmScreen> {
   bool _isSubmitting = false;
+
+  String _formatDate(DateTime date) {
+    return '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _formatStartTime(String time) {
+    // الباك متوقع TimeSpan مثل 08:00:00
+    return time.contains(':') && time.split(':').length == 2
+        ? '$time:00'
+        : time;
+  }
 
   Future<void> _submitRequest() async {
     if (_isSubmitting) return;
@@ -26,12 +43,9 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
       final result = await ApiService.createBooking(
         nurseId: widget.draft.nurseId,
         serviceId: int.parse(widget.draft.service.id),
-        date:
-            '${widget.draft.date.year.toString().padLeft(4, '0')}-'
-            '${widget.draft.date.month.toString().padLeft(2, '0')}-'
-            '${widget.draft.date.day.toString().padLeft(2, '0')}',
-        startTime: widget.draft.timeSlot,
-        serviceAddress: widget.draft.address,
+        date: _formatDate(widget.draft.date),
+        startTime: _formatStartTime(widget.draft.timeSlot),
+        serviceAddress: widget.draft.address.trim(),
         additionalNotes: widget.draft.notes.trim().isEmpty
             ? null
             : widget.draft.notes.trim(),
@@ -68,11 +82,7 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
     const primary = Color(0xFF2F7F8D);
 
     final draft = widget.draft;
-
-    final formattedDate =
-        '${draft.date.year.toString().padLeft(4, '0')}-'
-        '${draft.date.month.toString().padLeft(2, '0')}-'
-        '${draft.date.day.toString().padLeft(2, '0')}';
+    final formattedDate = _formatDate(draft.date);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
@@ -98,9 +108,19 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
               padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Row(
                 children: [
-                  Expanded(child: _StepTab(title: 'Service Details', selected: false)),
+                  Expanded(
+                    child: _StepTab(
+                      title: 'Service Details',
+                      selected: false,
+                    ),
+                  ),
                   SizedBox(width: 10),
-                  Expanded(child: _StepTab(title: 'Review & Confirm', selected: true)),
+                  Expanded(
+                    child: _StepTab(
+                      title: 'Review & Confirm',
+                      selected: true,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -121,16 +141,35 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _InfoRow(label: 'Service Type', value: draft.service.title),
-                        _InfoRow(label: 'Duration', value: draft.service.durationLabel),
+                        _InfoRow(
+                          label: 'Service Type',
+                          value: draft.service.title,
+                        ),
+                        _InfoRow(
+                          label: 'Duration',
+                          value: draft.service.durationLabel,
+                        ),
                         Row(
                           children: [
-                            Expanded(child: _InfoRow(label: 'Date', value: formattedDate)),
+                            Expanded(
+                              child: _InfoRow(
+                                label: 'Date',
+                                value: formattedDate,
+                              ),
+                            ),
                             const SizedBox(width: 12),
-                            Expanded(child: _InfoRow(label: 'Time', value: draft.timeSlot)),
+                            Expanded(
+                              child: _InfoRow(
+                                label: 'Time',
+                                value: draft.timeSlot,
+                              ),
+                            ),
                           ],
                         ),
-                        _InfoRow(label: 'Address', value: draft.address),
+                        _InfoRow(
+                          label: 'Address',
+                          value: draft.address,
+                        ),
                         _InfoRow(
                           label: 'Notes',
                           value: draft.notes.trim().isEmpty ? '-' : draft.notes,
@@ -143,14 +182,20 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
                     title: 'Service Cost',
                     child: Column(
                       children: [
-                        _CostLine(label: 'Service', value: draft.service.title),
-                        _CostLine(label: 'Duration', value: draft.service.durationLabel),
+                        _CostLine(
+                          label: 'Service',
+                          value: draft.service.title,
+                        ),
+                        _CostLine(
+                          label: 'Duration',
+                          value: draft.service.durationLabel,
+                        ),
                         const SizedBox(height: 10),
                         const Divider(height: 1),
                         const SizedBox(height: 10),
                         _CostLine(
                           label: 'Total Price',
-                          value: '${draft.service.priceJod} JOD',
+                          value: '${draft.service.priceJod.toStringAsFixed(1)} JOD',
                           highlighted: true,
                         ),
                       ],
@@ -175,6 +220,8 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primary,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: primary.withOpacity(0.65),
+                  disabledForegroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -201,9 +248,7 @@ class _PatientReviewConfirmScreenState extends State<PatientReviewConfirmScreen>
             onTap: (index) {
               if (_isSubmitting) return;
 
-              if (index == 0) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              } else if (index == 1) {
+              if (index == 0 || index == 1) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             },
@@ -218,7 +263,10 @@ class _StepTab extends StatelessWidget {
   final String title;
   final bool selected;
 
-  const _StepTab({required this.title, required this.selected});
+  const _StepTab({
+    required this.title,
+    required this.selected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +401,10 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +463,9 @@ class _CostLine extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: highlighted ? const Color(0xFF2F7F8D) : const Color(0xFF1F2937),
+            color: highlighted
+                ? const Color(0xFF2F7F8D)
+                : const Color(0xFF1F2937),
             fontWeight: FontWeight.w800,
             fontSize: 12.5,
           ),

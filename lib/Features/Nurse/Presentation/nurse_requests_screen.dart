@@ -1,23 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
-import 'package:nurse_app/Features/Nurse/Presentation/nurse_request_details_sheet.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_service_request_models.dart';
 
 class NurseRequestsScreen extends StatefulWidget {
-  final bool useLocalPreviewData;
-  final Future<List<NurseServiceRequestItem>> Function()? onFetchRequests;
-  final Future<void> Function(String requestId)? onAcceptRequest;
-  final Future<void> Function(String requestId)? onDeclineRequest;
-
-  const NurseRequestsScreen({
-    super.key,
-    this.useLocalPreviewData = true,
-    this.onFetchRequests,
-    this.onAcceptRequest,
-    this.onDeclineRequest,
-  });
+  const NurseRequestsScreen({super.key});
 
   @override
   State<NurseRequestsScreen> createState() => _NurseRequestsScreenState();
@@ -43,17 +30,25 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
     });
 
     try {
-      // TODO(Abeer): Replace this with endpoint call to fetch nurse requests list.
-      final loaded = widget.onFetchRequests != null
-          ? await widget.onFetchRequests!()
-          : (widget.useLocalPreviewData ? _previewRequests : const <NurseServiceRequestItem>[]);
+      final loadedJson = await ApiService.getNurseRequests();
+
+      final loaded = loadedJson
+          .map(
+            (e) => NurseServiceRequestItem.fromApiJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList();
 
       if (!mounted) return;
+
       setState(() {
         _requests = loaded;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('ERROR loading nurse requests: $e');
+
       if (!mounted) return;
       setState(() {
         _hasError = true;
@@ -63,19 +58,26 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
   }
 
   List<NurseServiceRequestItem> get _filteredRequests {
-    switch (_activeFilter) {
-      case NurseRequestsFilter.pending:
-        return _requests
-            .where((request) => request.status == NurseServiceRequestStatus.pending)
-            .toList();
-      case NurseRequestsFilter.accepted:
-        return _requests
-            .where((request) => request.status == NurseServiceRequestStatus.accepted)
-            .toList();
-      case NurseRequestsFilter.all:
-        return _requests;
-    }
+  switch (_activeFilter) {
+    case NurseRequestsFilter.pending:
+      return _requests
+          .where((r) => r.status == NurseServiceRequestStatus.pending)
+          .toList();
+
+    case NurseRequestsFilter.accepted:
+      return _requests
+          .where((r) => r.status == NurseServiceRequestStatus.accepted)
+          .toList();
+
+    case NurseRequestsFilter.declined:
+      return _requests
+          .where((r) => r.status == NurseServiceRequestStatus.declined)
+          .toList();
+
+    case NurseRequestsFilter.all:
+      return _requests;
   }
+}
 
   Future<void> _applyStatus({
     required NurseServiceRequestItem request,
@@ -84,32 +86,39 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
     setState(() => _updatingRequestIds.add(request.requestId));
 
     try {
+      final bookingId = int.parse(request.requestId);
+
       if (status == NurseServiceRequestStatus.accepted) {
-        // TODO(Abeer): Wire endpoint to accept request.
-        if (widget.onAcceptRequest != null) {
-          await widget.onAcceptRequest!(request.requestId);
-        } else {
-          await Future<void>.delayed(const Duration(milliseconds: 300));
-        }
+        await ApiService.acceptNurseRequest(bookingId: bookingId);
       } else if (status == NurseServiceRequestStatus.declined) {
-        // TODO(Abeer): Wire endpoint to decline request.
-        if (widget.onDeclineRequest != null) {
-          await widget.onDeclineRequest!(request.requestId);
-        } else {
-          await Future<void>.delayed(const Duration(milliseconds: 300));
-        }
+        await ApiService.declineNurseRequest(bookingId: bookingId);
       }
 
       if (!mounted) return;
+
       setState(() {
         _requests = _requests
             .map(
               (item) => item.requestId == request.requestId
-                  ? item.copyWith(status: status, updatedAt: DateTime.now())
+                  ? item.copyWith(
+                      status: status,
+                      updatedAt: DateTime.now(),
+                    )
                   : item,
             )
             .toList();
       });
+    } catch (e) {
+      debugPrint('ERROR updating request status: $e');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _updatingRequestIds.remove(request.requestId));
@@ -118,32 +127,149 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
   }
 
   void _openDetails(NurseServiceRequestItem request) {
-    // TODO(Abeer): If backend provides richer details endpoint, fetch by requestId here.
     showDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
-        return NurseRequestDetailsSheet(
-          request: request,
-          isActionLoading: _updatingRequestIds.contains(request.requestId),
-          onAccept: () async {
-            await _applyStatus(
-              request: request,
-              status: NurseServiceRequestStatus.accepted,
-            );
-            if (mounted && dialogContext.mounted) {
-              Navigator.of(dialogContext).pop();
-            }
-          },
-          onDecline: () async {
-            await _applyStatus(
-              request: request,
-              status: NurseServiceRequestStatus.declined,
-            );
-            if (mounted && dialogContext.mounted) {
-              Navigator.of(dialogContext).pop();
-            }
-          },
+        final isActionLoading = _updatingRequestIds.contains(request.requestId);
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+          contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          title: const Text(
+            'Request Details',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              color: Color(0xFF111827),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _DetailLine(label: 'Patient', value: request.patientName),
+                _DetailLine(label: 'Phone', value: request.phone),
+                _DetailLine(label: 'Service', value: request.serviceName),
+                _DetailLine(
+                  label: 'Duration',
+                  value: '${request.durationMinutes} min',
+                ),
+                _DetailLine(
+                  label: 'Price',
+                  value: '${request.priceJod} JOD',
+                ),
+                _DetailLine(
+                  label: 'Date',
+                  value:
+                      '${request.dateTime.year.toString().padLeft(4, '0')}-'
+                      '${request.dateTime.month.toString().padLeft(2, '0')}-'
+                      '${request.dateTime.day.toString().padLeft(2, '0')}',
+                ),
+                _DetailLine(
+                  label: 'Time',
+                  value:
+                      '${request.dateTime.hour.toString().padLeft(2, '0')}:'
+                      '${request.dateTime.minute.toString().padLeft(2, '0')}',
+                ),
+                _DetailLine(label: 'Address', value: request.address),
+                _DetailLine(
+                  label: 'Notes',
+                  value: request.notes.trim().isEmpty ? '-' : request.notes,
+                  isLast: true,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            if (request.status == NurseServiceRequestStatus.pending) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: isActionLoading
+                      ? null
+                      : () async {
+                          await _applyStatus(
+                            request: request,
+                            status: NurseServiceRequestStatus.declined,
+                          );
+                          if (mounted && dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFDC2626),
+                    side: const BorderSide(color: Color(0xFFDC2626)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Decline',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isActionLoading
+                      ? null
+                      : () async {
+                          await _applyStatus(
+                            request: request,
+                            status: NurseServiceRequestStatus.accepted,
+                          );
+                          if (mounted && dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isActionLoading
+                      ? const SizedBox(
+                          width: 17,
+                          height: 17,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Accept',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                ),
+              ),
+            ] else
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
         );
       },
     );
@@ -160,7 +286,9 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
         Container(
           decoration: const BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(24),
+            ),
           ),
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           child: SafeArea(
@@ -180,7 +308,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
                 Text(
                   '$pendingCount pending requests',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withOpacity(0.85),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -224,6 +352,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
     }
 
     final visible = _filteredRequests;
+
     if (visible.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -241,6 +370,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
       itemBuilder: (context, index) {
         final request = visible[index];
+
         return _RequestCard(
           request: request,
           isActionLoading: _updatingRequestIds.contains(request.requestId),
@@ -272,29 +402,39 @@ class _FilterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _FilterChip(
-          label: 'All',
-          selected: activeFilter == NurseRequestsFilter.all,
-          onTap: () => onChanged(NurseRequestsFilter.all),
-        ),
-        const SizedBox(width: 8),
-        _FilterChip(
-          label: 'Pending',
-          selected: activeFilter == NurseRequestsFilter.pending,
-          onTap: () => onChanged(NurseRequestsFilter.pending),
-        ),
-        const SizedBox(width: 8),
-        _FilterChip(
-          label: 'Accepted',
-          selected: activeFilter == NurseRequestsFilter.accepted,
-          onTap: () => onChanged(NurseRequestsFilter.accepted),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _FilterChip(
+            label: 'All',
+            selected: activeFilter == NurseRequestsFilter.all,
+            onTap: () => onChanged(NurseRequestsFilter.all),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Pending',
+            selected: activeFilter == NurseRequestsFilter.pending,
+            onTap: () => onChanged(NurseRequestsFilter.pending),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Accepted',
+            selected: activeFilter == NurseRequestsFilter.accepted,
+            onTap: () => onChanged(NurseRequestsFilter.accepted),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Declined',
+            selected: activeFilter == NurseRequestsFilter.declined,
+            onTap: () => onChanged(NurseRequestsFilter.declined),
+          ),
+        ],
+      ),
     );
   }
 }
+
 
 class _FilterChip extends StatelessWidget {
   final String label;
@@ -315,7 +455,7 @@ class _FilterChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.white.withValues(alpha: 0.25),
+          color: selected ? Colors.white : Colors.white.withOpacity(0.25),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
@@ -389,7 +529,8 @@ class _RequestCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEAF4F6),
                   borderRadius: BorderRadius.circular(999),
@@ -432,13 +573,20 @@ class _RequestCard extends StatelessWidget {
                     '${request.dateTime.hour.toString().padLeft(2, '0')}:'
                     '${request.dateTime.minute.toString().padLeft(2, '0')}',
               ),
-              _MetaText(icon: Icons.location_on_outlined, text: request.address),
-              _MetaText(icon: Icons.call_outlined, text: request.phone),
+              _MetaText(
+                icon: Icons.location_on_outlined,
+                text: request.address,
+              ),
+              _MetaText(
+                icon: Icons.call_outlined,
+                text: request.phone,
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: statusData.$1,
               borderRadius: BorderRadius.circular(999),
@@ -452,63 +600,76 @@ class _RequestCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          if (request.status == NurseServiceRequestStatus.pending)
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: isActionLoading ? null : onDecline,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFDC2626),
-                      side: const BorderSide(color: Color(0xFFDC2626)),
-                    ),
-                    child: const Text(
-                      'Decline',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
+  const SizedBox(height: 12),
+
+if (request.status == NurseServiceRequestStatus.pending) ...[
+  Row(
+    children: [
+      Expanded(
+        child: OutlinedButton(
+          onPressed: isActionLoading ? null : onDecline,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFDC2626),
+            side: const BorderSide(color: Color(0xFFDC2626)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text(
+            'Decline',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: ElevatedButton(
+          onPressed: isActionLoading ? null : onAccept,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: isActionLoading
+              ? const SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isActionLoading ? null : onAccept,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: isActionLoading
-                        ? const SizedBox(
-                            width: 17,
-                            height: 17,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Accept',
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                  ),
-                ),
-              ],
-            )
-          else
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onViewDetails,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3F4F6),
-                  foregroundColor: AppColors.primary,
-                ),
-                child: const Text(
-                  'View Full Details',
+                )
+              : const Text(
+                  'Accept',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
-              ),
-            ),
+        ),
+      ),
+    ],
+  ),
+  const SizedBox(height: 10),
+],
+
+SizedBox(
+  width: double.infinity,
+  child: ElevatedButton(
+    onPressed: onViewDetails,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFF3F4F6),
+      foregroundColor: AppColors.primary,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    child: const Text(
+      'View Full Details',
+      style: TextStyle(fontWeight: FontWeight.w800),
+    ),
+  ),
+),
         ],
       ),
     );
@@ -518,7 +679,11 @@ class _RequestCard extends StatelessWidget {
 class _MetaText extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _MetaText({required this.icon, required this.text});
+
+  const _MetaText({
+    required this.icon,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -536,6 +701,47 @@ class _MetaText extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DetailLine extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLast;
+
+  const _DetailLine({
+    required this.label,
+    required this.value,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF111827),
+              fontWeight: FontWeight.w800,
+              fontSize: 13.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -598,53 +804,4 @@ class _InfoStateCard extends StatelessWidget {
     );
   }
 }
-
-final List<NurseServiceRequestItem> _previewRequests = [
-  NurseServiceRequestItem(
-    requestId: 'req_101',
-    patientId: 'pat_01',
-    nurseId: 'nur_01',
-    patientName: 'Ahmad Mahmoud',
-    phone: '+962 79 111 2222',
-    serviceName: 'IV Therapy',
-    durationMinutes: 60,
-    priceJod: 50,
-    dateTime: DateTime(2026, 2, 8, 10, 0),
-    address: 'Abdoun, Amman',
-    notes: 'Patient needs vitamin infusion therapy.',
-    status: NurseServiceRequestStatus.pending,
-    createdAt: DateTime(2026, 2, 6, 9, 45),
-  ),
-  NurseServiceRequestItem(
-    requestId: 'req_102',
-    patientId: 'pat_02',
-    nurseId: 'nur_01',
-    patientName: 'Laila Ahmed',
-    phone: '+962 79 345 2211',
-    serviceName: 'Post-Surgery Care',
-    durationMinutes: 90,
-    priceJod: 50,
-    dateTime: DateTime(2026, 2, 9, 14, 0),
-    address: 'Khalda, Amman',
-    notes: 'Assist with wound cleaning and dressing replacement.',
-    status: NurseServiceRequestStatus.pending,
-    createdAt: DateTime(2026, 2, 6, 11, 30),
-  ),
-  NurseServiceRequestItem(
-    requestId: 'req_103',
-    patientId: 'pat_03',
-    nurseId: 'nur_01',
-    patientName: 'Khaled Yousef',
-    phone: '+962 79 774 0021',
-    serviceName: 'IV Therapy',
-    durationMinutes: 60,
-    priceJod: 50,
-    dateTime: DateTime(2026, 2, 10, 16, 0),
-    address: 'Dabouq, Amman',
-    notes: '',
-    status: NurseServiceRequestStatus.accepted,
-    createdAt: DateTime(2026, 2, 7, 8, 10),
-    updatedAt: DateTime(2026, 2, 7, 8, 40),
-  ),
-];
 

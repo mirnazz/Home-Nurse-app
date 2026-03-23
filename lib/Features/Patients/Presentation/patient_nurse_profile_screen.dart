@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_request_service_screen.dart';
 
 class PatientNurseProfileData {
@@ -13,8 +13,6 @@ class PatientNurseProfileData {
   final String location;
   final String address;
   final String availabilityLabel;
-  final String certificateUrl;
-  final List<String> servicesOffered;
 
   const PatientNurseProfileData({
     required this.nurseId,
@@ -27,39 +25,60 @@ class PatientNurseProfileData {
     required this.location,
     required this.address,
     required this.availabilityLabel,
-    required this.certificateUrl,
-    required this.servicesOffered,
   });
-
-  factory PatientNurseProfileData.fromApiJson(Map<String, dynamic> json) {
-    final rawServices = (json['servicesOffered'] as List?) ?? const [];
-
-    return PatientNurseProfileData(
-      nurseId: (json['nurseId'] ?? '').toString(),
-      fullName: (json['fullName'] ?? '').toString(),
-      profileImageUrl: (json['profileImageUrl'] ?? '').toString(),
-      headline: (json['headline'] ?? '').toString(),
-      rating: ((json['rating'] ?? 0) as num).toDouble(),
-      reviewsCount: ((json['reviewsCount'] ?? 0) as num).toInt(),
-      experienceYears: ((json['experienceYears'] ?? 0) as num).toInt(),
-      location: (json['location'] ?? '').toString(),
-      address: (json['address'] ?? '').toString(),
-      availabilityLabel: (json['availabilityLabel'] ?? 'Unavailable').toString(),
-      certificateUrl: (json['certificateUrl'] ?? '').toString(),
-      servicesOffered: rawServices.map((e) => e.toString()).toList(),
-    );
-  }
 }
 
-class PatientNurseProfileScreen extends StatelessWidget {
+class PatientNurseProfileScreen extends StatefulWidget {
   final PatientNurseProfileData profile;
 
-  const PatientNurseProfileScreen({super.key, required this.profile});
+  const PatientNurseProfileScreen({
+    super.key,
+    required this.profile,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-    const screenBg = Color(0xFFF4F6F8);
+  State<PatientNurseProfileScreen> createState() =>
+      _PatientNurseProfileScreenState();
+}
+
+class _PatientNurseProfileScreenState
+    extends State<PatientNurseProfileScreen> {
+  static const Color _primary = Color(0xFF2F7F8D);
+  static const Color _screenBg = Color(0xFFF4F6F8);
+
+  List<String> services = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServices();
+  }
+
+  Future<void> _loadServices() async {
+    try {
+      final data = await ApiService.getPatientNurseServices(
+        nurseId: widget.profile.nurseId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        services = data
+            .map((e) => (e['serviceName'] ?? '').toString())
+            .where((name) => name.isNotEmpty)
+            .toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('ERROR loading services: $e');
+      if (!mounted) return;
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _openRequestService() {
+    final profile = widget.profile;
 
     final initials = profile.fullName
         .split(' ')
@@ -69,12 +88,38 @@ class PatientNurseProfileScreen extends StatelessWidget {
         .join()
         .toUpperCase();
 
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PatientRequestServiceScreen(
+          nurseId: profile.nurseId,
+          nurseName: profile.fullName,
+          nurseSubtitle: profile.headline,
+          nurseInitials: initials,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = widget.profile;
+
+    final initials = profile.fullName
+        .split(' ')
+        .where((e) => e.isNotEmpty)
+        .map((e) => e[0])
+        .take(2)
+        .join()
+        .toUpperCase();
+
+    final hasServices = services.isNotEmpty;
+
     return Scaffold(
-      backgroundColor: screenBg,
+      backgroundColor: _screenBg,
       body: Column(
         children: [
           Container(
-            color: primary,
+            color: _primary,
             child: SafeArea(
               bottom: false,
               child: Column(
@@ -88,22 +133,9 @@ class PatientNurseProfileScreen extends StatelessWidget {
                           icon: const Icon(Icons.arrow_back, color: Colors.white),
                         ),
                         const SizedBox(width: 4),
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundColor: const Color(0xFFE7F1F3),
-                          backgroundImage: profile.profileImageUrl.isNotEmpty
-                              ? NetworkImage(profile.profileImageUrl)
-                              : null,
-                          child: profile.profileImageUrl.isEmpty
-                              ? Text(
-                                  initials,
-                                  style: const TextStyle(
-                                    color: primary,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 20,
-                                  ),
-                                )
-                              : null,
+                        _ProfileAvatar(
+                          imageUrl: profile.profileImageUrl,
+                          initials: initials,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -130,7 +162,11 @@ class PatientNurseProfileScreen extends StatelessWidget {
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Icon(Icons.star, color: Color(0xFFF7B500), size: 17),
+                                  const Icon(
+                                    Icons.star,
+                                    color: Color(0xFFF7B500),
+                                    size: 17,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${profile.rating.toStringAsFixed(1)} (${profile.reviewsCount})',
@@ -141,7 +177,11 @@ class PatientNurseProfileScreen extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  const Icon(Icons.schedule, color: Colors.white70, size: 15),
+                                  const Icon(
+                                    Icons.schedule,
+                                    color: Colors.white70,
+                                    size: 15,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${profile.experienceYears} years',
@@ -164,7 +204,10 @@ class PatientNurseProfileScreen extends StatelessWidget {
                     child: Row(
                       children: [
                         const Expanded(
-                          child: _ProfileTab(text: 'About', selected: true),
+                          child: _ProfileTab(
+                            text: 'About',
+                            selected: true,
+                          ),
                         ),
                         Expanded(
                           child: _ProfileTab(
@@ -179,25 +222,15 @@ class PatientNurseProfileScreen extends StatelessWidget {
               ),
             ),
           ),
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                  _SectionCard(
+                    title: 'Location',
                     child: Row(
                       children: [
                         Container(
@@ -208,61 +241,57 @@ class PatientNurseProfileScreen extends StatelessWidget {
                           ),
                           child: const Icon(
                             Icons.location_on_rounded,
-                            color: Color(0xFF2F7F8D),
+                            color: _primary,
                             size: 18,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Location',
-                              style: TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.3,
-                              ),
+                        Expanded(
+                          child: Text(
+                            '${profile.address}, ${profile.location}',
+                            style: const TextStyle(
+                              color: Color(0xFF1F2937),
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${profile.address}, ${profile.location}',
-                              style: const TextStyle(
-                                color: Color(0xFF1F2937),
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   _SectionCard(
                     title: 'Availability',
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE3F6EC),
+                            color: _availabilityBackground(
+                              profile.availabilityLabel,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.circle,
                                 size: 8,
-                                color: Color(0xFF1F8A4D),
+                                color: _availabilityTextColor(
+                                  profile.availabilityLabel,
+                                ),
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 profile.availabilityLabel,
-                                style: const TextStyle(
-                                  color: Color(0xFF1F8A4D),
+                                style: TextStyle(
+                                  color: _availabilityTextColor(
+                                    profile.availabilityLabel,
+                                  ),
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,
                                 ),
@@ -275,120 +304,189 @@ class PatientNurseProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   _SectionCard(
-                    title: 'Qualifications & Certifications',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _CheckLine('Registered Nurse profile'),
-                        const SizedBox(height: 8),
-                        _CheckLine(
-                          profile.certificateUrl.isEmpty
-                              ? 'Certificate URL will appear after API binding'
-                              : 'Certificate attached from backend response',
-                        ),
-                      ],
-                    ),
+                    title: 'Services Offered',
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : hasServices
+                            ? Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  for (final service in services)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEAF4F6),
+                                        borderRadius: BorderRadius.circular(999),
+                                      ),
+                                      child: Text(
+                                        service,
+                                        style: const TextStyle(
+                                          color: _primary,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 12.5,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              )
+                            : const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'This nurse has no available services yet.',
+                                    style: TextStyle(
+                                      color: Color(0xFF6B7280),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'You cannot book a service at the moment.',
+                                    style: TextStyle(
+                                      color: Color(0xFF9CA3AF),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                   ),
                   const SizedBox(height: 14),
                   _SectionCard(
-                    title: 'Services Offered',
-                    child: profile.servicesOffered.isEmpty
-                        ? const Text(
-                            'Services will appear after API data is loaded.',
-                            style: TextStyle(
-                              color: Color(0xFF9CA3AF),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          )
-                        : Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              for (final service in profile.servicesOffered)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEAF4F6),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    service,
-                                    style: const TextStyle(
-                                      color: Color(0xFF2F7F8D),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12.5,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
+                    title: 'Reviews',
+                    child: const Text(
+                      'Reviews will appear after backend review endpoints are available.',
+                      style: TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 90),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PatientRequestServiceScreen(
-                        nurseId: profile.nurseId,
-                        nurseName: profile.fullName,
-                        nurseSubtitle: profile.headline,
-                        nurseInitials: initials,
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2F7F8D),
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: const Color(0xFF2F7F8D).withOpacity(0.35),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15.5,
-                    letterSpacing: 0.3,
-                  ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          child: SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: hasServices ? _openRequestService : null,
+              icon: Icon(
+                Icons.calendar_today_rounded,
+                size: 18,
+                color: hasServices ? Colors.white : Colors.white70,
+              ),
+              label: Text(
+                hasServices ? 'Book Service Request' : 'No Services Available',
+                style: TextStyle(
+                  color: hasServices ? Colors.white : Colors.white70,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.calendar_today_rounded, size: 18),
-                    SizedBox(width: 8),
-                    Text('Book Service Request'),
-                  ],
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    hasServices ? _primary : Colors.grey.shade300,
+                foregroundColor: Colors.white,
+                elevation: hasServices ? 4 : 0,
+                shadowColor: hasServices
+                    ? _primary.withOpacity(0.28)
+                    : Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
           ),
-          PatientBottomNavBar(
-            currentIndex: 1,
-            onTap: (index) {
-              if (index == 1) return;
-              if (index == 0) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              }
-            },
+        ),
+      ),
+    );
+  }
+
+  Color _availabilityBackground(String label) {
+    final lower = label.toLowerCase();
+    if (lower.contains('available')) {
+      return const Color(0xFFE3F6EC);
+    }
+    return const Color(0xFFF3F4F6);
+  }
+
+  Color _availabilityTextColor(String label) {
+    final lower = label.toLowerCase();
+    if (lower.contains('available')) {
+      return const Color(0xFF1F8A4D);
+    }
+    return const Color(0xFF6B7280);
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  final String imageUrl;
+  final String initials;
+
+  const _ProfileAvatar({
+    required this.imageUrl,
+    required this.initials,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2F7F8D);
+
+    if (imageUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 25,
+        backgroundColor: const Color(0xFFE7F1F3),
+        child: Text(
+          initials,
+          style: const TextStyle(
+            color: primary,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
           ),
-        ],
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 25,
+      backgroundColor: const Color(0xFFE7F1F3),
+      child: ClipOval(
+        child: Image.network(
+          imageUrl,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return Container(
+              width: 50,
+              height: 50,
+              color: const Color(0xFFE7F1F3),
+              alignment: Alignment.center,
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -398,7 +496,10 @@ class _ProfileTab extends StatelessWidget {
   final String text;
   final bool selected;
 
-  const _ProfileTab({required this.text, required this.selected});
+  const _ProfileTab({
+    required this.text,
+    required this.selected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +530,10 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const _SectionCard({required this.title, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -456,7 +560,6 @@ class _SectionCard extends StatelessWidget {
               color: Color(0xFF1F2937),
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              letterSpacing: 0.1,
             ),
           ),
           const SizedBox(height: 12),
@@ -467,29 +570,4 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-class _CheckLine extends StatelessWidget {
-  final String text;
 
-  const _CheckLine(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.check_circle_rounded, color: Color(0xFF8AD1A7), size: 18),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Color(0xFF374151),
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}

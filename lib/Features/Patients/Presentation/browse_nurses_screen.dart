@@ -189,20 +189,18 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
   }
 
   void _openNurseProfile(_NurseBrowseItem nurse) {
-    final profile = PatientNurseProfileData(
-      nurseId: nurse.nurseId,
-      fullName: nurse.fullName,
-      profileImageUrl: nurse.profileImageUrl,
-      headline: nurse.specialization,
-      rating: nurse.rating,
-      reviewsCount: nurse.reviewsCount,
-      experienceYears: nurse.experienceYears,
-      location: nurse.location,
-      address: nurse.address,
-      availabilityLabel: nurse.availabilityLabel,
-      certificateUrl: '',
-      servicesOffered: _serviceNamesForIds(nurse.serviceCatalogIds),
-    );
+ final profile = PatientNurseProfileData(
+  nurseId: nurse.nurseId,
+  fullName: nurse.fullName,
+  profileImageUrl: nurse.profileImageUrl,
+  headline: nurse.specialization,
+  rating: nurse.rating,
+  reviewsCount: nurse.reviewsCount,
+  experienceYears: nurse.experienceYears,
+  location: nurse.location,
+  address: nurse.address,
+  availabilityLabel: nurse.availabilityLabel,
+);
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -1100,22 +1098,26 @@ class _NurseBrowseItem {
   });
 
   factory _NurseBrowseItem.fromApiJson(Map<String, dynamic> json) {
-    return _NurseBrowseItem(
-      nurseId: (json['nurseId'] ?? '').toString(),
-      fullName: (json['fullName'] ?? '').toString(),
-      specialization: (json['specialization'] ?? '').toString(),
-      location: (json['location'] ?? '').toString(),
-      address: (json['address'] ?? '').toString(),
-      experienceYears: ((json['experienceYears'] ?? 0) as num).toInt(),
-      profileImageUrl: (json['profileImageUrl'] ?? '').toString(),
-      rating: ((json['rating'] ?? 0) as num).toDouble(),
-      reviewsCount: ((json['reviewsCount'] ?? 0) as num).toInt(),
-      price: ((json['price'] ?? 0) as num).toDouble(),
-      availabilityLabel:
-          (json['availabilityLabel'] ?? 'Unavailable').toString(),
-      serviceCatalogIds: const [],
-    );
-  }
+  debugPrint('NURSE JSON: $json');
+
+  return _NurseBrowseItem(
+    nurseId: (json['nurseId'] ?? '').toString(),
+    fullName: (json['fullName'] ?? '').toString(),
+    specialization: (json['specialization'] ?? '').toString(),
+    location: (json['location'] ?? '').toString(),
+    address: (json['address'] ?? '').toString(),
+    experienceYears: ((json['experienceYears'] ?? 0) as num).toInt(),
+    profileImageUrl: (json['profileImageUrl'] ?? '').toString(),
+    rating: ((json['rating'] ?? 0) as num).toDouble(),
+    reviewsCount: ((json['reviewsCount'] ?? 0) as num).toInt(),
+    price: ((json['price'] ?? 0) as num).toDouble(),
+    availabilityLabel:
+        (json['availabilityLabel'] ?? 'Unavailable').toString(),
+    serviceCatalogIds: (json['serviceCatalogIds'] as List? ?? [])
+        .map((e) => (e as num).toInt())
+        .toList(),
+  );
+}
 }
 
 extension _FirstOrNullExtension<E> on Iterable<E> {

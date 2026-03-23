@@ -64,78 +64,82 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   }
 
   Future<void> _loadInitialData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
 
-    try {
-      final servicesJson = await ApiService.getPatientNurseServices(
-        nurseId: widget.nurseId,
+  try {
+    final servicesJson = await ApiService.getPatientNurseServices(
+      nurseId: widget.nurseId,
+    );
+
+    final datesJson = await ApiService.getPatientAvailableDates(
+      nurseId: widget.nurseId,
+      daysAhead: 14,
+    );
+
+    final services = servicesJson.map((item) {
+      final map = item as Map<String, dynamic>;
+      final int serviceId = ((map['serviceId'] ?? 0) as num).toInt();
+      final String serviceName = (map['serviceName'] ?? '').toString();
+      final int duration = ((map['durationInMinutes'] ?? 0) as num).toInt();
+      final double price = ((map['price'] ?? 0) as num).toDouble();
+
+      return PatientServiceOption(
+        id: serviceId.toString(),
+        title: serviceName,
+        durationLabel: 'Duration: $duration min',
+        priceJod: price,
       );
+    }).toList();
 
-      final datesJson = await ApiService.getPatientAvailableDates(
-        nurseId: widget.nurseId,
-        daysAhead: 14,
+    final dates = datesJson
+        .map((e) => DateTime.tryParse(e.toString()))
+        .whereType<DateTime>()
+        .map((d) => DateTime(d.year, d.month, d.day))
+        .toList();
+
+    DateTime? selectedDate = _selectedDate;
+    if (selectedDate != null) {
+      final normalized = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
       );
-
-      final services = servicesJson.map((item) {
-        final map = item as Map<String, dynamic>;
-        final int serviceId = ((map['serviceId'] ?? 0) as num).toInt();
-        final String serviceName = (map['serviceName'] ?? '').toString();
-        final int duration = ((map['durationInMinutes'] ?? 0) as num).toInt();
-        final double price = ((map['price'] ?? 0) as num).toDouble();
-
-        return PatientServiceOption(
-          id: serviceId.toString(),
-          title: serviceName,
-          durationLabel: 'Duration: $duration min',
-          priceJod: price,
-        );
-      }).toList();
-
-      final dates = datesJson
-          .map((e) => DateTime.tryParse(e))
-          .whereType<DateTime>()
-          .map((d) => DateTime(d.year, d.month, d.day))
-          .toList();
-
-      DateTime? selectedDate = _selectedDate;
-      if (selectedDate != null) {
-        final normalized = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-        );
-        final exists = dates.any((d) => _isSameDate(d, normalized));
-        if (!exists) {
-          selectedDate = null;
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _serviceOptions = services;
-          _availableDates = dates;
-          _selectedDate = selectedDate;
-        });
-      }
-
-      if (_selectedService != null && _selectedDate != null) {
-        await _loadAvailableSlots();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString().replaceFirst('Exception: ', '');
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      final exists = dates.any((d) => _isSameDate(d, normalized));
+      if (!exists) {
+        selectedDate = null;
       }
     }
+
+    final autoSelectedService =
+        services.isNotEmpty ? services.first : null;
+
+    if (mounted) {
+      setState(() {
+        _serviceOptions = services;
+        _availableDates = dates;
+        _selectedDate = selectedDate ?? (dates.isNotEmpty ? dates.first : null);
+        _selectedService = autoSelectedService;
+      });
+    }
+
+    if (_selectedService != null && _selectedDate != null) {
+      await _loadAvailableSlots();
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
+}
 
   Future<void> _loadAvailableSlots() async {
     if (_selectedService == null || _selectedDate == null) {

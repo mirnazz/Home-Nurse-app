@@ -70,7 +70,7 @@ class ApiConstants {
       "$patientBase/nurses/browse";
 
   static const String patientNurseDetails =
-      "$patientBase/nurses"; 
+      "$patientBase/nurses";
   // usage: /api/patient/nurses/{nurseId}
 
   static const String patientNurseServices =
@@ -96,4 +96,5 @@ class ApiConstants {
   // =========================
   static const String pendingNurses =
       "/api/admin/pending-nurses";
+      static const String nurseRequests = "$nurseProfileBase/requests";
 }
