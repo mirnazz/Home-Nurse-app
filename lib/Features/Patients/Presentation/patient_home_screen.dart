@@ -3,6 +3,7 @@ import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
@@ -186,7 +187,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         initialServiceCatalogId: _browseServiceId,
         initialLocation: _browseLocation,
       ),
-      const _PlaceholderTab(title: 'Appointments'),
+      const PatientAppointmentsScreen(),
       const _PlaceholderTab(title: 'Payments'),
       const _PlaceholderTab(title: 'More'),
     ];

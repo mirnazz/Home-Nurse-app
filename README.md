@@ -28,6 +28,12 @@ Backend integration will be added in later phases.
 
 ---
 
+## Docs for backend integration
+
+- **[Handoff for Abeer (appointments, statuses, API checklist)](docs/ABEER_BACKEND_HANDOFF.md)** — patient vs nurse flows, files touched, and what to implement on the API.
+
+---
+
 ## In Progress / Planned
 
 - Nurse flow (authentication and dashboard)
