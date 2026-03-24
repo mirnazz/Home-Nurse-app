@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_constants.dart';
 import 'token_storage.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
 
 class ApiService {
   // =========================
@@ -1089,4 +1090,119 @@ static Future<void> declineNurseRequest({
   }
 }
 
+// =========================
+// Patient - Appointments
+// =========================
+
+static Future<List<Appointment>> getPatientAppointments({
+  required String tab,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
+  );
+
+  print("GET PATIENT APPOINTMENTS URL: $url");
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  print("GET PATIENT APPOINTMENTS STATUS: ${response.statusCode}");
+  print("GET PATIENT APPOINTMENTS BODY: ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load appointments",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+
+  if (data is! List) return [];
+
+  return data
+      .map<Appointment>(
+        (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
+      )
+      .toList();
+}
+static Future<void> cancelPatientAppointment({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId/cancel",
+  );
+
+  final response = await http
+      .put(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      )
+      .timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to cancel appointment",
+      ),
+    );
+  }
+}
+static Future<Appointment> getPatientAppointmentDetails({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId",
+  );
+
+  print("GET PATIENT APPOINTMENT DETAILS URL: $url");
+  print("GET PATIENT APPOINTMENT DETAILS BOOKING ID: $bookingId");
+
+  final response = await http
+      .get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      )
+      .timeout(const Duration(seconds: 15));
+
+  print("GET PATIENT APPOINTMENT DETAILS STATUS: ${response.statusCode}");
+  print("GET PATIENT APPOINTMENT DETAILS BODY: ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load appointment details",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+
+  if (data is! Map<String, dynamic>) {
+    throw Exception("Invalid appointment details response");
+  }
+
+  return Appointment.fromPatientDetailsJson(data);
+}
 }

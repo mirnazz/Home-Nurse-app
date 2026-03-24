@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
 
 /// Patient dashboard appointment presentation (list + details).
 ///

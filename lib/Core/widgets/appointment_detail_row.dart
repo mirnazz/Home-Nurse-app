@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 /// Light grey rounded row with teal outline icon (details screens).
 class AppointmentDetailRow extends StatelessWidget {

@@ -97,4 +97,6 @@ class ApiConstants {
   static const String pendingNurses =
       "/api/admin/pending-nurses";
       static const String nurseRequests = "$nurseProfileBase/requests";
+      static const String patientAppointments = '/api/patient/appointments';
+      
 }

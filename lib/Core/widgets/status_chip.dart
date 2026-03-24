@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
 
 /// Small pill showing [AppointmentStatus] with role-aware colors.
 /// Patient list: [waitingPayment] is shown as "Confirmed" (pay step) — use [patientAppointmentChipStyle] on patient screens.

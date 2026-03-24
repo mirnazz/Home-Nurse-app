@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
-import 'package:nurse_app/core/models/appointment.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
-import 'package:nurse_app/core/widgets/nurse_appointment_chip_style.dart';
-import 'package:nurse_app/core/widgets/patient_appointment_status_ui.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/widgets/nurse_appointment_chip_style.dart';
+import 'package:nurse_app/Core/widgets/patient_appointment_status_ui.dart';
 
 String appointmentInitials(String name) {
   final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
