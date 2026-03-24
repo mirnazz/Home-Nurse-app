@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 /// Teal header + pill segmented control: "Upcoming (n)" / "Past (n)".
 class AppointmentSegmentHeader extends StatelessWidget {

@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
-import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
 
 class PatientRequestSubmittedScreen extends StatelessWidget {
-  final PatientServiceRequestDraft draft;
+  final Map<String, dynamic> bookingResponse;
 
-  const PatientRequestSubmittedScreen({super.key, required this.draft});
+  const PatientRequestSubmittedScreen({
+    super.key,
+    required this.bookingResponse,
+  });
 
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
-    final formattedDate =
-        '${draft.date.year.toString().padLeft(4, '0')}-'
-        '${draft.date.month.toString().padLeft(2, '0')}-'
-        '${draft.date.day.toString().padLeft(2, '0')}';
+
+    final summary =
+        (bookingResponse['summary'] as Map<String, dynamic>?) ?? {};
+
+    final nurseName = (summary['nurseName'] ?? '').toString();
+    final serviceName = (summary['serviceName'] ?? '').toString();
+    final durationInMinutes = (summary['durationInMinutes'] ?? 0).toString();
+    final date = (summary['date'] ?? '').toString();
+    final time = (summary['time'] ?? '').toString();
+    final totalPrice = (summary['totalPrice'] ?? 0).toString();
+    final status = (bookingResponse['status'] ?? '').toString();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
@@ -47,7 +56,7 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Your service request has been sent to\n${draft.nurseName}. You will receive a\nnotification once the nurse responds.',
+                'Your service request has been sent to\n$nurseName. You will receive a\nnotification once the nurse responds.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
@@ -76,17 +85,22 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _SummaryLine(label: 'Nurse:', value: draft.nurseName),
-                    _SummaryLine(label: 'Service:', value: draft.service.title),
-                    _SummaryLine(label: 'Duration:', value: draft.service.durationLabel),
-                    _SummaryLine(label: 'Date:', value: formattedDate),
-                    _SummaryLine(label: 'Time:', value: draft.timeSlot),
+                    _SummaryLine(label: 'Nurse:', value: nurseName),
+                    _SummaryLine(label: 'Service:', value: serviceName),
+                    _SummaryLine(
+                      label: 'Duration:',
+                      value: '$durationInMinutes min',
+                    ),
+                    _SummaryLine(label: 'Date:', value: date),
+                    _SummaryLine(label: 'Time:', value: time),
+                    if (status.isNotEmpty)
+                      _SummaryLine(label: 'Status:', value: status),
                     const SizedBox(height: 10),
                     const Divider(height: 1),
                     const SizedBox(height: 10),
                     _SummaryLine(
                       label: 'Total Price:',
-                      value: '${draft.service.priceJod} JOD',
+                      value: '$totalPrice JOD',
                       highlighted: true,
                     ),
                   ],
@@ -97,12 +111,18 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primary,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
                   ),
                   child: const Text('Back to Nurses'),
                 ),

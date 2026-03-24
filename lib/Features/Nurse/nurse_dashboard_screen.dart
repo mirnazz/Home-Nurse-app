@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
 import 'nurse_profile_screen.dart';
@@ -14,59 +16,108 @@ class NurseDashboardScreen extends StatefulWidget {
 
 class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   int currentTab = 0;
-  String nurseName = "";
-  bool isLoading = true;
+  String nurseName = 'Nurse';
 
   @override
   void initState() {
     super.initState();
-    loadNurse();
+    _loadNurseProfile();
   }
 
-  Future<void> loadNurse() async {
+  Future<void> _loadNurseProfile() async {
     try {
-      final data = await ApiService.getAccount();
+      final token = await TokenStorage.getToken();
+
+      if (token == null || token.isEmpty) return;
+
+      final response = await ApiService.getNurseProfile();
 
       if (!mounted) return;
 
       setState(() {
-        nurseName = data["fullName"] ?? "Nurse";
-        isLoading = false;
+        nurseName =
+            response['fullName'] ??
+            response['name'] ??
+            response['nurseName'] ??
+            'Nurse';
       });
     } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        nurseName = "Nurse";
-        isLoading = false;
-      });
+      debugPrint('Error loading nurse profile: $e');
     }
+  }
+
+  Future<void> _logout() async {
+    await TokenStorage.clearToken();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      currentTab = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : IndexedStack(
-                index: currentTab,
-                children: [
-                  _HomeContent(nurseName: nurseName),
-                  NurseProfileScreen(
-                    currentTabIndex: 1,
-                    onTabChanged: (i) => setState(() => currentTab = i),
-                  ),
-                  const NurseAppointmentsScreen(),
-                  const NurseRequestsScreen(),
-                  _PlaceholderTab(title: "Transactions"),
-                ],
-              ),
+      body: IndexedStack(
+        index: currentTab,
+        children: [
+          _HomeContent(
+            nurseName: nurseName,
+            onLogout: _logout,
+          ),
+          NurseProfileScreen(
+            currentTabIndex: 1,
+            onTabChanged: (i) => setState(() => currentTab = i),
+          ),
+          const NurseAppointmentsScreen(),
+          const NurseRequestsScreen(),
+          const _PlaceholderTab(title: "Transactions"),
+        ],
       ),
-      bottomNavigationBar: _NurseBottomNav(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentTab,
-        onChanged: (i) => setState(() => currentTab = i),
+        onTap: _onTabChanged,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined),
+            activeIcon: Icon(Icons.calendar_today),
+            label: 'Appointments',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_outlined),
+            activeIcon: Icon(Icons.assignment),
+            label: 'Requests',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            activeIcon: Icon(Icons.account_balance_wallet),
+            label: 'Transactions',
+          ),
+        ],
       ),
     );
   }
@@ -74,35 +125,160 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 
 class _HomeContent extends StatelessWidget {
   final String nurseName;
+  final VoidCallback onLogout;
 
-  const _HomeContent({required this.nurseName});
+  const _HomeContent({
+    required this.nurseName,
+    required this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Welcome, $nurseName',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onLogout,
+                  icon: const Icon(Icons.logout),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nurse Dashboard',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Manage your profile, appointments, and incoming requests.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Quick Overview',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: const [
+                  _DashboardCard(
+                    icon: Icons.person,
+                    title: 'Profile',
+                    subtitle: 'View and edit your information',
+                  ),
+                  _DashboardCard(
+                    icon: Icons.calendar_today,
+                    title: 'Appointments',
+                    subtitle: 'Manage your booked schedule',
+                  ),
+                  _DashboardCard(
+                    icon: Icons.assignment,
+                    title: 'Requests',
+                    subtitle: 'Check new service requests',
+                  ),
+                  _DashboardCard(
+                    icon: Icons.account_balance_wallet,
+                    title: 'Transactions',
+                    subtitle: 'Track your earnings and records',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _DashboardCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NurseHeader(name: nurseName),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _SummaryCardsRow(),
-                const SizedBox(height: 18),
-                const _ThisWeekSummaryCard(),
-                const SizedBox(height: 24),
-                const _QuickActionsTitle(),
-                const SizedBox(height: 12),
-                const _QuickActionsList(),
-                const SizedBox(height: 24),
-                const _TodayScheduleSection(),
-                const SizedBox(height: 24),
-                const _AvailabilityCard(),
-                const SizedBox(height: 100),
-              ],
+          CircleAvatar(
+            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+            child: Icon(icon, color: AppColors.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
             ),
           ),
         ],
@@ -120,11 +296,10 @@ class _PlaceholderTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        "$title - Coming soon",
+        '$title Screen',
         style: const TextStyle(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF6B7280),
         ),
       ),
     );
@@ -451,8 +626,8 @@ class _QuickActionsList extends StatelessWidget {
       children: [
         _QuickActionTile(
           icon: Icons.calendar_month_outlined,
-          title: "Manage Availability",
-          subtitle: "Set your working hours",
+          title: "Manage Appointments",
+          subtitle: "View your booked schedule",
           trailing: const Icon(
             Icons.arrow_forward_ios,
             size: 14,

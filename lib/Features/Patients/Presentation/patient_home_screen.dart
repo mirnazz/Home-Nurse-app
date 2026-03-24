@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
-  final Future<List<PatientPendingReviewItem>> Function()? onFetchPendingReviewRequests;
+  final Future<List<PatientPendingReviewItem>> Function()?
+      onFetchPendingReviewRequests;
   final Future<void> Function(PatientRatingSubmissionDraft draft)? onSubmitReview;
 
   const PatientHomeScreen({
@@ -23,6 +26,12 @@ class PatientHomeScreen extends StatefulWidget {
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int currentTab = 0;
+  String _userName = 'User';
+
+  String? _browseSearch;
+  int? _browseServiceId;
+  String? _browseLocation;
+
   bool _isLoadingPendingReviews = false;
   late List<PatientPendingReviewItem> _pendingReviewRequests;
 
@@ -32,7 +41,23 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     _pendingReviewRequests = widget.pendingReviewRequests.isNotEmpty
         ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
         : List<PatientPendingReviewItem>.from(_previewPendingReviewRequests);
+
+    _loadUserData();
     _fetchPendingReviews();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final me = await ApiService.getMe();
+
+      if (!mounted) return;
+
+      setState(() {
+        _userName = (me['fullName'] ?? me['userName'] ?? 'User').toString();
+      });
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+    }
   }
 
   Future<void> _fetchPendingReviews() async {
@@ -40,12 +65,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     if (fetcher == null) return;
 
     setState(() => _isLoadingPendingReviews = true);
+
     try {
       final requests = await fetcher();
       if (!mounted) return;
-      setState(() => _pendingReviewRequests = requests);
+
+      setState(() {
+        _pendingReviewRequests = requests;
+      });
     } catch (_) {
-      // TODO(Abeer): handle backend fetch errors using app-level error strategy.
+      // handle later with app-level error strategy
     } finally {
       if (mounted) {
         setState(() => _isLoadingPendingReviews = false);
@@ -71,8 +100,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       }
 
       if (!mounted) return;
+
       setState(() {
-        _pendingReviewRequests.removeWhere((item) => item.requestId == request.requestId);
+        _pendingReviewRequests
+            .removeWhere((item) => item.requestId == request.requestId);
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,6 +111,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       );
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Review submission failed: $e')),
       );
@@ -102,19 +134,121 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
-  Widget _buildHomeBody() {
+  void _openBrowseDefault() {
+    setState(() {
+      _browseSearch = null;
+      _browseServiceId = null;
+      _browseLocation = null;
+      currentTab = 1;
+    });
+  }
+
+  void _openBrowseWithService(int serviceCatalogId) {
+    setState(() {
+      _browseSearch = null;
+      _browseServiceId = serviceCatalogId;
+      _browseLocation = null;
+      currentTab = 1;
+    });
+  }
+
+  void _onBottomNavTap(int index) {
+    setState(() {
+      currentTab = index;
+
+      if (index == 1) {
+        _browseSearch = null;
+        _browseServiceId = null;
+        _browseLocation = null;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const bg = Color(0xFFF6F7F9);
+
+    final pages = [
+      PatientHomeContent(
+        name: _userName,
+        onLogout: _logout,
+        onSearchTap: _openBrowseDefault,
+        onQuickServiceTap: _openBrowseWithService,
+        onRecommendedSeeAllTap: _openBrowseDefault,
+        isLoadingPendingReviews: _isLoadingPendingReviews,
+        pendingReviewRequests: _pendingReviewRequests,
+        onWriteReview: _openReviewBottomSheet,
+      ),
+      BrowseNursesScreen(
+        key: ValueKey(
+          'browse-${_browseSearch ?? ''}-${_browseServiceId ?? 'all'}-${_browseLocation ?? 'all'}',
+        ),
+        initialSearch: _browseSearch,
+        initialServiceCatalogId: _browseServiceId,
+        initialLocation: _browseLocation,
+      ),
+      const PatientAppointmentsScreen(),
+      const _PlaceholderTab(title: 'Payments'),
+      const _PlaceholderTab(title: 'More'),
+    ];
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: IndexedStack(
+        index: currentTab,
+        children: pages,
+      ),
+      bottomNavigationBar: PatientBottomNavBar(
+        currentIndex: currentTab,
+        onTap: _onBottomNavTap,
+      ),
+    );
+  }
+}
+
+class PatientHomeContent extends StatelessWidget {
+  final String name;
+  final VoidCallback onLogout;
+  final VoidCallback onSearchTap;
+  final ValueChanged<int> onQuickServiceTap;
+  final VoidCallback onRecommendedSeeAllTap;
+  final bool isLoadingPendingReviews;
+  final List<PatientPendingReviewItem> pendingReviewRequests;
+  final ValueChanged<PatientPendingReviewItem> onWriteReview;
+
+  const PatientHomeContent({
+    super.key,
+    required this.name,
+    required this.onLogout,
+    required this.onSearchTap,
+    required this.onQuickServiceTap,
+    required this.onRecommendedSeeAllTap,
+    required this.isLoadingPendingReviews,
+    required this.pendingReviewRequests,
+    required this.onWriteReview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _HomeHeader(onLogout: _logout),
+            _HomeHeader(
+              onLogout: onLogout,
+              name: name,
+            ),
             const SizedBox(height: 14),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_isLoadingPendingReviews) ...[
+                  _SearchEntryCard(
+                    onTap: onSearchTap,
+                  ),
+                  const SizedBox(height: 18),
+                  if (isLoadingPendingReviews) ...[
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.only(bottom: 8),
@@ -125,16 +259,20 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                         ),
                       ),
                     ),
-                  ] else if (_pendingReviewRequests.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                  ] else if (pendingReviewRequests.isNotEmpty) ...[
                     _RateExperienceCard(
-                      request: _pendingReviewRequests.first,
-                      onWriteReview: () => _openReviewBottomSheet(_pendingReviewRequests.first),
+                      request: pendingReviewRequests.first,
+                      onWriteReview: () =>
+                          onWriteReview(pendingReviewRequests.first),
                     ),
                     const SizedBox(height: 18),
                   ],
                   const _SectionTitle(title: "Quick Services"),
                   const SizedBox(height: 12),
-                  const _QuickServicesRow(),
+                  _QuickServicesRow(
+                    onServiceTap: onQuickServiceTap,
+                  ),
                   const SizedBox(height: 16),
                   const _StatsRow(),
                   const SizedBox(height: 18),
@@ -145,10 +283,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   const SizedBox(height: 12),
                   const _UpcomingAppointments(),
                   const SizedBox(height: 18),
-                  const _SectionTitleWithAction(
+                  _SectionTitleWithAction(
                     title: "Recommended for You",
                     action: "See All",
                     subtitle: "Based on location, ratings & availability",
+                    onActionTap: onRecommendedSeeAllTap,
                   ),
                   const SizedBox(height: 10),
                   const _LocationCard(),
@@ -163,26 +302,23 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       ),
     );
   }
+}
+
+class _PlaceholderTab extends StatelessWidget {
+  final String title;
+
+  const _PlaceholderTab({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFFF6F7F9);
-
-    return Scaffold(
-      backgroundColor: bg,
-      body: IndexedStack(
-        index: currentTab,
-        children: [
-          _buildHomeBody(),
-          const BrowseNursesScreen(),
-          const PatientAppointmentsScreen(),
-          _PatientTabPlaceholder(title: 'Payments', message: 'Payment history will appear here.'),
-          _PatientTabPlaceholder(title: 'More', message: 'Settings and more coming soon.'),
-        ],
-      ),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: currentTab,
-        onChanged: (i) => setState(() => currentTab = i),
+    return Center(
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF374151),
+        ),
       ),
     );
   }
@@ -190,8 +326,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
 class _HomeHeader extends StatelessWidget {
   final VoidCallback onLogout;
+  final String name;
 
-  const _HomeHeader({required this.onLogout});
+  const _HomeHeader({
+    required this.onLogout,
+    required this.name,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -210,11 +350,11 @@ class _HomeHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Welcome back,",
                       style: TextStyle(
                         color: Colors.white70,
@@ -222,10 +362,10 @@ class _HomeHeader extends StatelessWidget {
                         fontSize: 13,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      "John",
-                      style: TextStyle(
+                      name,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                         fontSize: 22,
@@ -305,8 +445,58 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
+class _SearchEntryCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SearchEntryCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8ECF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 12,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.search, color: Color(0xFF6B7280)),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "Search nurses by name or specialty...",
+                style: TextStyle(
+                  color: Color(0xFF9CA3AF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Color(0xFF9CA3AF),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   final String title;
+
   const _SectionTitle({required this.title});
 
   @override
@@ -326,11 +516,13 @@ class _SectionTitleWithAction extends StatelessWidget {
   final String title;
   final String action;
   final String? subtitle;
+  final VoidCallback? onActionTap;
 
   const _SectionTitleWithAction({
     required this.title,
     required this.action,
     this.subtitle,
+    this.onActionTap,
   });
 
   @override
@@ -364,7 +556,7 @@ class _SectionTitleWithAction extends StatelessWidget {
           ),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: onActionTap,
           child: Text(
             action,
             style: const TextStyle(
@@ -419,7 +611,7 @@ class _RateExperienceCard extends StatelessWidget {
                     color: Color(0xFF8A4B00),
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "Help others by sharing your feedback\nabout ${request.nurseName}",
                   style: const TextStyle(
@@ -472,37 +664,45 @@ const List<PatientPendingReviewItem> _previewPendingReviewRequests = [
 ];
 
 class _QuickServicesRow extends StatelessWidget {
-  const _QuickServicesRow();
+  final ValueChanged<int> onServiceTap;
+
+  const _QuickServicesRow({
+    required this.onServiceTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _ServiceTile(
             icon: Icons.water_drop_outlined,
             label: "IV\nTherapy",
+            onTap: () => onServiceTap(1),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.favorite_border,
             label: "Wound\nCare",
+            onTap: () => onServiceTap(2),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.medical_services_outlined,
             label: "Post-\nSurgery",
+            onTap: () => onServiceTap(4),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ServiceTile(
             icon: Icons.medication_outlined,
             label: "Medication",
+            onTap: () => onServiceTap(5),
           ),
         ),
       ],
@@ -513,50 +713,59 @@ class _QuickServicesRow extends StatelessWidget {
 class _ServiceTile extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
-  const _ServiceTile({required this.icon, required this.label});
+  const _ServiceTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8ECF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 42,
-            width: 42,
-            decoration: BoxDecoration(
-              color: primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8ECF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 12,
+              offset: Offset(0, 8),
             ),
-            child: Icon(icon, color: primary),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF374151),
-              height: 1.1,
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: primary),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF374151),
+                height: 1.1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -863,11 +1072,14 @@ class _LocationCard extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(
+          const TextButton(
             onPressed: null,
             child: Text(
               "Change",
-              style: TextStyle(fontWeight: FontWeight.w900, color: primary),
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: primary,
+              ),
             ),
           ),
         ],
@@ -1022,6 +1234,7 @@ class _RecommendedCard extends StatelessWidget {
 
 class _Chip extends StatelessWidget {
   final String text;
+
   const _Chip({required this.text});
 
   @override
@@ -1040,108 +1253,6 @@ class _Chip extends StatelessWidget {
           fontWeight: FontWeight.w800,
           color: Color(0xFF2F7F8D),
         ),
-      ),
-    );
-  }
-}
-
-class _PatientTabPlaceholder extends StatelessWidget {
-  final String title;
-  final String message;
-
-  const _PatientTabPlaceholder({required this.title, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.construction_rounded, size: 48, color: primary.withOpacity(0.5)),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2433),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onChanged;
-
-  const _BottomNav({required this.currentIndex, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-
-    return Container(
-      padding: const EdgeInsets.only(top: 6),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 14,
-            offset: Offset(0, -8),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onChanged,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: primary,
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group_outlined),
-            label: "Nurses",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: "Appointments",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.payments_outlined),
-            label: "Payments",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_rounded),
-            label: "More",
-          ),
-        ],
       ),
     );
   }

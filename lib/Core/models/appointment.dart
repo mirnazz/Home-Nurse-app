@@ -1,7 +1,5 @@
-import 'package:nurse_app/core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
 
-/// UI model for appointment list & details.
-/// TODO(backend): Map from API DTO (JSON) in a repository layer.
 class Appointment {
   final String id;
   final String patientName;
@@ -11,17 +9,9 @@ class Appointment {
   final String location;
   final AppointmentStatus status;
   final double price;
-
-  /// Service duration for display, e.g. "2hr" in details. Null hides duration line.
   final int? durationMinutes;
-
-  /// Patient contact for nurse appointment UI. TODO(backend): from booking API.
   final String? patientPhone;
-
-  /// Nurse contact / profile (patient details). TODO(backend): from booking API.
   final String? nursePhone;
-
-  /// Nurse specialty label on patient details. Falls back to [serviceName] if null.
   final String? nurseSpecialty;
 
   const Appointment({
@@ -67,5 +57,60 @@ class Appointment {
       nursePhone: nursePhone ?? this.nursePhone,
       nurseSpecialty: nurseSpecialty ?? this.nurseSpecialty,
     );
+  }
+
+  factory Appointment.fromPatientJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: (json['bookingId'] ?? '').toString(),
+      patientName: '',
+      nurseName: (json['nurseName'] ?? '').toString(),
+      serviceName: (json['serviceName'] ?? '').toString(),
+      dateTime: DateTime.parse('${json['date']}T${json['time']}'),
+      location: (json['address'] ?? '').toString(),
+      status: _mapStatus((json['status'] ?? '').toString()),
+      price: (json['totalPrice'] ?? 0).toDouble(),
+      durationMinutes: null,
+      patientPhone: null,
+      nursePhone: null,
+      nurseSpecialty: null,
+    );
+  }
+
+  factory Appointment.fromPatientDetailsJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: (json['bookingId'] ?? '').toString(),
+      patientName: '',
+      nurseName: (json['nurseName'] ?? '').toString(),
+      serviceName: (json['serviceName'] ?? '').toString(),
+      dateTime: DateTime.parse('${json['date']}T${json['time']}'),
+      location: (json['address'] ?? '').toString(),
+      status: _mapStatus((json['status'] ?? '').toString()),
+      price: (json['totalPrice'] ?? 0).toDouble(),
+      durationMinutes: json['durationInMinutes'] is num
+          ? (json['durationInMinutes'] as num).toInt()
+          : null,
+      patientPhone: null,
+      nursePhone: json['phoneNumber']?.toString(),
+      nurseSpecialty: null,
+    );
+  }
+
+  static AppointmentStatus _mapStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return AppointmentStatus.pending;
+      case 'accepted':
+        return AppointmentStatus.confirmed;
+      case 'active':
+        return AppointmentStatus.paid;
+      case 'completed':
+        return AppointmentStatus.completed;
+      case 'cancelled':
+        return AppointmentStatus.cancelled;
+      case 'rejected':
+        return AppointmentStatus.rejected;
+      default:
+        return AppointmentStatus.pending;
+    }
   }
 }

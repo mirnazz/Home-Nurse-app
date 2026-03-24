@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nurse_app/core/models/appointment.dart';
-import 'package:nurse_app/core/widgets/status_chip.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/widgets/status_chip.dart';
 
 /// Card for list views; [primaryName] is patient name (nurse app) or nurse name (patient app).
 class AppointmentCard extends StatelessWidget {

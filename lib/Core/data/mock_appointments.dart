@@ -1,5 +1,5 @@
-import 'package:nurse_app/core/enums/appointment_status.dart';
-import 'package:nurse_app/core/models/appointment.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
 
 /// Dummy data for UI testing only.
 /// TODO(backend): Replace with repository / API responses.

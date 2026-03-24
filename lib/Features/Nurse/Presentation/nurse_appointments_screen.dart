@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/data/mock_appointments.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
-import 'package:nurse_app/core/models/appointment.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
-import 'package:nurse_app/core/widgets/appointment_list_card.dart';
-import 'package:nurse_app/core/widgets/appointment_segment_header.dart';
+import 'package:nurse_app/Core/data/mock_appointments.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/widgets/appointment_list_card.dart';
+import 'package:nurse_app/Core/widgets/appointment_segment_header.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointment_details_screen.dart';
 
 /// Nurse: upcoming vs past appointments (UI + mock data).

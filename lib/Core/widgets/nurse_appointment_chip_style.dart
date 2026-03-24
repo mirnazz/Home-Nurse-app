@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 /// Visual style for nurse-facing appointment statuses (four states only).
 (Color bg, Color fg, IconData icon, String label, Color? border) nurseAppointmentChipStyle(

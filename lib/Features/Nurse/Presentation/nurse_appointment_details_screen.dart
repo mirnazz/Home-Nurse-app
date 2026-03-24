@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nurse_app/core/enums/appointment_status.dart';
-import 'package:nurse_app/core/models/appointment.dart';
-import 'package:nurse_app/core/theme/appointment_ui_colors.dart';
-import 'package:nurse_app/core/widgets/appointment_detail_row.dart';
-import 'package:nurse_app/core/widgets/appointment_list_card.dart';
+import 'package:nurse_app/Core/enums/appointment_status.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
+import 'package:nurse_app/Core/widgets/appointment_detail_row.dart';
+import 'package:nurse_app/Core/widgets/appointment_list_card.dart';
 import '../../../Core/utils/contact_launch.dart';
-import 'package:nurse_app/core/widgets/nurse_appointment_chip_style.dart';
+import 'package:nurse_app/Core/widgets/nurse_appointment_chip_style.dart';
 
 /// Nurse appointment details: only [waitingPayment], [paid], [completed], [cancelled] appear in lists.
 /// TODO(backend): Wire call / message / cancel / complete to API.
