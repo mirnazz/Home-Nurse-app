@@ -33,14 +33,19 @@ class AppointmentListCard extends StatelessWidget {
 
   String get _primaryName => isNurseView ? appointment.patientName : appointment.nurseName;
 
-  /// Nurse schedule: status only on chip (no top orange banner). Patient keeps pay banner when due.
+  /// Nurse schedule: show banner only for "Waiting for Payment".
+  /// Patient keeps pay banner when payment is still due.
   bool get _showPaymentBanner =>
-      !isNurseView && patientAppointmentShowsPaymentBanner(appointment.status);
+      isNurseView
+          ? appointment.status == AppointmentStatus.waitingPayment
+          : patientAppointmentShowsPaymentBanner(appointment.status);
 
   @override
   Widget build(BuildContext context) {
     final primary = AppointmentUiColors.tealHeader;
-    final dateStr = DateFormat('EEE, MMM d').format(appointment.dateTime);
+    final dateStr = isNurseView
+        ? DateFormat('yyyy-MM-dd').format(appointment.dateTime)
+        : DateFormat('EEE, MMM d').format(appointment.dateTime);
     final timeStr = DateFormat.jm().format(appointment.dateTime);
     final r = AppointmentUiColors.scheduleCardRadius;
 
@@ -110,15 +115,42 @@ class _NurseScheduleCardBody extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: primaryColor.withValues(alpha: 0.15),
               child: Text(
-                primaryName,
-                style: const TextStyle(
+                appointmentInitials(primaryName),
+                style: TextStyle(
+                  color: primaryColor,
                   fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  color: Color(0xFF111827),
-                  height: 1.2,
+                  fontSize: 13,
                 ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    primaryName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Color(0xFF111827),
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    appointment.serviceName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),
@@ -128,16 +160,7 @@ class _NurseScheduleCardBody extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          appointment.serviceName,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         _ScheduleMetaRow(
           icon: Icons.calendar_today_outlined,
           color: primaryColor,

@@ -107,8 +107,8 @@ class _NurseScheduleScreenState extends State<NurseScheduleScreen>
             child: TabBarView(
               controller: _tabController,
               children: const [
-                NurseAvailabilityScreen(embedded: true),
-                NurseAppointmentsScreen(embedded: true),
+                NurseAvailabilityScreen(),
+                NurseAppointmentsScreen(),
               ],
             ),
           ),

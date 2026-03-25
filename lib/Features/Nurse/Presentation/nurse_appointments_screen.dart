@@ -27,7 +27,7 @@ class NurseAppointmentsScreen extends StatefulWidget {
 
 class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _upcomingPastTabController;
+  late TabController _appointmentsTabController;
 
   List<Appointment> get _source => widget.appointments ?? mockAppointments;
 
@@ -50,18 +50,34 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
       _source.where((a) => _pastStatuses.contains(a.status)).toList()
         ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
+  bool _isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  /// UI-only: show today's appointments using the same nurse-facing statuses
+  /// as "Upcoming" (Waiting for Payment + Active/Paid).
+  List<Appointment> _today() {
+    final now = DateTime.now();
+    final list = _source
+        .where(
+          (a) => _isSameDate(a.dateTime, now) && _upcomingStatuses.contains(a.status),
+        )
+        .toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return list;
+  }
+
   @override
   void initState() {
     super.initState();
-    _upcomingPastTabController = TabController(length: 2, vsync: this);
-    _upcomingPastTabController.addListener(() {
+    _appointmentsTabController = TabController(length: 3, vsync: this);
+    _appointmentsTabController.addListener(() {
       if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _upcomingPastTabController.dispose();
+    _appointmentsTabController.dispose();
     super.dispose();
   }
 
@@ -119,39 +135,71 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
   Widget build(BuildContext context) {
     final upcoming = _upcoming();
     final past = _past();
-    final primary = AppColors.primary;
+    final today = _today();
+    final primary = AppointmentUiColors.tealHeader;
+    final todayCount = today.length;
+    final upcomingCount = upcoming.length;
+    final pastCount = past.length;
+
+    final header = Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+      decoration: BoxDecoration(
+        color: primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'My Appointments',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Material(
+            color: primary,
+            child: TabBar(
+              controller: _appointmentsTabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: const Color(0x80FFFFFF),
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+              tabs: [
+                Tab(text: 'Today ($todayCount)'),
+                Tab(text: 'Upcoming ($upcomingCount)'),
+                Tab(text: 'Past ($pastCount)'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
 
     final column = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Material(
-          color: AppointmentUiColors.pageBackground,
-          child: TabBar(
-            controller: _upcomingPastTabController,
-            labelColor: primary,
-            unselectedLabelColor: const Color(0xFF9CA3AF),
-            indicatorColor: primary,
-            indicatorWeight: 2,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 10),
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 12.5,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 12.5,
-            ),
-            tabs: [
-              Tab(text: 'Upcoming (${upcoming.length})'),
-              Tab(text: 'Past (${past.length})'),
-            ],
-          ),
-        ),
+        header,
         Expanded(
           child: TabBarView(
-            controller: _upcomingPastTabController,
+            controller: _appointmentsTabController,
             children: [
+              _buildListView(today, 'No appointments for today'),
               _buildListView(upcoming, 'No upcoming appointments.'),
               _buildListView(past, 'No past appointments.'),
             ],
@@ -162,13 +210,13 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
 
     if (widget.embedded) {
       return ColoredBox(
-        color: AppointmentUiColors.pageBackground,
+        color: AppColors.background,
         child: column,
       );
     }
 
     return Scaffold(
-      backgroundColor: AppointmentUiColors.pageBackground,
+      backgroundColor: AppColors.background,
       body: column,
     );
   }

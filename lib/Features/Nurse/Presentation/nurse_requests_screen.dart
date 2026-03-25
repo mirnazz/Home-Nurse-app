@@ -11,17 +11,31 @@ class NurseRequestsScreen extends StatefulWidget {
   State<NurseRequestsScreen> createState() => _NurseRequestsScreenState();
 }
 
-class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
+class _NurseRequestsScreenState extends State<NurseRequestsScreen>
+    with SingleTickerProviderStateMixin {
   NurseRequestsFilter _activeFilter = NurseRequestsFilter.pending;
   bool _isLoading = true;
   bool _hasError = false;
   List<NurseServiceRequestItem> _requests = const [];
   final Set<String> _updatingRequestIds = <String>{};
 
+  late TabController _filterTabController;
+
   @override
   void initState() {
     super.initState();
+    _filterTabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: _activeFilter == NurseRequestsFilter.pending ? 0 : 1,
+    );
     _loadRequests();
+  }
+
+  @override
+  void dispose() {
+    _filterTabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRequests() async {
@@ -134,7 +148,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
               bottom: Radius.circular(24),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
           child: SafeArea(
             bottom: false,
             child: Column(
@@ -144,22 +158,50 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
                   'Service Requests',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 21,
+                    fontSize: 19,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   '$pendingCount pending requests',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
                     fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 12),
-                _FilterRow(
-                  activeFilter: _activeFilter,
-                  onChanged: (value) => setState(() => _activeFilter = value),
+                const SizedBox(height: 10),
+                Material(
+                  color: Colors.transparent,
+                  child: TabBar(
+                    controller: _filterTabController,
+                    onTap: (index) {
+                      final next = index == 0
+                          ? NurseRequestsFilter.pending
+                          : NurseRequestsFilter.rejected;
+                      if (next != _activeFilter) {
+                        setState(() => _activeFilter = next);
+                      }
+                    },
+                    labelColor: Colors.white,
+                    unselectedLabelColor: const Color(0x80FFFFFF),
+                    indicatorColor: Colors.white,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                    tabs: const [
+                      Tab(text: 'Pending'),
+                      Tab(text: 'Rejected'),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -181,32 +223,52 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
     }
 
     if (_hasError) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: [
-          _InfoStateCard(
-            title: 'Failed to load requests',
-            subtitle: 'Please check your connection and try again.',
-            actionText: 'Retry',
-            onTap: _loadRequests,
-          ),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: _InfoStateCard(
+                    icon: Icons.wifi_off_rounded,
+                    title: 'Failed to load requests',
+                    subtitle: 'Please check your connection and try again.',
+                    actionText: 'Retry',
+                    onTap: _loadRequests,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       );
     }
 
     final visible = _filteredRequests;
 
     if (visible.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: const [
-          _InfoStateCard(
-            title: 'No requests found',
-            subtitle: 'Requests in this filter will appear here.',
-          ),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: const _InfoStateCard(
+                    icon: Icons.inbox_outlined,
+                    title: 'No requests found',
+                    subtitle: 'Requests in this filter will appear here.',
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       );
     }
 
@@ -230,74 +292,6 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
       },
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemCount: visible.length,
-    );
-  }
-}
-
-class _FilterRow extends StatelessWidget {
-  final NurseRequestsFilter activeFilter;
-  final ValueChanged<NurseRequestsFilter> onChanged;
-
-  const _FilterRow({
-    required this.activeFilter,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _FilterChip(
-            label: 'Pending',
-            selected: activeFilter == NurseRequestsFilter.pending,
-            onTap: () => onChanged(NurseRequestsFilter.pending),
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: 'Rejected',
-            selected: activeFilter == NurseRequestsFilter.rejected,
-            onTap: () => onChanged(NurseRequestsFilter.rejected),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.white.withOpacity(0.25),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? AppColors.primary : Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 12,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -576,12 +570,14 @@ class _MetaText extends StatelessWidget {
 }
 
 class _InfoStateCard extends StatelessWidget {
+  final IconData? icon;
   final String title;
   final String subtitle;
   final String? actionText;
   final VoidCallback? onTap;
 
   const _InfoStateCard({
+    this.icon,
     required this.title,
     required this.subtitle,
     this.actionText,
@@ -591,7 +587,7 @@ class _InfoStateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -600,6 +596,24 @@ class _InfoStateCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (icon != null) ...[
+            Center(
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           Text(
             title,
             style: const TextStyle(
@@ -616,14 +630,25 @@ class _InfoStateCard extends StatelessWidget {
             ),
           ),
           if (actionText != null && onTap != null) ...[
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: onTap,
-              child: Text(
-                actionText!,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  actionText!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),

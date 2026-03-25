@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
-import 'package:nurse_app/Features/Nurse/Presentation/nurse_schedule_screen.dart';
+import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
-/// Bottom tabs: 0 Home, 1 Schedule, 2 Requests, 3 Profile.
-typedef NurseDashboardNavigate = void Function(int tabIndex, {int scheduleSubTab});
+/// Bottom tabs: 0 Home, 1 Availability, 2 Appointments, 3 Requests, 4 Profile.
+typedef NurseDashboardNavigate = void Function(int tabIndex);
 
 class NurseDashboardScreen extends StatefulWidget {
   const NurseDashboardScreen({super.key});
@@ -17,17 +18,10 @@ class NurseDashboardScreen extends StatefulWidget {
 
 class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   int currentTab = 0;
-  /// Sub-tab inside [NurseScheduleScreen]: 0 Availability, 1 Appointments.
-  int scheduleSubTab = 0;
   String nurseName = "";
   bool isLoading = true;
 
-  void _navigate(int tabIndex, {int scheduleSubTab = 0}) {
-    setState(() {
-      currentTab = tabIndex;
-      this.scheduleSubTab = scheduleSubTab;
-    });
-  }
+  void _navigate(int tabIndex) => setState(() => currentTab = tabIndex);
 
   @override
   void initState() {
@@ -69,9 +63,8 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                     nurseName: nurseName,
                     onNavigate: _navigate,
                   ),
-                  NurseScheduleScreen(
-                    scheduleSubTabIndex: scheduleSubTab,
-                  ),
+                  const NurseAvailabilityScreen(),
+                  const NurseAppointmentsScreen(),
                   const NurseRequestsScreen(),
                   const NurseProfileScreen(),
                 ],
@@ -117,12 +110,11 @@ class NurseHomeScreen extends StatelessWidget {
                 _QuickActionsList(onNavigate: onNavigate),
                 const SizedBox(height: 24),
                 _TodayScheduleSection(
-                  onViewAll: () => onNavigate(1, scheduleSubTab: 1),
+                  onViewAll: () => onNavigate(2),
                 ),
                 const SizedBox(height: 24),
                 _AvailabilityCard(
-                  onOpenAvailability: () =>
-                      onNavigate(1, scheduleSubTab: 0),
+                  onOpenAvailability: () => onNavigate(1),
                 ),
                 const SizedBox(height: 100),
               ],
@@ -455,7 +447,7 @@ class _QuickActionsList extends StatelessWidget {
     return Column(
       children: [
         _QuickActionTile(
-          onTap: () => onNavigate(1, scheduleSubTab: 0),
+          onTap: () => onNavigate(1),
           icon: Icons.calendar_month_outlined,
           title: "Manage Availability",
           subtitle: "Set your working hours",
@@ -467,7 +459,7 @@ class _QuickActionsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
-          onTap: () => onNavigate(2),
+          onTap: () => onNavigate(3),
           icon: Icons.description_outlined,
           title: "View Requests",
           subtitle: "Pending and rejected requests",
@@ -489,7 +481,7 @@ class _QuickActionsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
-          onTap: () => onNavigate(1, scheduleSubTab: 1),
+          onTap: () => onNavigate(2),
           icon: Icons.calendar_today_outlined,
           title: "My Schedule",
           subtitle: "View your appointments",
@@ -859,7 +851,11 @@ class _NurseBottomNav extends StatelessWidget {
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today),
-              label: 'Schedule',
+              label: 'Availability',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.event_available_outlined),
+              label: 'Appointments',
             ),
             BottomNavigationBarItem(
               icon: Stack(
