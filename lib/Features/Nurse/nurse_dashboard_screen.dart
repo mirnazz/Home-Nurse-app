@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
-import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
-import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
-import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
+import 'package:nurse_app/Features/Nurse/Presentation/nurse_schedule_screen.dart';
 import 'nurse_profile_screen.dart';
+
+/// Bottom tabs: 0 Home, 1 Schedule, 2 Requests, 3 Profile.
+typedef NurseDashboardNavigate = void Function(int tabIndex, {int scheduleSubTab});
 
 class NurseDashboardScreen extends StatefulWidget {
   const NurseDashboardScreen({super.key});
@@ -16,291 +17,118 @@ class NurseDashboardScreen extends StatefulWidget {
 
 class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   int currentTab = 0;
-  String nurseName = 'Nurse';
+  /// Sub-tab inside [NurseScheduleScreen]: 0 Availability, 1 Appointments.
+  int scheduleSubTab = 0;
+  String nurseName = "";
+  bool isLoading = true;
+
+  void _navigate(int tabIndex, {int scheduleSubTab = 0}) {
+    setState(() {
+      currentTab = tabIndex;
+      this.scheduleSubTab = scheduleSubTab;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadNurseProfile();
+    loadNurse();
   }
 
-  Future<void> _loadNurseProfile() async {
+  Future<void> loadNurse() async {
     try {
-      final token = await TokenStorage.getToken();
-
-      if (token == null || token.isEmpty) return;
-
-      final response = await ApiService.getNurseProfile();
+      final data = await ApiService.getAccount();
 
       if (!mounted) return;
 
       setState(() {
-        nurseName =
-            response['fullName'] ??
-            response['name'] ??
-            response['nurseName'] ??
-            'Nurse';
+        nurseName = data["fullName"] ?? "Nurse";
+        isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error loading nurse profile: $e');
+      if (!mounted) return;
+
+      setState(() {
+        nurseName = "Nurse";
+        isLoading = false;
+      });
     }
-  }
-
-  Future<void> _logout() async {
-    await TokenStorage.clearToken();
-
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
-  void _onTabChanged(int index) {
-    setState(() {
-      currentTab = index;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: currentTab,
-        children: [
-          _HomeContent(
-            nurseName: nurseName,
-            onLogout: _logout,
-          ),
-          NurseProfileScreen(
-            currentTabIndex: 1,
-            onTabChanged: (i) => setState(() => currentTab = i),
-          ),
-          const NurseAppointmentsScreen(),
-          const NurseRequestsScreen(),
-          const _PlaceholderTab(title: "Transactions"),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentTab,
-        onTap: _onTabChanged,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: 'Appointments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: 'Requests',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Transactions',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HomeContent extends StatelessWidget {
-  final String nurseName;
-  final VoidCallback onLogout;
-
-  const _HomeContent({
-    required this.nurseName,
-    required this.onLogout,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Welcome, $nurseName',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: onLogout,
-                  icon: const Icon(Icons.logout),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : IndexedStack(
+                index: currentTab,
                 children: [
-                  Text(
-                    'Nurse Dashboard',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  NurseHomeScreen(
+                    nurseName: nurseName,
+                    onNavigate: _navigate,
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Manage your profile, appointments, and incoming requests.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                  NurseScheduleScreen(
+                    scheduleSubTabIndex: scheduleSubTab,
                   ),
+                  const NurseRequestsScreen(),
+                  const NurseProfileScreen(),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Quick Overview',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                children: const [
-                  _DashboardCard(
-                    icon: Icons.person,
-                    title: 'Profile',
-                    subtitle: 'View and edit your information',
-                  ),
-                  _DashboardCard(
-                    icon: Icons.calendar_today,
-                    title: 'Appointments',
-                    subtitle: 'Manage your booked schedule',
-                  ),
-                  _DashboardCard(
-                    icon: Icons.assignment,
-                    title: 'Requests',
-                    subtitle: 'Check new service requests',
-                  ),
-                  _DashboardCard(
-                    icon: Icons.account_balance_wallet,
-                    title: 'Transactions',
-                    subtitle: 'Track your earnings and records',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      ),
+      bottomNavigationBar: _NurseBottomNav(
+        currentIndex: currentTab,
+        onChanged: (i) => setState(() => currentTab = i),
       ),
     );
   }
 }
 
-class _DashboardCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+class NurseHomeScreen extends StatelessWidget {
+  final String nurseName;
+  final NurseDashboardNavigate onNavigate;
 
-  const _DashboardCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+  const NurseHomeScreen({
+    super.key,
+    required this.nurseName,
+    required this.onNavigate,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-            child: Icon(icon, color: AppColors.primary),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
+          _NurseHeader(name: nurseName),
+          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _SummaryCardsRow(),
+                const SizedBox(height: 18),
+                const _ThisWeekSummaryCard(),
+                const SizedBox(height: 24),
+                const _QuickActionsTitle(),
+                const SizedBox(height: 12),
+                _QuickActionsList(onNavigate: onNavigate),
+                const SizedBox(height: 24),
+                _TodayScheduleSection(
+                  onViewAll: () => onNavigate(1, scheduleSubTab: 1),
+                ),
+                const SizedBox(height: 24),
+                _AvailabilityCard(
+                  onOpenAvailability: () =>
+                      onNavigate(1, scheduleSubTab: 0),
+                ),
+                const SizedBox(height: 100),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderTab({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$title Screen',
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }
@@ -618,16 +446,19 @@ class _QuickActionsTitle extends StatelessWidget {
 }
 
 class _QuickActionsList extends StatelessWidget {
-  const _QuickActionsList();
+  final NurseDashboardNavigate onNavigate;
+
+  const _QuickActionsList({required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         _QuickActionTile(
+          onTap: () => onNavigate(1, scheduleSubTab: 0),
           icon: Icons.calendar_month_outlined,
-          title: "Manage Appointments",
-          subtitle: "View your booked schedule",
+          title: "Manage Availability",
+          subtitle: "Set your working hours",
           trailing: const Icon(
             Icons.arrow_forward_ios,
             size: 14,
@@ -636,9 +467,10 @@ class _QuickActionsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
+          onTap: () => onNavigate(2),
           icon: Icons.description_outlined,
           title: "View Requests",
-          subtitle: "7 new service requests",
+          subtitle: "Pending and rejected requests",
           trailing: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -657,6 +489,7 @@ class _QuickActionsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
+          onTap: () => onNavigate(1, scheduleSubTab: 1),
           icon: Icons.calendar_today_outlined,
           title: "My Schedule",
           subtitle: "View your appointments",
@@ -672,12 +505,14 @@ class _QuickActionsList extends StatelessWidget {
 }
 
 class _QuickActionTile extends StatelessWidget {
+  final VoidCallback onTap;
   final IconData icon;
   final String title;
   final String subtitle;
   final Widget trailing;
 
   const _QuickActionTile({
+    required this.onTap,
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -686,21 +521,26 @@ class _QuickActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
+          child: Row(
+            children: [
           Container(
             height: 44,
             width: 44,
@@ -735,15 +575,19 @@ class _QuickActionTile extends StatelessWidget {
               ],
             ),
           ),
-          trailing,
-        ],
+              trailing,
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _TodayScheduleSection extends StatelessWidget {
-  const _TodayScheduleSection();
+  final VoidCallback onViewAll;
+
+  const _TodayScheduleSection({required this.onViewAll});
 
   @override
   Widget build(BuildContext context) {
@@ -762,7 +606,7 @@ class _TodayScheduleSection extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: onViewAll,
               child: const Text(
                 "View All",
                 style: TextStyle(
@@ -912,19 +756,26 @@ class _ScheduleAppointmentCard extends StatelessWidget {
 }
 
 class _AvailabilityCard extends StatelessWidget {
-  const _AvailabilityCard();
+  final VoidCallback onOpenAvailability;
+
+  const _AvailabilityCard({required this.onOpenAvailability});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+    return Material(
+      color: const Color(0xFFE8F5E9),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onOpenAvailability,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFA5D6A7)),
-      ),
-      child: Row(
-        children: [
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFA5D6A7)),
+          ),
+          child: Row(
+            children: [
           Container(
             height: 12,
             width: 12,
@@ -958,7 +809,9 @@ class _AvailabilityCard extends StatelessWidget {
               ],
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -988,63 +841,64 @@ class _NurseBottomNav extends StatelessWidget {
         ],
       ),
       child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onChanged,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: "Home",
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            label: "Profile",
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: "Appointments",
-          ),
-          BottomNavigationBarItem(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.description_outlined),
-                Positioned(
-                  right: -6,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF4D4D),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints:
-                        const BoxConstraints(minWidth: 16, minHeight: 16),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      "7",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
+          currentIndex: currentIndex,
+          onTap: onChanged,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: const Color(0xFF9CA3AF),
+          selectedFontSize: 11,
+          unselectedFontSize: 10,
+          iconSize: 24,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: 'Schedule',
+            ),
+            BottomNavigationBarItem(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications),
+                  Positioned(
+                    right: -4,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF4D4D),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 14,
+                        minHeight: 14,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        '7',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              label: 'Requests',
             ),
-            label: "Requests",
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.attach_money),
-            label: "Transactions",
-          ),
-        ],
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
       ),
     );
   }

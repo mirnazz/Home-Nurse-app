@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 class NurseAvailabilityScreen extends StatefulWidget {
-  const NurseAvailabilityScreen({super.key});
+  /// When true, omits outer [Scaffold] so the screen can live inside a parent
+  /// tab (e.g. [NurseScheduleScreen]).
+  final bool embedded;
+
+  const NurseAvailabilityScreen({super.key, this.embedded = false});
 
   @override
   State<NurseAvailabilityScreen> createState() =>
@@ -292,33 +297,59 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   Widget build(BuildContext context) {
     final daysWithSlots = _weeklySlots.keys.toList();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
+    final scrollPadding = widget.embedded
+        ? const EdgeInsets.fromLTRB(
+            AppointmentUiColors.scheduleListHorizontalPadding,
+            12,
+            AppointmentUiColors.scheduleListHorizontalPadding,
+            16,
+          )
+        : const EdgeInsets.fromLTRB(16, 18, 16, 110);
+
+    final scrollBody = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+                padding: scrollPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Manage Availability',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1D2433),
+                    if (widget.embedded) ...[
+                      const Text(
+                        'Availability',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1D2433),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Tap any date to manage or block it',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF6B7280),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap any date to manage or block it',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      const Text(
+                        'Manage Availability',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1D2433),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Tap any date to manage or block it',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     _CalendarCard(
                       selectedDate: _selectedDate,
@@ -328,20 +359,10 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                         _openManageDaySheet(date);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
                     Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x12000000),
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                      padding: AppointmentUiColors.scheduleCardPadding,
+                      decoration: AppointmentUiColors.scheduleCardDecoration(),
                       child: Row(
                         children: [
                           const Expanded(
@@ -349,7 +370,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                               'Weekly Schedule',
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
-                                fontSize: 18,
+                                fontSize: 16,
                                 color: Color(0xFF1D2433),
                               ),
                             ),
@@ -377,7 +398,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
                     if (daysWithSlots.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 32),
@@ -416,7 +437,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                         final daySlots =
                             _weeklySlots[day] ?? const <_TimeSlot>[];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(
+                            bottom: AppointmentUiColors.scheduleListVerticalGap,
+                          ),
                           child: _DayScheduleCard(
                             day: day,
                             slots: daySlots,
@@ -449,30 +472,55 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                     ),
                   ],
                 ),
-              ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: SizedBox(
-          height: 52,
-          child: ElevatedButton.icon(
-            onPressed: _saveAvailability,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            icon: const Icon(Icons.save_outlined, color: Colors.white),
-            label: const Text(
-              'Save Availability',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16),
-            ),
+              );
+
+    final saveBar = SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: SizedBox(
+        height: 52,
+        child: ElevatedButton.icon(
+          onPressed: _saveAvailability,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14)),
+          ),
+          icon: const Icon(Icons.save_outlined, color: Colors.white),
+          label: const Text(
+            'Save Availability',
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 16),
           ),
         ),
       ),
+    );
+
+    if (widget.embedded) {
+      return ColoredBox(
+        color: AppointmentUiColors.pageBackground,
+        child: Column(
+          children: [
+            Expanded(
+              child: SafeArea(
+                bottom: false,
+                child: scrollBody,
+              ),
+            ),
+            saveBar,
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: scrollBody,
+      ),
+      bottomNavigationBar: saveBar,
     );
   }
 }
@@ -578,15 +626,8 @@ class _CalendarCardState extends State<_CalendarCard> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x12000000), blurRadius: 12, offset: Offset(0, 4)),
-        ],
-      ),
+      padding: AppointmentUiColors.scheduleCardPadding,
+      decoration: AppointmentUiColors.scheduleCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -595,9 +636,10 @@ class _CalendarCardState extends State<_CalendarCard> {
               Text(
                 '${_monthName(month)} $year',
                 style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1D2433)),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D2433),
+                ),
               ),
               const Spacer(),
               _NavButton(icon: Icons.chevron_left, onTap: _prevMonth),
@@ -1041,16 +1083,13 @@ class _DayScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E7EB))),
+      padding: AppointmentUiColors.scheduleCardPadding,
+      decoration: AppointmentUiColors.scheduleCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text(day, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
+            Text(day, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1119,12 +1158,23 @@ class _QuickSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
+      padding: AppointmentUiColors.scheduleCardPadding,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(AppointmentUiColors.scheduleCardRadius),
+        boxShadow: AppointmentUiColors.scheduleCardShadow,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Quick Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
+          const Text(
+            'Quick Settings',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 15,
+            ),
+          ),
           const SizedBox(height: 10),
           _QuickSettingButton(label: 'Copy to All Weekdays', subtitle: 'Apply Monday schedule to Tue-Fri', onTap: onCopyWeekdays),
           const SizedBox(height: 8),

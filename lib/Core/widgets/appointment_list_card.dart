@@ -33,33 +33,24 @@ class AppointmentListCard extends StatelessWidget {
 
   String get _primaryName => isNurseView ? appointment.patientName : appointment.nurseName;
 
-  bool get _showPaymentBanner => isNurseView
-      ? appointment.status == AppointmentStatus.waitingPayment
-      : patientAppointmentShowsPaymentBanner(appointment.status);
+  /// Nurse schedule: status only on chip (no top orange banner). Patient keeps pay banner when due.
+  bool get _showPaymentBanner =>
+      !isNurseView && patientAppointmentShowsPaymentBanner(appointment.status);
 
   @override
   Widget build(BuildContext context) {
     final primary = AppointmentUiColors.tealHeader;
-    final dateStr = DateFormat('yyyy-MM-dd').format(appointment.dateTime);
+    final dateStr = DateFormat('EEE, MMM d').format(appointment.dateTime);
     final timeStr = DateFormat.jm().format(appointment.dateTime);
+    final r = AppointmentUiColors.scheduleCardRadius;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(r),
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
+          decoration: AppointmentUiColors.scheduleCardDecoration(),
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -67,129 +58,26 @@ class AppointmentListCard extends StatelessWidget {
               if (_showPaymentBanner)
                 _PaymentBanner(
                   isNurseView: isNurseView,
-                  isConfirmedAwaitingPayment: !isNurseView &&
+                  isConfirmedAwaitingPayment:
                       patientAppointmentShowsPaymentBanner(appointment.status),
                 ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: primary.withValues(alpha: 0.15),
-                          child: Text(
-                            appointmentInitials(_primaryName),
-                            style: TextStyle(
-                              color: primary,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _primaryName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                appointment.serviceName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        _ListStatusChip(
-                          status: appointment.status,
-                          nurseLabels: isNurseView,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_today_outlined, size: 18, color: primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          dateStr,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13.5,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(Icons.access_time_rounded, size: 18, color: primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          timeStr,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13.5,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.location_on_outlined, size: 18, color: primary),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            appointment.location,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Color(0xFF4B5563),
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isNurseView ? 'Your Earning' : 'Total',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        Text(
-                          '${appointment.price.toStringAsFixed(0)} JOD',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            color: primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                padding: AppointmentUiColors.scheduleCardPadding,
+                child: isNurseView
+                    ? _NurseScheduleCardBody(
+                        appointment: appointment,
+                        primaryName: _primaryName,
+                        primaryColor: primary,
+                        dateStr: dateStr,
+                        timeStr: timeStr,
+                      )
+                    : _PatientScheduleCardBody(
+                        appointment: appointment,
+                        primaryName: _primaryName,
+                        primaryColor: primary,
+                        dateStr: dateStr,
+                        timeStr: timeStr,
+                      ),
               ),
             ],
           ),
@@ -199,9 +87,299 @@ class AppointmentListCard extends StatelessWidget {
   }
 }
 
+class _NurseScheduleCardBody extends StatelessWidget {
+  final Appointment appointment;
+  final String primaryName;
+  final Color primaryColor;
+  final String dateStr;
+  final String timeStr;
+
+  const _NurseScheduleCardBody({
+    required this.appointment,
+    required this.primaryName,
+    required this.primaryColor,
+    required this.dateStr,
+    required this.timeStr,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                primaryName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: Color(0xFF111827),
+                  height: 1.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _ListStatusChip(
+              status: appointment.status,
+              nurseLabels: true,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          appointment.serviceName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _ScheduleMetaRow(
+          icon: Icons.calendar_today_outlined,
+          color: primaryColor,
+          child: Text(
+            dateStr,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF374151),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        _ScheduleMetaRow(
+          icon: Icons.access_time_rounded,
+          color: primaryColor,
+          child: Text(
+            timeStr,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF374151),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        _ScheduleMetaRow(
+          icon: Icons.location_on_outlined,
+          color: primaryColor,
+          child: Text(
+            appointment.location,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: Color(0xFF4B5563),
+              height: 1.35,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Earning',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${appointment.price.toStringAsFixed(0)} JOD',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PatientScheduleCardBody extends StatelessWidget {
+  final Appointment appointment;
+  final String primaryName;
+  final Color primaryColor;
+  final String dateStr;
+  final String timeStr;
+
+  const _PatientScheduleCardBody({
+    required this.appointment,
+    required this.primaryName,
+    required this.primaryColor,
+    required this.dateStr,
+    required this.timeStr,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: primaryColor.withValues(alpha: 0.15),
+              child: Text(
+                appointmentInitials(primaryName),
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          primaryName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: Color(0xFF111827),
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      _ListStatusChip(
+                        status: appointment.status,
+                        nurseLabels: false,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    appointment.serviceName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _ScheduleMetaRow(
+          icon: Icons.calendar_today_outlined,
+          color: primaryColor,
+          child: Text(
+            dateStr,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF374151),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        _ScheduleMetaRow(
+          icon: Icons.access_time_rounded,
+          color: primaryColor,
+          child: Text(
+            timeStr,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF374151),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        _ScheduleMetaRow(
+          icon: Icons.location_on_outlined,
+          color: primaryColor,
+          child: Text(
+            appointment.location,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: Color(0xFF4B5563),
+              height: 1.35,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Total',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${appointment.price.toStringAsFixed(0)} JOD',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScheduleMetaRow extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Widget child;
+
+  const _ScheduleMetaRow({
+    required this.icon,
+    required this.color,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 8),
+        Expanded(child: child),
+      ],
+    );
+  }
+}
+
 class _PaymentBanner extends StatelessWidget {
   final bool isNurseView;
-  /// Patient: nurse confirmed; show pay-to-continue copy (status chip still "Confirmed").
   final bool isConfirmedAwaitingPayment;
 
   const _PaymentBanner({
@@ -213,13 +391,13 @@ class _PaymentBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       color: AppointmentUiColors.orangeBanner,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 24),
-          const SizedBox(width: 10),
+          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,10 +411,10 @@ class _PaymentBanner extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   isNurseView
                       ? "Patient hasn't paid yet — you can contact or cancel."
@@ -246,7 +424,7 @@ class _PaymentBanner extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                    fontSize: 11.5,
                     height: 1.3,
                   ),
                 ),
@@ -274,7 +452,7 @@ class _ListStatusChip extends StatelessWidget {
         nurseLabels ? nurseAppointmentChipStyle(status) : patientAppointmentChipStyle(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
@@ -283,13 +461,13 @@ class _ListStatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: fg),
+          Icon(icon, size: 13, color: fg),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               color: fg,
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -297,5 +475,4 @@ class _ListStatusChip extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -1,6 +1,6 @@
 enum NurseServiceRequestStatus { pending, accepted, declined }
 
-enum NurseRequestsFilter { all, pending, accepted, declined }
+enum NurseRequestsFilter { pending, rejected }
 
 class NurseServiceRequestItem {
   final String requestId;
@@ -85,8 +85,9 @@ final status = switch (statusRaw) {
     createdAt: null,
     updatedAt: null,
   );
-}
-NurseServiceRequestItem copyWith({
+  }
+
+  NurseServiceRequestItem copyWith({
   String? requestId,
   String? patientId,
   String? nurseId,
@@ -118,4 +119,5 @@ NurseServiceRequestItem copyWith({
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-}}
+}
+}

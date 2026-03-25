@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_service_request_models.dart';
@@ -11,7 +12,7 @@ class NurseRequestsScreen extends StatefulWidget {
 }
 
 class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
-  NurseRequestsFilter _activeFilter = NurseRequestsFilter.all;
+  NurseRequestsFilter _activeFilter = NurseRequestsFilter.pending;
   bool _isLoading = true;
   bool _hasError = false;
   List<NurseServiceRequestItem> _requests = const [];
@@ -58,26 +59,18 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
   }
 
   List<NurseServiceRequestItem> get _filteredRequests {
-  switch (_activeFilter) {
-    case NurseRequestsFilter.pending:
-      return _requests
-          .where((r) => r.status == NurseServiceRequestStatus.pending)
-          .toList();
+    switch (_activeFilter) {
+      case NurseRequestsFilter.pending:
+        return _requests
+            .where((r) => r.status == NurseServiceRequestStatus.pending)
+            .toList();
 
-    case NurseRequestsFilter.accepted:
-      return _requests
-          .where((r) => r.status == NurseServiceRequestStatus.accepted)
-          .toList();
-
-    case NurseRequestsFilter.declined:
-      return _requests
-          .where((r) => r.status == NurseServiceRequestStatus.declined)
-          .toList();
-
-    case NurseRequestsFilter.all:
-      return _requests;
+      case NurseRequestsFilter.rejected:
+        return _requests
+            .where((r) => r.status == NurseServiceRequestStatus.declined)
+            .toList();
+    }
   }
-}
 
   Future<void> _applyStatus({
     required NurseServiceRequestItem request,
@@ -124,155 +117,6 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
         setState(() => _updatingRequestIds.remove(request.requestId));
       }
     }
-  }
-
-  void _openDetails(NurseServiceRequestItem request) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        final isActionLoading = _updatingRequestIds.contains(request.requestId);
-
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-          contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          title: const Text(
-            'Request Details',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
-              color: Color(0xFF111827),
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _DetailLine(label: 'Patient', value: request.patientName),
-                _DetailLine(label: 'Phone', value: request.phone),
-                _DetailLine(label: 'Service', value: request.serviceName),
-                _DetailLine(
-                  label: 'Duration',
-                  value: '${request.durationMinutes} min',
-                ),
-                _DetailLine(
-                  label: 'Price',
-                  value: '${request.priceJod} JOD',
-                ),
-                _DetailLine(
-                  label: 'Date',
-                  value:
-                      '${request.dateTime.year.toString().padLeft(4, '0')}-'
-                      '${request.dateTime.month.toString().padLeft(2, '0')}-'
-                      '${request.dateTime.day.toString().padLeft(2, '0')}',
-                ),
-                _DetailLine(
-                  label: 'Time',
-                  value:
-                      '${request.dateTime.hour.toString().padLeft(2, '0')}:'
-                      '${request.dateTime.minute.toString().padLeft(2, '0')}',
-                ),
-                _DetailLine(label: 'Address', value: request.address),
-                _DetailLine(
-                  label: 'Notes',
-                  value: request.notes.trim().isEmpty ? '-' : request.notes,
-                  isLast: true,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            if (request.status == NurseServiceRequestStatus.pending) ...[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: isActionLoading
-                      ? null
-                      : () async {
-                          await _applyStatus(
-                            request: request,
-                            status: NurseServiceRequestStatus.declined,
-                          );
-                          if (mounted && dialogContext.mounted) {
-                            Navigator.of(dialogContext).pop();
-                          }
-                        },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFDC2626),
-                    side: const BorderSide(color: Color(0xFFDC2626)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Decline',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: isActionLoading
-                      ? null
-                      : () async {
-                          await _applyStatus(
-                            request: request,
-                            status: NurseServiceRequestStatus.accepted,
-                          );
-                          if (mounted && dialogContext.mounted) {
-                            Navigator.of(dialogContext).pop();
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isActionLoading
-                      ? const SizedBox(
-                          width: 17,
-                          height: 17,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Accept',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                ),
-              ),
-            ] else
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-          ],
-          actionsAlignment: MainAxisAlignment.center,
-        );
-      },
-    );
   }
 
   @override
@@ -374,12 +218,11 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen> {
         return _RequestCard(
           request: request,
           isActionLoading: _updatingRequestIds.contains(request.requestId),
-          onViewDetails: () => _openDetails(request),
           onAccept: () => _applyStatus(
             request: request,
             status: NurseServiceRequestStatus.accepted,
           ),
-          onDecline: () => _applyStatus(
+          onReject: () => _applyStatus(
             request: request,
             status: NurseServiceRequestStatus.declined,
           ),
@@ -407,27 +250,15 @@ class _FilterRow extends StatelessWidget {
       child: Row(
         children: [
           _FilterChip(
-            label: 'All',
-            selected: activeFilter == NurseRequestsFilter.all,
-            onTap: () => onChanged(NurseRequestsFilter.all),
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
             label: 'Pending',
             selected: activeFilter == NurseRequestsFilter.pending,
             onTap: () => onChanged(NurseRequestsFilter.pending),
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: 'Accepted',
-            selected: activeFilter == NurseRequestsFilter.accepted,
-            onTap: () => onChanged(NurseRequestsFilter.accepted),
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: 'Declined',
-            selected: activeFilter == NurseRequestsFilter.declined,
-            onTap: () => onChanged(NurseRequestsFilter.declined),
+            label: 'Rejected',
+            selected: activeFilter == NurseRequestsFilter.rejected,
+            onTap: () => onChanged(NurseRequestsFilter.rejected),
           ),
         ],
       ),
@@ -474,203 +305,242 @@ class _FilterChip extends StatelessWidget {
 class _RequestCard extends StatelessWidget {
   final NurseServiceRequestItem request;
   final bool isActionLoading;
-  final VoidCallback onViewDetails;
   final VoidCallback onAccept;
-  final VoidCallback onDecline;
+  final VoidCallback onReject;
 
   const _RequestCard({
     required this.request,
     required this.isActionLoading,
-    required this.onViewDetails,
     required this.onAccept,
-    required this.onDecline,
+    required this.onReject,
   });
 
   @override
   Widget build(BuildContext context) {
-    final statusData = switch (request.status) {
-      NurseServiceRequestStatus.pending => (
-          const Color(0xFFFFF7ED),
-          const Color(0xFFF59E0B),
-          'Pending'
-        ),
-      NurseServiceRequestStatus.accepted => (
-          const Color(0xFFEAFBF0),
-          const Color(0xFF22C55E),
-          'Accepted'
-        ),
-      NurseServiceRequestStatus.declined => (
-          const Color(0xFFFEE2E2),
-          const Color(0xFFDC2626),
-          'Declined'
-        ),
-    };
+    final isPending = request.status == NurseServiceRequestStatus.pending;
+    final dateStr = DateFormat('EEE, MMM d').format(request.dateTime);
+    final timeStr = DateFormat.jm().format(request.dateTime);
+    final accentBar = isPending
+        ? const Color(0xFFE53935)
+        : const Color(0xFFBDBDBD);
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  request.patientName,
-                  style: const TextStyle(
-                    color: Color(0xFF111827),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF4F6),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '${request.priceJod} JOD',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Text(
-            request.serviceName,
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w700,
-              fontSize: 12.5,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 6,
-            children: [
-              _MetaText(
-                icon: Icons.calendar_today_outlined,
-                text:
-                    '${request.dateTime.year.toString().padLeft(4, '0')}-'
-                    '${request.dateTime.month.toString().padLeft(2, '0')}-'
-                    '${request.dateTime.day.toString().padLeft(2, '0')}',
-              ),
-              _MetaText(
-                icon: Icons.access_time_rounded,
-                text:
-                    '${request.dateTime.hour.toString().padLeft(2, '0')}:'
-                    '${request.dateTime.minute.toString().padLeft(2, '0')}',
-              ),
-              _MetaText(
-                icon: Icons.location_on_outlined,
-                text: request.address,
-              ),
-              _MetaText(
-                icon: Icons.call_outlined,
-                text: request.phone,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusData.$1,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              statusData.$3,
-              style: TextStyle(
-                color: statusData.$2,
-                fontWeight: FontWeight.w900,
-                fontSize: 11.5,
-              ),
-            ),
-          ),
-  const SizedBox(height: 12),
-
-if (request.status == NurseServiceRequestStatus.pending) ...[
-  Row(
-    children: [
-      Expanded(
-        child: OutlinedButton(
-          onPressed: isActionLoading ? null : onDecline,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFFDC2626),
-            side: const BorderSide(color: Color(0xFFDC2626)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: const Text(
-            'Decline',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: ElevatedButton(
-          onPressed: isActionLoading ? null : onAccept,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: isActionLoading
-              ? const SizedBox(
-                  width: 17,
-                  height: 17,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text(
-                  'Accept',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(width: 4, color: accentBar),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 14, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                request.patientName,
+                                style: const TextStyle(
+                                  color: Color(0xFF111827),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                request.serviceName,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${request.priceJod} JOD',
+                              style: const TextStyle(
+                                color: Color(0xFF111827),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '${request.durationMinutes} min',
+                              style: const TextStyle(
+                                color: Color(0xFF6B7280),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        _MetaText(
+                          icon: Icons.calendar_today_outlined,
+                          text: dateStr,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              '•',
+                              style: TextStyle(
+                                color: Color(0xFF9CA3AF),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            _MetaText(
+                              icon: Icons.access_time_rounded,
+                              text: timeStr,
+                            ),
+                          ],
+                        ),
+                        _MetaText(
+                          icon: Icons.location_on_outlined,
+                          text: request.address,
+                        ),
+                        _MetaText(
+                          icon: Icons.call_outlined,
+                          text: request.phone,
+                        ),
+                      ],
+                    ),
+                    if (request.notes.trim().isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8EEF2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              size: 18,
+                              color: Color(0xFF5C7A8A),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                request.notes.trim(),
+                                style: const TextStyle(
+                                  color: Color(0xFF37474F),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (!isPending) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Text(
+                          'Rejected',
+                          style: TextStyle(
+                            color: Color(0xFFDC2626),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (isPending) ...[
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: isActionLoading ? null : onReject,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFFDC2626),
+                                side: const BorderSide(
+                                  color: Color(0xFFDC2626),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Reject',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: isActionLoading ? null : onAccept,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF22C55E),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: isActionLoading
+                                  ? const SizedBox(
+                                      width: 17,
+                                      height: 17,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Accept',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
+              ),
+            ),
+          ],
         ),
-      ),
-    ],
-  ),
-  const SizedBox(height: 10),
-],
-
-SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    onPressed: onViewDetails,
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFFF3F4F6),
-      foregroundColor: AppColors.primary,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    ),
-    child: const Text(
-      'View Full Details',
-      style: TextStyle(fontWeight: FontWeight.w800),
-    ),
-  ),
-),
-        ],
       ),
     );
   }
@@ -701,47 +571,6 @@ class _MetaText extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _DetailLine extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isLast;
-
-  const _DetailLine({
-    required this.label,
-    required this.value,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF111827),
-              fontWeight: FontWeight.w800,
-              fontSize: 13.5,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
