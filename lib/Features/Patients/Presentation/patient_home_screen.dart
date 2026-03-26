@@ -152,6 +152,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     });
   }
 
+  void _openAppointmentsUpcoming() {
+    setState(() {
+      currentTab = 2;
+    });
+  }
+
   void _onBottomNavTap(int index) {
     setState(() {
       currentTab = index;
@@ -174,7 +180,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         onLogout: _logout,
         onSearchTap: _openBrowseDefault,
         onQuickServiceTap: _openBrowseWithService,
-        onRecommendedSeeAllTap: _openBrowseDefault,
+        onUpcomingViewAllTap: _openAppointmentsUpcoming,
         isLoadingPendingReviews: _isLoadingPendingReviews,
         pendingReviewRequests: _pendingReviewRequests,
         onWriteReview: _openReviewBottomSheet,
@@ -211,7 +217,7 @@ class PatientHomeContent extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback onSearchTap;
   final ValueChanged<int> onQuickServiceTap;
-  final VoidCallback onRecommendedSeeAllTap;
+  final VoidCallback onUpcomingViewAllTap;
   final bool isLoadingPendingReviews;
   final List<PatientPendingReviewItem> pendingReviewRequests;
   final ValueChanged<PatientPendingReviewItem> onWriteReview;
@@ -222,7 +228,7 @@ class PatientHomeContent extends StatelessWidget {
     required this.onLogout,
     required this.onSearchTap,
     required this.onQuickServiceTap,
-    required this.onRecommendedSeeAllTap,
+    required this.onUpcomingViewAllTap,
     required this.isLoadingPendingReviews,
     required this.pendingReviewRequests,
     required this.onWriteReview,
@@ -276,23 +282,13 @@ class PatientHomeContent extends StatelessWidget {
                   const SizedBox(height: 16),
                   const _StatsRow(),
                   const SizedBox(height: 18),
-                  const _SectionTitleWithAction(
+                  _SectionTitleWithAction(
                     title: "Upcoming Appointments",
                     action: "View All",
+                    onActionTap: onUpcomingViewAllTap,
                   ),
                   const SizedBox(height: 12),
                   const _UpcomingAppointments(),
-                  const SizedBox(height: 18),
-                  _SectionTitleWithAction(
-                    title: "Recommended for You",
-                    action: "See All",
-                    subtitle: "Based on location, ratings & availability",
-                    onActionTap: onRecommendedSeeAllTap,
-                  ),
-                  const SizedBox(height: 10),
-                  const _LocationCard(),
-                  const SizedBox(height: 12),
-                  const _RecommendedCard(),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -1023,237 +1019,4 @@ class _AppointmentCard extends StatelessWidget {
   }
 }
 
-class _LocationCard extends StatelessWidget {
-  const _LocationCard();
 
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FF),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD6EEF6)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.location_on_outlined, color: primary),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Your Location",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1D2433),
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "Abdali, Amman",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF2F7F8D),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const TextButton(
-            onPressed: null,
-            child: Text(
-              "Change",
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecommendedCard extends StatelessWidget {
-  const _RecommendedCard();
-
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF2F7F8D);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8ECF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF4F6),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Text(
-                    "SH",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: primary,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Sarah Hassan",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1D2433),
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "IV Therapy • Wound Care",
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEAFBF0),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: const Text(
-                      "Best Match",
-                      style: TextStyle(
-                        color: Color(0xFF22C55E),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "25 JOD/hr",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: primary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: const [
-              Icon(Icons.star_rounded, color: Color(0xFFFFA000), size: 18),
-              SizedBox(width: 4),
-              Text(
-                "4.95 (156)",
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2433),
-                ),
-              ),
-              SizedBox(width: 12),
-              Icon(
-                Icons.location_on_outlined,
-                color: Color(0xFF6B7280),
-                size: 18,
-              ),
-              SizedBox(width: 4),
-              Text(
-                "1.2 km away",
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: const [
-              _Chip(text: "95% Match"),
-              SizedBox(width: 8),
-              _Chip(text: "Closest to you"),
-              SizedBox(width: 8),
-              _Chip(text: "Fast responder"),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String text;
-
-  const _Chip({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6FAFB),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE4F0F2)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w800,
-          color: Color(0xFF2F7F8D),
-        ),
-      ),
-    );
-  }
-}

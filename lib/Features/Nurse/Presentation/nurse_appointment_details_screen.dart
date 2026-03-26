@@ -2,473 +2,796 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
-import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
-import 'package:nurse_app/Core/widgets/appointment_detail_row.dart';
-import 'package:nurse_app/Core/widgets/appointment_list_card.dart';
-import '../../../Core/utils/contact_launch.dart';
-import 'package:nurse_app/Core/widgets/nurse_appointment_chip_style.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/app_colors.dart';
 
-/// Nurse appointment details: only [waitingPayment], [paid], [completed], [cancelled] appear in lists.
-/// TODO(backend): Wire call / message / cancel / complete to API.
-class NurseAppointmentDetailsScreen extends StatelessWidget {
+class NurseAppointmentDetailsScreen extends StatefulWidget {
   final Appointment appointment;
 
-  const NurseAppointmentDetailsScreen({super.key, required this.appointment});
+  const NurseAppointmentDetailsScreen({
+    super.key,
+    required this.appointment,
+  });
 
-  static String _timeWithDuration(Appointment a) {
-    final t = DateFormat.jm().format(a.dateTime);
-    final m = a.durationMinutes;
-    if (m == null) return t;
-    if (m % 60 == 0 && m ~/ 60 > 0) return '$t (${m ~/ 60}hr)';
-    return '$t (${m}min)';
+  @override
+  State<NurseAppointmentDetailsScreen> createState() =>
+      _NurseAppointmentDetailsScreenState();
+}
+
+class _NurseAppointmentDetailsScreenState
+    extends State<NurseAppointmentDetailsScreen> {
+  late Appointment _appointment;
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _appointment = widget.appointment;
   }
 
-  static (String label, Color chipBg) _paymentChipStyle(AppointmentStatus s) {
-    switch (s) {
+  bool get _canCancel {
+    return _appointment.status == AppointmentStatus.pending ||
+        _appointment.status == AppointmentStatus.confirmed;
+  }
+
+  bool get _canComplete {
+    return _appointment.status == AppointmentStatus.confirmed ||
+        _appointment.status == AppointmentStatus.paid;
+  }
+
+  String get _statusLabel {
+    switch (_appointment.status) {
+      case AppointmentStatus.pending:
+        return 'Waiting for Payment';
+      case AppointmentStatus.confirmed:
+        return 'Accepted';
+      case AppointmentStatus.paid:
+        return 'Active / Paid';
+      case AppointmentStatus.completed:
+        return 'Completed';
+      case AppointmentStatus.cancelled:
+        return 'Cancelled';
+      case AppointmentStatus.rejected:
+        return 'Rejected';
       case AppointmentStatus.waitingPayment:
-        return ('UNPAID', Colors.white.withValues(alpha: 0.22));
+        return 'Waiting for Payment';
+    }
+  }
+
+  Color get _statusColor {
+    switch (_appointment.status) {
+      case AppointmentStatus.pending:
+      case AppointmentStatus.waitingPayment:
+        return const Color(0xFFF97316);
+      case AppointmentStatus.confirmed:
+        return const Color(0xFF2563EB);
+      case AppointmentStatus.paid:
+        return const Color(0xFF16A34A);
+      case AppointmentStatus.completed:
+        return const Color(0xFF16A34A);
+      case AppointmentStatus.cancelled:
+      case AppointmentStatus.rejected:
+        return const Color(0xFFDC2626);
+    }
+  }
+
+  Color get _statusBg {
+    switch (_appointment.status) {
+      case AppointmentStatus.pending:
+      case AppointmentStatus.waitingPayment:
+        return const Color(0xFFFFEDD5);
+      case AppointmentStatus.confirmed:
+        return const Color(0xFFDBEAFE);
+      case AppointmentStatus.paid:
+        return const Color(0xFFDCFCE7);
+      case AppointmentStatus.completed:
+        return const Color(0xFFDCFCE7);
+      case AppointmentStatus.cancelled:
+      case AppointmentStatus.rejected:
+        return const Color(0xFFFEE2E2);
+    }
+  }
+
+  String get _paymentLabel {
+    switch (_appointment.status) {
       case AppointmentStatus.paid:
       case AppointmentStatus.completed:
-        return ('PAID', Colors.white.withValues(alpha: 0.22));
+        return 'PAID';
       case AppointmentStatus.cancelled:
-        return ('CANCELLED', Colors.white.withValues(alpha: 0.22));
+      case AppointmentStatus.rejected:
+        return '—';
+      case AppointmentStatus.pending:
+      case AppointmentStatus.waitingPayment:
+      case AppointmentStatus.confirmed:
+        return 'UNPAID';
+    }
+  }
+
+  Color get _paymentChipBg {
+    switch (_paymentLabel) {
+      case 'PAID':
+        return Colors.white.withOpacity(0.18);
+      case 'UNPAID':
+        return Colors.white.withOpacity(0.18);
       default:
-        return ('—', Colors.white.withValues(alpha: 0.22));
+        return Colors.white.withOpacity(0.12);
+    }
+  }
+
+  String get _formattedDate {
+    return DateFormat('yyyy-MM-dd').format(_appointment.dateTime);
+  }
+
+  String get _formattedTimeAndDuration {
+    final time = DateFormat.jm().format(_appointment.dateTime);
+    final duration = _appointment.durationMinutes;
+    if (duration == null || duration <= 0) return time;
+    return '$time (${duration}min)';
+  }
+
+  String get _patientName {
+    return _appointment.patientName.trim().isEmpty
+        ? 'Patient'
+        : _appointment.patientName.trim();
+  }
+
+  String get _serviceName {
+    return _appointment.serviceName.trim().isEmpty
+        ? 'Service'
+        : _appointment.serviceName.trim();
+  }
+
+  String get _phone {
+    return (_appointment.patientPhone ?? '').trim();
+  }
+
+  String get _notes {
+    // إذا كنتِ ما زلتِ مخزنة additionalNotes داخل nurseSpecialty مؤقتًا
+    return (_appointment.nurseSpecialty ?? '').trim();
+  }
+
+  String get _priceText {
+    return _appointment.price % 1 == 0
+        ? _appointment.price.toStringAsFixed(0)
+        : _appointment.price.toStringAsFixed(2);
+  }
+
+  String get _initials {
+    final parts = _patientName
+        .split(' ')
+        .where((e) => e.trim().isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) return 'P';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  Future<bool?> _showConfirmDialog({
+    required String title,
+    required String message,
+    required String confirmText,
+    bool destructive = false,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: _isProcessing ? null : () => Navigator.pop(context, false),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    destructive ? const Color(0xFFDC2626) : AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _isProcessing ? null : () => Navigator.pop(context, true),
+              child: Text(confirmText),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    final confirmed = await _showConfirmDialog(
+      title: 'Cancel Appointment',
+      message: 'Are you sure you want to cancel this appointment?',
+      confirmText: 'Cancel Appointment',
+      destructive: true,
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      await ApiService.cancelNurseAppointment(bookingId: _appointment.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointment = _appointment.copyWith(
+          status: AppointmentStatus.cancelled,
+        );
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Appointment cancelled successfully.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  Future<void> _handleComplete() async {
+    final confirmed = await _showConfirmDialog(
+      title: 'Mark as Completed',
+      message: 'Are you sure you want to mark this appointment as completed?',
+      confirmText: 'Mark as Completed',
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      await ApiService.completeNurseAppointment(bookingId: _appointment.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointment = _appointment.copyWith(
+          status: AppointmentStatus.completed,
+        );
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Appointment marked as completed.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('yyyy-MM-dd').format(appointment.dateTime);
-    final (paymentLabel, chipBg) = _paymentChipStyle(appointment.status);
-    final teal = AppointmentUiColors.tealHeader;
-    final phone = appointment.patientPhone?.trim().isNotEmpty == true
-        ? appointment.patientPhone!
-        : '—';
-    final patientPhoneForActions = phone == '—' ? '' : phone;
-
     return Scaffold(
-      backgroundColor: AppointmentUiColors.pageBackground,
+      backgroundColor: const Color(0xFFF4F5F7),
       appBar: AppBar(
-        backgroundColor: teal,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        leadingWidth: 88,
-        leading: TextButton(
-          onPressed: () => Navigator.of(context).maybePop(),
-          style: TextButton.styleFrom(foregroundColor: Colors.white),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-              SizedBox(width: 4),
-              Text('Back', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            ],
+        leadingWidth: 72,
+        leading: TextButton.icon(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: Colors.white),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         title: const Text(
           'Appointment Details',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
         ),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          if (appointment.status == AppointmentStatus.waitingPayment) ...[
-            _WaitingPaymentBanner(),
-            const SizedBox(height: 14),
-          ],
-          _WhiteCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'Status',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: Color(0xFF111827),
-                  ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
+          children: [
+            if (_appointment.status == AppointmentStatus.pending ||
+                _appointment.status == AppointmentStatus.waitingPayment)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF97316),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const Spacer(),
-                _NurseDetailStatusChip(status: appointment.status),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _WhiteCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Patient Information',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Row(
+                child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: teal,
-                      child: Text(
-                        appointmentInitials(appointment.patientName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 10),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            appointment.patientName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 17,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            appointment.serviceName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13.5,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            phone,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13.5,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Waiting for Payment\nYou confirmed this appointment. The patient needs to complete payment to activate it.',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                          height: 1.35,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                AppointmentCallWhatsAppRow(
-                  phone: patientPhoneForActions,
-                  accentTeal: teal,
-                  callButtonLabel: 'Call Patient',
-                  numberDialogTitle: "Patient's number",
-                  greyCallStyle: true,
-                  whatsappLabel: 'Message on WhatsApp',
+              ),
+
+            _SectionCard(
+              title: 'Status',
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: _StatusChip(
+                  label: _statusLabel,
+                  color: _statusColor,
+                  background: _statusBg,
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          _WhiteCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Appointment Details',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 17,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                AppointmentDetailRow(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Date',
-                  value: dateStr,
-                ),
-                const SizedBox(height: 10),
-                AppointmentDetailRow(
-                  icon: Icons.access_time_rounded,
-                  label: 'Time & Duration',
-                  value: _timeWithDuration(appointment),
-                ),
-                const SizedBox(height: 10),
-                AppointmentDetailRow(
-                  icon: Icons.location_on_outlined,
-                  label: 'Service Location',
-                  value: appointment.location,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              color: teal,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
+            const SizedBox(height: 12),
+
+            _SectionCard(
+              title: 'Patient Information',
+              child: Column(
+                children: [
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Your Earnings',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppColors.primary,
+                        child: Text(
+                          _initials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${appointment.price.toStringAsFixed(0)} JOD',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 26,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _patientName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                _serviceName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                              if (_notes.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  _notes,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                    color: Color(0xFF9CA3AF),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Payment Status',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: chipBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        paymentLabel,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ActionMiniButton(
+                          icon: Icons.call_outlined,
+                          label: 'Call Patient',
+                          enabled: _phone.isNotEmpty,
+                          borderColor: const Color(0xFFE5E7EB),
+                          textColor: const Color(0xFF9CA3AF),
+                          iconColor: const Color(0xFF9CA3AF),
+                          onTap: () {},
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _ActionMiniButton(
+                          icon: Icons.chat_outlined,
+                          label: 'Message on WhatsApp',
+                          enabled: _phone.isNotEmpty,
+                          borderColor: const Color(0xFF22C55E),
+                          textColor: const Color(0xFF22C55E),
+                          iconColor: const Color(0xFF22C55E),
+                          onTap: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            _SectionCard(
+              title: 'Appointment Details',
+              child: Column(
+                children: [
+                  _InfoTile(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Date',
+                    value: _formattedDate,
+                  ),
+                  const SizedBox(height: 10),
+                  _InfoTile(
+                    icon: Icons.access_time_outlined,
+                    label: 'Time & Duration',
+                    value: _formattedTimeAndDuration,
+                  ),
+                  const SizedBox(height: 10),
+                  _InfoTile(
+                    icon: Icons.location_on_outlined,
+                    label: 'Service Location',
+                    value: _appointment.location.trim().isEmpty
+                        ? '-'
+                        : _appointment.location.trim(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your Earnings',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '$_priceText JOD',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'Payment Status',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _paymentChipBg,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          _paymentLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            if (_canComplete) ...[
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isProcessing ? null : _handleComplete,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1D4ED8),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isProcessing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Mark as completed',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          ..._buildActionButtons(context),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildActionButtons(BuildContext context) {
-    switch (appointment.status) {
-      case AppointmentStatus.waitingPayment:
-        return [
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _stub(context, 'Cancel appointment (API)'),
-              icon: const Icon(Icons.block_rounded),
-              label: const Text('Cancel Appointment'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFDC2626),
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFFECACA)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-            ),
-          ),
-        ];
-      case AppointmentStatus.paid:
-        return [
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => _stub(context, 'Mark as completed (API)'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1D4ED8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              child: const Text('Mark as completed'),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _stub(context, 'Cancel appointment (API)'),
-              icon: const Icon(Icons.block_rounded),
-              label: const Text('Cancel Appointment'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFDC2626),
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFFECACA)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
-          ),
-        ];
-      case AppointmentStatus.completed:
-      case AppointmentStatus.cancelled:
-        return [
-          Text(
-            'No actions available for this appointment.',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ];
-      default:
-        return [
-          Text(
-            'This appointment is not shown in the nurse schedule.',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ];
-    }
-  }
+            ],
 
-  void _stub(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-}
-
-class _WaitingPaymentBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppointmentUiColors.orangeBanner,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 26),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Waiting for Payment',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
+            if (_canCancel) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _isProcessing ? null : _handleCancel,
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFFDC2626),
+                    size: 18,
+                  ),
+                  label: const Text(
+                    'Cancel Appointment',
+                    style: TextStyle(
+                      color: Color(0xFFDC2626),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'You confirmed this appointment. The patient needs to complete payment to activate it. '
-                  'You can contact them or cancel if needed.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _WhiteCard extends StatelessWidget {
+class _SectionCard extends StatelessWidget {
+  final String title;
   final Widget child;
 
-  const _WhiteCard({required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF111827),
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+            ),
           ),
+          const SizedBox(height: 12),
+          child,
         ],
       ),
-      child: child,
     );
   }
 }
 
-/// Status chip on details screen (matches list styling for nurse four states).
-class _NurseDetailStatusChip extends StatelessWidget {
-  final AppointmentStatus status;
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color background;
 
-  const _NurseDetailStatusChip({required this.status});
+  const _StatusChip({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final (Color bg, Color fg, IconData icon, String label, Color? border) =
-        nurseAppointmentChipStyle(status);
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(22),
-        border: border != null ? Border.all(color: border, width: 1.2) : null,
+        color: background,
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: fg),
-          const SizedBox(width: 6),
+          Icon(Icons.check_circle_outline, size: 14, color: color),
+          const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
-              color: fg,
-              fontSize: 12,
+              color: color,
               fontWeight: FontWeight.w800,
+              fontSize: 11.5,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF5B8FA3)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Color(0xFF1F2937),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionMiniButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool enabled;
+  final Color borderColor;
+  final Color textColor;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _ActionMiniButton({
+    required this.icon,
+    required this.label,
+    required this.enabled,
+    required this.borderColor,
+    required this.textColor,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = enabled ? textColor : const Color(0xFFBFC6CF);
+    final ic = enabled ? iconColor : const Color(0xFFBFC6CF);
+    final bd = enabled ? borderColor : const Color(0xFFE5E7EB);
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(11),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: bd),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 15, color: ic),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

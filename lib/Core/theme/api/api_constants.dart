@@ -84,6 +84,7 @@ class ApiConstants {
   static const String patientAvailableSlots =
       "$patientBase/nurses";
   // usage: /api/patient/nurses/{nurseId}/available-slots
+  static const String nurseAppointments = "$nurseProfileBase/appointments";
 
   // =========================
   // Patient - Bookings

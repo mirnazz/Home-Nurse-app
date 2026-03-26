@@ -338,18 +338,37 @@ final Color badgeBg = payment.badgeBg;
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          (_appointment.nurseSpecialty != null &&
-                                                  _appointment.nurseSpecialty!
-                                                      .trim()
-                                                      .isNotEmpty)
-                                              ? _appointment.nurseSpecialty!
-                                              : _appointment.serviceName,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
+  (_appointment.nurseSpecialty != null &&
+          _appointment.nurseSpecialty!
+              .trim()
+              .isNotEmpty)
+      ? _appointment.nurseSpecialty!
+      : _appointment.serviceName,
+  style: TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: Colors.grey.shade600,
+  ),
+),
+
+if (_appointment.nursePhone != null &&
+    _appointment.nursePhone!.trim().isNotEmpty) ...[
+  const SizedBox(height: 6),
+  Row(
+    children: [
+      const Icon(Icons.phone, size: 14, color: Colors.grey),
+      const SizedBox(width: 6),
+      Text(
+        _appointment.nursePhone!,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade700,
+        ),
+      ),
+    ],
+  ),
+],
                                       ],
                                     ),
                                   ),

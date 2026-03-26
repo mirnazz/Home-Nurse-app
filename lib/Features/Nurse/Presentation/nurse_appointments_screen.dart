@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/Core/data/mock_appointments.dart';
-import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Core/widgets/appointment_list_card.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointment_details_screen.dart';
 
-/// Nurse: upcoming vs past appointments (UI + mock data).
-/// TODO(backend): Inject [appointments] from API; remove [mockAppointments].
 class NurseAppointmentsScreen extends StatefulWidget {
   final List<Appointment>? appointments;
 
-  /// When true, used inside [NurseScheduleScreen] without an extra [Scaffold].
+  /// When true, used inside another screen without an extra Scaffold.
   final bool embedded;
 
   const NurseAppointmentsScreen({
@@ -29,42 +26,13 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _appointmentsTabController;
 
-  List<Appointment> get _source => widget.appointments ?? mockAppointments;
+  List<Appointment> _todayAppointments = [];
+  List<Appointment> _upcomingAppointments = [];
+  List<Appointment> _pastAppointments = [];
 
-  /// Nurse sees only: Waiting for payment + Active/paid (upcoming), Completed + Cancelled (past).
-  static const _upcomingStatuses = {
-    AppointmentStatus.waitingPayment,
-    AppointmentStatus.paid,
-  };
-
-  static const _pastStatuses = {
-    AppointmentStatus.completed,
-    AppointmentStatus.cancelled,
-  };
-
-  List<Appointment> _upcoming() =>
-      _source.where((a) => _upcomingStatuses.contains(a.status)).toList()
-        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-
-  List<Appointment> _past() =>
-      _source.where((a) => _pastStatuses.contains(a.status)).toList()
-        ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
-  bool _isSameDate(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  /// UI-only: show today's appointments using the same nurse-facing statuses
-  /// as "Upcoming" (Waiting for Payment + Active/Paid).
-  List<Appointment> _today() {
-    final now = DateTime.now();
-    final list = _source
-        .where(
-          (a) => _isSameDate(a.dateTime, now) && _upcomingStatuses.contains(a.status),
-        )
-        .toList()
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-    return list;
-  }
+  bool _isLoading = true;
+  bool _isOpeningDetails = false;
+  String? _error;
 
   @override
   void initState() {
@@ -73,6 +41,8 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
     _appointmentsTabController.addListener(() {
       if (mounted) setState(() {});
     });
+
+    _loadAppointments();
   }
 
   @override
@@ -81,61 +51,173 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
     super.dispose();
   }
 
+  Future<void> _loadAppointments() async {
+    if (widget.appointments != null) {
+      final provided = List<Appointment>.from(widget.appointments!);
+
+      if (!mounted) return;
+      setState(() {
+        _todayAppointments = provided;
+        _upcomingAppointments = provided;
+        _pastAppointments = const [];
+        _isLoading = false;
+        _error = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final results = await Future.wait<List<Appointment>>([
+        ApiService.getNurseAppointments(tab: 'today'),
+        ApiService.getNurseAppointments(tab: 'upcoming'),
+        ApiService.getNurseAppointments(tab: 'past'),
+      ]);
+
+      if (!mounted) return;
+
+      setState(() {
+        _todayAppointments = results[0];
+        _upcomingAppointments = results[1];
+        _pastAppointments = results[2];
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _openDetails(Appointment appointment) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => NurseAppointmentDetailsScreen(appointment: appointment),
+    if (_isOpeningDetails) return;
+
+    setState(() {
+      _isOpeningDetails = true;
+    });
+
+    try {
+      final details = await ApiService.getNurseAppointmentDetails(
+        bookingId: appointment.id,
+      );
+
+      if (!mounted) return;
+
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => NurseAppointmentDetailsScreen(appointment: details),
+        ),
+      );
+
+      if (!mounted) return;
+      await _loadAppointments();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOpeningDetails = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   Widget _buildListView(List<Appointment> list, String emptyMessage) {
     final listBottomPad = widget.embedded ? 16.0 : 100.0;
 
     if (list.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            emptyMessage,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      );
+      return _buildEmptyState(emptyMessage);
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.fromLTRB(
-        AppointmentUiColors.scheduleListHorizontalPadding,
-        AppointmentUiColors.scheduleListVerticalGap,
-        AppointmentUiColors.scheduleListHorizontalPadding,
-        listBottomPad,
+    return RefreshIndicator(
+      onRefresh: _loadAppointments,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          AppointmentUiColors.scheduleListHorizontalPadding,
+          AppointmentUiColors.scheduleListVerticalGap,
+          AppointmentUiColors.scheduleListHorizontalPadding,
+          listBottomPad,
+        ),
+        itemCount: list.length,
+        separatorBuilder: (_, __) =>
+            const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
+        itemBuilder: (context, index) {
+          final apt = list[index];
+          return AppointmentListCard(
+            appointment: apt,
+            isNurseView: true,
+            onTap: () => _openDetails(apt),
+          );
+        },
       ),
-      itemCount: list.length,
-      separatorBuilder: (_, __) =>
-          const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
-      itemBuilder: (context, index) {
-        final apt = list[index];
-        return AppointmentListCard(
-          appointment: apt,
-          isNurseView: true,
-          onTap: () => _openDetails(apt),
-        );
-      },
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final upcoming = _upcoming();
-    final past = _past();
-    final today = _today();
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error ?? 'Something went wrong.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 14),
+            ElevatedButton(
+              onPressed: _loadAppointments,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    final today = _todayAppointments;
+    final upcoming = _upcomingAppointments;
+    final past = _pastAppointments;
+
     final primary = AppointmentUiColors.tealHeader;
     final todayCount = today.length;
     final upcomingCount = upcoming.length;
@@ -191,33 +273,45 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
       ),
     );
 
-    final column = Column(
+    Widget content;
+    if (_isLoading) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (_error != null) {
+      content = _buildErrorState();
+    } else {
+      content = TabBarView(
+        controller: _appointmentsTabController,
+        children: [
+          _buildListView(today, 'No appointments for today.'),
+          _buildListView(upcoming, 'No upcoming appointments.'),
+          _buildListView(past, 'No past appointments.'),
+        ],
+      );
+    }
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         header,
-        Expanded(
-          child: TabBarView(
-            controller: _appointmentsTabController,
-            children: [
-              _buildListView(today, 'No appointments for today'),
-              _buildListView(upcoming, 'No upcoming appointments.'),
-              _buildListView(past, 'No past appointments.'),
-            ],
-          ),
-        ),
+        Expanded(child: content),
       ],
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final body = _buildBody();
 
     if (widget.embedded) {
       return ColoredBox(
         color: AppColors.background,
-        child: column,
+        child: body,
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: column,
+      body: body,
     );
   }
 }
