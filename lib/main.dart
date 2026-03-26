@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'Features/onboarding/Presentation/splash_screen.dart';
 import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';

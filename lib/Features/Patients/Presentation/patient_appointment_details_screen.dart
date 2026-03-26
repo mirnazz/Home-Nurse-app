@@ -4,6 +4,7 @@ import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Features/Patients/Presentation/payment_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
@@ -238,8 +239,12 @@ class _PatientAppointmentDetailsScreenState
     }
   }
 
-  void _payNowStub() {
-    _showSnack('Payment integration is not implemented yet.');
+  void _openPaymentScreen() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => PaymentScreen(appointment: _appointment),
+      ),
+    );
   }
 
   void _showSnack(String message) {
@@ -549,7 +554,7 @@ if (_appointment.nursePhone != null &&
       SizedBox(
         width: double.infinity,
         child: FilledButton(
-          onPressed: _payNowStub,
+          onPressed: _openPaymentScreen,
           style: FilledButton.styleFrom(
             backgroundColor: AppointmentUiColors.orangeBanner,
             foregroundColor: Colors.white,
