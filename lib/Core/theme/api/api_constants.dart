@@ -2,7 +2,7 @@ class ApiConstants {
   // =========================
   // Base
   // =========================
-  static const String baseUrl = "http://localhost:5235";
+static const String baseUrl = "http://172.20.10.6:5235";
 
   // =========================
   // Auth
@@ -99,5 +99,10 @@ class ApiConstants {
       "/api/admin/pending-nurses";
       static const String nurseRequests = "$nurseProfileBase/requests";
       static const String patientAppointments = '/api/patient/appointments';
+
+
+  static const String paymentSummary = '/api/patient/payments/summary';
+  static const String createPaymentIntent = '/api/patient/payments/create-intent';
+  static const String confirmPayment = '/api/patient/payments/confirm';
       
 }

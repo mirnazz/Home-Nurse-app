@@ -1328,4 +1328,88 @@ static Future<void> cancelNurseAppointment({
     );
   }
 }
+static Future<void> confirmPayment({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.confirmPayment}/$bookingId",
+  );
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to confirm payment",
+      ),
+    );
+  }
+}
+static Future<String> createPaymentIntent({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.createPaymentIntent}/$bookingId",
+  );
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return data["clientSecret"];
+  } else {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to create payment intent",
+      ),
+    );
+  }
+}
+static Future<Map<String, dynamic>> getPaymentSummary({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.paymentSummary}/$bookingId",
+  );
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load payment summary",
+      ),
+    );
+  }
+}
+
 }
