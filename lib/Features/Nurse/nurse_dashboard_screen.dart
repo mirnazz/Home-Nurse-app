@@ -40,7 +40,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
       MaterialPageRoute<void>(
         builder: (_) => const NotificationsScreen(
           audience: NotificationAudience.nurse,
-          notifications: [],
+          
         ),
       ),
     );

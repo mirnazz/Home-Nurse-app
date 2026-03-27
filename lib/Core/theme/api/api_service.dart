@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'api_constants.dart';
 import 'token_storage.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/models/notification_model.dart';
 
 class ApiService {
   // =========================
@@ -1411,5 +1412,59 @@ static Future<Map<String, dynamic>> getPaymentSummary({
     );
   }
 }
+static Future<List<NotificationModel>> getNotifications() async {
+  final token = await _requireToken();
 
+  final url = Uri.parse("${ApiConstants.baseUrl}${ApiConstants.notifications}");
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.map((e) => NotificationModel.fromJson(e)).toList();
+  } else {
+    throw Exception("Failed to load notifications");
+  }
+}
+static Future<void> markNotificationAsRead(int id) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.notifications}/$id/read",
+  );
+
+  final response = await http.put(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+    },
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception("Failed to mark notification as read");
+  }
+}
+static Future<void> markAllNotificationsAsRead() async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.notifications}/read-all",
+  );
+
+  final response = await http.put(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+    },
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception("Failed to mark all notifications as read");
+  }
+}
 }

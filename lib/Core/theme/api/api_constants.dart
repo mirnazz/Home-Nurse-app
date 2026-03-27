@@ -104,5 +104,6 @@ static const String baseUrl = "http://172.20.10.6:5235";
   static const String paymentSummary = '/api/patient/payments/summary';
   static const String createPaymentIntent = '/api/patient/payments/create-intent';
   static const String confirmPayment = '/api/patient/payments/confirm';
+  static const String notifications = "/api/notification";
       
 }

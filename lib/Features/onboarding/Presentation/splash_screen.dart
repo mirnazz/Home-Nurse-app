@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(seconds: 2));
 
     final token = await TokenStorage.getToken();
     final seenOnboarding = await AppStorage.hasSeenOnboarding();

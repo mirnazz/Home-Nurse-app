@@ -140,7 +140,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       MaterialPageRoute<void>(
         builder: (_) => const NotificationsScreen(
           audience: NotificationAudience.patient,
-          notifications: [],
+          
         ),
       ),
     );
