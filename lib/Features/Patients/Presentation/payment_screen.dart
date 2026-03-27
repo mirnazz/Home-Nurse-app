@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_failed_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Appointment appointment;
-  final bool mockPaymentSuccess;
 
   const PaymentScreen({
     super.key,
     required this.appointment,
-    this.mockPaymentSuccess = true,
   });
 
   @override
@@ -24,22 +24,71 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _confirmPayment() async {
     if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
 
-    if (widget.mockPaymentSuccess) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => PaymentSuccessScreen(amount: widget.appointment.price),
+    setState(() => _isSubmitting = true);
+
+    try {
+     final bookingId = widget.appointment.id;
+
+      // 1) create payment intent from backend
+      final clientSecret = await ApiService.createPaymentIntent(
+        bookingId: bookingId,
+      );
+
+      // 2) init payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'NurseNow',
+          style: ThemeMode.light,
         ),
       );
-    } else {
+
+      // 3) present payment sheet to user
+      await Stripe.instance.presentPaymentSheet();
+
+      // 4) notify backend after Stripe success
+      await ApiService.confirmPayment(
+        bookingId: bookingId,
+      );
+
+      if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => PaymentFailedScreen(appointment: widget.appointment),
+        MaterialPageRoute(
+          builder: (_) => PaymentSuccessScreen(
+            amount: widget.appointment.price,
+          ),
         ),
       );
+    } on StripeException {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => PaymentFailedScreen(
+            appointment: widget.appointment,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment error: $e')),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => PaymentFailedScreen(
+            appointment: widget.appointment,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -57,7 +106,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appBar: AppBar(
         backgroundColor: AppointmentUiColors.tealHeader,
         elevation: 0,
-        title: const Text('Payment', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Payment',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
       body: SafeArea(
         top: false,
@@ -100,8 +152,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             _Card(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     'Payment Method',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
@@ -109,39 +161,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       color: Color(0xFF111827),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1F8E9C), Color(0xFF217C8A)],
-                      ),
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: Icon(Icons.credit_card_rounded, color: Colors.white),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          '****  ****  ****  4242',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Mock Visa Card',
-                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                  SizedBox(height: 12),
+                  Text(
+                    'Stripe Payment Sheet will open when you confirm payment.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280),
                     ),
                   ),
                 ],
@@ -153,17 +179,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppointmentUiColors.tealHeader,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: _isSubmitting
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.2,
+                      ),
                     )
                   : const Text(
                       'Confirm Payment',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
                     ),
             ),
           ],
@@ -186,7 +220,11 @@ class _Card extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
-          BoxShadow(color: Color(0x0F000000), blurRadius: 14, offset: Offset(0, 6)),
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
       child: child,
@@ -215,13 +253,18 @@ class _SummaryRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const Spacer(),
           Text(
             value,
             style: TextStyle(
-              color: highlight ? AppointmentUiColors.tealHeader : const Color(0xFF111827),
+              color: highlight
+                  ? AppointmentUiColors.tealHeader
+                  : const Color(0xFF111827),
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -230,3 +273,4 @@ class _SummaryRow extends StatelessWidget {
     );
   }
 }
+

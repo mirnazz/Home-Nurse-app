@@ -1205,4 +1205,211 @@ static Future<Appointment> getPatientAppointmentDetails({
 
   return Appointment.fromPatientDetailsJson(data);
 }
+static Future<List<Appointment>> getNurseAppointments({
+  required String tab,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}?tab=$tab",
+  );
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load nurse appointments",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  if (data is! List) return [];
+
+  return data
+      .map<Appointment>(
+        (item) => Appointment.fromNurseJson(item as Map<String, dynamic>),
+      )
+      .toList();
+}
+
+static Future<Appointment> getNurseAppointmentDetails({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId",
+  );
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load nurse appointment details",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  if (data is! Map<String, dynamic>) {
+    throw Exception("Invalid nurse appointment details response");
+  }
+
+  return Appointment.fromNurseDetailsJson(data);
+}
+
+static Future<void> completeNurseAppointment({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/complete",
+  );
+
+  final response = await http.put(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to complete appointment",
+      ),
+    );
+  }
+}
+
+static Future<void> cancelNurseAppointment({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/cancel",
+  );
+
+  final response = await http.put(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to cancel appointment",
+      ),
+    );
+  }
+}
+static Future<void> confirmPayment({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.confirmPayment}/$bookingId",
+  );
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to confirm payment",
+      ),
+    );
+  }
+}
+static Future<String> createPaymentIntent({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.createPaymentIntent}/$bookingId",
+  );
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return data["clientSecret"];
+  } else {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to create payment intent",
+      ),
+    );
+  }
+}
+static Future<Map<String, dynamic>> getPaymentSummary({
+  required String bookingId,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.paymentSummary}/$bookingId",
+  );
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  ).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load payment summary",
+      ),
+    );
+  }
+}
+
 }

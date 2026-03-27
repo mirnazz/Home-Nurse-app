@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
@@ -7,7 +9,6 @@ import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
-/// Bottom tabs: 0 Home, 1 Availability, 2 Appointments, 3 Requests, 4 Profile.
 typedef NurseDashboardNavigate = void Function(int tabIndex);
 
 class NurseDashboardScreen extends StatefulWidget {
@@ -22,7 +23,18 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   String nurseName = "";
   bool isLoading = true;
 
-  void _navigate(int tabIndex) => setState(() => currentTab = tabIndex);
+  int pendingRequestsCount = 0;
+  List<Appointment> todayAppointments = const [];
+  double todayEarnings = 0;
+
+  Future<void> _navigate(int tabIndex) async {
+    setState(() => currentTab = tabIndex);
+
+    if (tabIndex == 0) {
+      await loadDashboardData();
+    }
+  }
+
   void _openNotifications() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -37,7 +49,31 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    loadNurse();
+    loadInitialData();
+  }
+
+  Future<void> loadInitialData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    await Future.wait([
+      loadNurse(),
+      loadDashboardData(),
+    ]);
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> loadDashboardData() async {
+    await Future.wait([
+      loadPendingRequestsCount(),
+      loadTodayAppointments(),
+    ]);
   }
 
   Future<void> loadNurse() async {
@@ -48,14 +84,55 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 
       setState(() {
         nurseName = data["fullName"] ?? "Nurse";
-        isLoading = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
         nurseName = "Nurse";
-        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> loadPendingRequestsCount() async {
+    try {
+      final data = await ApiService.getNurseRequests(status: 'Pending');
+
+      if (!mounted) return;
+
+      setState(() {
+        pendingRequestsCount = data.length;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        pendingRequestsCount = 0;
+      });
+    }
+  }
+
+  Future<void> loadTodayAppointments() async {
+    try {
+      final appointments = await ApiService.getNurseAppointments(tab: 'today');
+
+      final total = appointments.fold<double>(
+        0,
+        (sum, item) => sum + item.price,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        todayAppointments = appointments;
+        todayEarnings = total;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        todayAppointments = const [];
+        todayEarnings = 0;
       });
     }
   }
@@ -72,8 +149,12 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                 children: [
                   NurseHomeScreen(
                     nurseName: nurseName,
-                    onNavigate: _navigate,
+                    onNavigate: (tabIndex) => _navigate(tabIndex),
                     onOpenNotifications: _openNotifications,
+                    pendingCount: pendingRequestsCount,
+                    todayAppointments: todayAppointments,
+                    todayEarnings: todayEarnings,
+                    onRefreshDashboard: loadDashboardData,
                   ),
                   const NurseAvailabilityScreen(),
                   const NurseAppointmentsScreen(),
@@ -84,7 +165,8 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
       ),
       bottomNavigationBar: _NurseBottomNav(
         currentIndex: currentTab,
-        onChanged: (i) => setState(() => currentTab = i),
+        pendingCount: pendingRequestsCount,
+        onChanged: (i) => _navigate(i),
       ),
     );
   }
@@ -94,50 +176,70 @@ class NurseHomeScreen extends StatelessWidget {
   final String nurseName;
   final NurseDashboardNavigate onNavigate;
   final VoidCallback onOpenNotifications;
+  final int pendingCount;
+  final List<Appointment> todayAppointments;
+  final double todayEarnings;
+  final Future<void> Function() onRefreshDashboard;
 
   const NurseHomeScreen({
     super.key,
     required this.nurseName,
     required this.onNavigate,
     required this.onOpenNotifications,
+    required this.pendingCount,
+    required this.todayAppointments,
+    required this.todayEarnings,
+    required this.onRefreshDashboard,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _NurseHeader(
-            name: nurseName,
-            onNotificationsTap: onOpenNotifications,
-          ),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _SummaryCardsRow(),
-                const SizedBox(height: 18),
-                const _ThisWeekSummaryCard(),
-                const SizedBox(height: 24),
-                const _QuickActionsTitle(),
-                const SizedBox(height: 12),
-                _QuickActionsList(onNavigate: onNavigate),
-                const SizedBox(height: 24),
-                _TodayScheduleSection(
-                  onViewAll: () => onNavigate(2),
-                ),
-                const SizedBox(height: 24),
-                _AvailabilityCard(
-                  onOpenAvailability: () => onNavigate(1),
-                ),
-                const SizedBox(height: 100),
-              ],
+    return RefreshIndicator(
+      onRefresh: onRefreshDashboard,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _NurseHeader(
+              name: nurseName,
+              onNotificationsTap: onOpenNotifications,
             ),
-          ),
-        ],
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SummaryCardsRow(
+                    pendingCount: pendingCount,
+                    todayAppointmentsCount: todayAppointments.length,
+                    todayEarnings: todayEarnings,
+                  ),
+                  const SizedBox(height: 18),
+                  const _ThisWeekSummaryCard(),
+                  const SizedBox(height: 24),
+                  const _QuickActionsTitle(),
+                  const SizedBox(height: 12),
+                  _QuickActionsList(
+                    onNavigate: onNavigate,
+                    pendingCount: pendingCount,
+                  ),
+                  const SizedBox(height: 24),
+                  _TodayScheduleSection(
+                    appointments: todayAppointments,
+                    onViewAll: () => onNavigate(2),
+                  ),
+                  const SizedBox(height: 24),
+                  _AvailabilityCard(
+                    onOpenAvailability: () => onNavigate(1),
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -147,7 +249,10 @@ class _NurseHeader extends StatelessWidget {
   final String name;
   final VoidCallback onNotificationsTap;
 
-  const _NurseHeader({required this.name, required this.onNotificationsTap});
+  const _NurseHeader({
+    required this.name,
+    required this.onNotificationsTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +297,7 @@ class _NurseHeader extends StatelessWidget {
                     Text(
                       dateStr,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -281,7 +386,21 @@ class _NurseHeader extends StatelessWidget {
 }
 
 class _SummaryCardsRow extends StatelessWidget {
-  const _SummaryCardsRow();
+  final int pendingCount;
+  final int todayAppointmentsCount;
+  final double todayEarnings;
+
+  const _SummaryCardsRow({
+    required this.pendingCount,
+    required this.todayAppointmentsCount,
+    required this.todayEarnings,
+  });
+
+  String _formatMoney(double value) {
+    return value % 1 == 0
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -290,7 +409,7 @@ class _SummaryCardsRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             icon: Icons.calendar_today_outlined,
-            value: "4",
+            value: todayAppointmentsCount.toString(),
             label: "Today's Appointments",
           ),
         ),
@@ -298,7 +417,7 @@ class _SummaryCardsRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             icon: Icons.access_time_outlined,
-            value: "7",
+            value: pendingCount.toString(),
             label: "Pending Requests",
           ),
         ),
@@ -306,7 +425,7 @@ class _SummaryCardsRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             icon: Icons.attach_money,
-            value: "125",
+            value: _formatMoney(todayEarnings),
             label: "JOD Today",
           ),
         ),
@@ -335,7 +454,7 @@ class _SummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -382,7 +501,7 @@ class _ThisWeekSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -438,7 +557,7 @@ class _WeekStat extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.85),
+            color: Colors.white.withOpacity(0.85),
           ),
         ),
       ],
@@ -464,8 +583,12 @@ class _QuickActionsTitle extends StatelessWidget {
 
 class _QuickActionsList extends StatelessWidget {
   final NurseDashboardNavigate onNavigate;
+  final int pendingCount;
 
-  const _QuickActionsList({required this.onNavigate});
+  const _QuickActionsList({
+    required this.onNavigate,
+    required this.pendingCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -488,27 +611,34 @@ class _QuickActionsList extends StatelessWidget {
           icon: Icons.description_outlined,
           title: "View Requests",
           subtitle: "Pending and rejected requests",
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF8A00),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Text(
-              "7",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
-              ),
-            ),
-          ),
+          trailing: pendingCount > 0
+              ? Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF8A00),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    pendingCount > 99 ? '99+' : pendingCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                )
+              : const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
           onTap: () => onNavigate(2),
           icon: Icons.calendar_today_outlined,
-          title: "My Schedule",
+          title: "Appointments",
           subtitle: "View your appointments",
           trailing: const Icon(
             Icons.arrow_forward_ios,
@@ -550,7 +680,7 @@ class _QuickActionTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -558,40 +688,40 @@ class _QuickActionTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-          Container(
-            height: 44,
-            width: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: AppColors.primary),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    color: Color(0xFF1D2433),
-                  ),
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF6B7280),
-                  ),
+                child: Icon(icon, color: AppColors.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: Color(0xFF1D2433),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
               trailing,
             ],
           ),
@@ -602,9 +732,13 @@ class _QuickActionTile extends StatelessWidget {
 }
 
 class _TodayScheduleSection extends StatelessWidget {
+  final List<Appointment> appointments;
   final VoidCallback onViewAll;
 
-  const _TodayScheduleSection({required this.onViewAll});
+  const _TodayScheduleSection({
+    required this.appointments,
+    required this.onViewAll,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -635,27 +769,85 @@ class _TodayScheduleSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const _ScheduleAppointmentCard(
-          patientName: "Ahmad M.",
-          service: "IV Therapy",
-          status: "Confirmed",
-          statusColor: Color(0xFF22C55E),
-          statusBg: Color(0xFFEAFBF0),
-          time: "10:00 AM",
-          earnings: "50",
-        ),
-        const SizedBox(height: 12),
-        const _ScheduleAppointmentCard(
-          patientName: "Rania K.",
-          service: "Wound Care",
-          status: "Upcoming",
-          statusColor: Color(0xFF0EA5E9),
-          statusBg: Color(0xFFE0F2FE),
-          time: "2:00 PM",
-          earnings: "30",
-        ),
+        if (appointments.isEmpty)
+          const _EmptyTodayScheduleCard()
+        else
+          ...appointments.take(3).map(
+                (appointment) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ScheduleAppointmentCard(
+                    patientName: appointment.patientName.isEmpty
+                        ? 'Patient'
+                        : appointment.patientName,
+                    service: appointment.serviceName,
+                    status: _statusLabel(appointment),
+                    statusColor: _statusColor(appointment),
+                    statusBg: _statusBackground(appointment),
+                    time: DateFormat.jm().format(appointment.dateTime),
+                    earnings: _formatMoney(appointment.price),
+                  ),
+                ),
+              ),
       ],
     );
+  }
+
+  static String _formatMoney(double value) {
+    return value % 1 == 0
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(2);
+  }
+
+  static String _statusLabel(Appointment appointment) {
+    switch (appointment.status.name) {
+      case 'confirmed':
+        return 'Accepted';
+      case 'paid':
+        return 'Active';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'rejected':
+        return 'Rejected';
+      case 'pending':
+      default:
+        return 'Pending';
+    }
+  }
+
+  static Color _statusColor(Appointment appointment) {
+    switch (appointment.status.name) {
+      case 'confirmed':
+        return const Color(0xFF22C55E);
+      case 'paid':
+        return const Color(0xFF0EA5E9);
+      case 'completed':
+        return const Color(0xFF16A34A);
+      case 'cancelled':
+      case 'rejected':
+        return const Color(0xFFDC2626);
+      case 'pending':
+      default:
+        return const Color(0xFFF59E0B);
+    }
+  }
+
+  static Color _statusBackground(Appointment appointment) {
+    switch (appointment.status.name) {
+      case 'confirmed':
+        return const Color(0xFFEAFBF0);
+      case 'paid':
+        return const Color(0xFFE0F2FE);
+      case 'completed':
+        return const Color(0xFFDCFCE7);
+      case 'cancelled':
+      case 'rejected':
+        return const Color(0xFFFEE2E2);
+      case 'pending':
+      default:
+        return const Color(0xFFFEF3C7);
+    }
   }
 }
 
@@ -772,6 +964,51 @@ class _ScheduleAppointmentCard extends StatelessWidget {
   }
 }
 
+class _EmptyTodayScheduleCard extends StatelessWidget {
+  const _EmptyTodayScheduleCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE8ECF2)),
+      ),
+      child: const Column(
+        children: [
+          Icon(
+            Icons.event_busy_outlined,
+            color: Color(0xFF9CA3AF),
+            size: 32,
+          ),
+          SizedBox(height: 10),
+          Text(
+            'No appointments for today',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: Color(0xFF374151),
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Today appointments will appear here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12.5,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AvailabilityCard extends StatelessWidget {
   final VoidCallback onOpenAvailability;
 
@@ -793,39 +1030,39 @@ class _AvailabilityCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-          Container(
-            height: 12,
-            width: 12,
-            decoration: const BoxDecoration(
-              color: Color(0xFF22C55E),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "You're Available",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    color: Color(0xFF2E7D32),
-                  ),
+              Container(
+                height: 12,
+                width: 12,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF22C55E),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "You can receive new service requests",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E7D32).withValues(alpha: 0.85),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "You're Available",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: Color(0xFF2E7D32),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "You can receive new service requests",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2E7D32).withOpacity(0.85),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
             ],
           ),
         ),
@@ -836,10 +1073,12 @@ class _AvailabilityCard extends StatelessWidget {
 
 class _NurseBottomNav extends StatelessWidget {
   final int currentIndex;
+  final int pendingCount;
   final ValueChanged<int> onChanged;
 
   const _NurseBottomNav({
     required this.currentIndex,
+    required this.pendingCount,
     required this.onChanged,
   });
 
@@ -858,35 +1097,36 @@ class _NurseBottomNav extends StatelessWidget {
         ],
       ),
       child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: onChanged,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: const Color(0xFF9CA3AF),
-          selectedFontSize: 11,
-          unselectedFontSize: 10,
-          iconSize: 24,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'Availability',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.event_available_outlined),
-              label: 'Appointments',
-            ),
-            BottomNavigationBarItem(
-              icon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.notifications),
+        currentIndex: currentIndex,
+        onTap: onChanged,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: const Color(0xFF9CA3AF),
+        selectedFontSize: 11,
+        unselectedFontSize: 10,
+        iconSize: 24,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Availability',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.event_available_outlined),
+            label: 'Appointments',
+          ),
+          BottomNavigationBarItem(
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.notifications),
+                if (pendingCount > 0)
                   Positioned(
                     right: -4,
                     top: -2,
@@ -901,9 +1141,9 @@ class _NurseBottomNav extends StatelessWidget {
                         minHeight: 14,
                       ),
                       alignment: Alignment.center,
-                      child: const Text(
-                        '7',
-                        style: TextStyle(
+                      child: Text(
+                        pendingCount > 99 ? '99+' : pendingCount.toString(),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
@@ -911,15 +1151,15 @@ class _NurseBottomNav extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-              label: 'Requests',
+              ],
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+            label: 'Requests',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

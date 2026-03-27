@@ -113,4 +113,39 @@ class Appointment {
         return AppointmentStatus.pending;
     }
   }
+  factory Appointment.fromNurseJson(Map<String, dynamic> json) {
+  return Appointment(
+    id: (json['bookingId'] ?? '').toString(),
+    patientName: (json['patientName'] ?? '').toString(),
+    nurseName: '',
+    serviceName: (json['serviceName'] ?? '').toString(),
+    dateTime: DateTime.parse('${json['date']}T${json['time']}'),
+    location: (json['address'] ?? '').toString(),
+    status: _mapStatus((json['status'] ?? '').toString()),
+    price: (json['totalPrice'] ?? 0).toDouble(),
+    durationMinutes: null,
+    patientPhone: null,
+    nursePhone: null,
+    nurseSpecialty: null,
+  );
+}
+
+factory Appointment.fromNurseDetailsJson(Map<String, dynamic> json) {
+  return Appointment(
+    id: (json['bookingId'] ?? '').toString(),
+    patientName: (json['patientName'] ?? '').toString(),
+    nurseName: '',
+    serviceName: (json['serviceName'] ?? '').toString(),
+    dateTime: DateTime.parse('${json['date']}T${json['time']}'),
+    location: (json['address'] ?? '').toString(),
+    status: _mapStatus((json['status'] ?? '').toString()),
+    price: (json['totalPrice'] ?? 0).toDouble(),
+    durationMinutes: json['durationInMinutes'] is num
+        ? (json['durationInMinutes'] as num).toInt()
+        : null,
+    patientPhone: json['phoneNumber']?.toString(),
+    nursePhone: null,
+    nurseSpecialty: json['additionalNotes']?.toString(),
+  );
+}
 }
