@@ -6,6 +6,7 @@ import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.
 import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
+import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
@@ -134,6 +135,17 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
+  void _openNotifications() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const NotificationsScreen(
+          audience: NotificationAudience.patient,
+          notifications: [],
+        ),
+      ),
+    );
+  }
+
   void _openBrowseDefault() {
     setState(() {
       _browseSearch = null;
@@ -172,6 +184,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       PatientHomeContent(
         name: _userName,
         onLogout: _logout,
+        onOpenNotifications: _openNotifications,
         onSearchTap: _openBrowseDefault,
         onQuickServiceTap: _openBrowseWithService,
         onRecommendedSeeAllTap: _openBrowseDefault,
@@ -209,6 +222,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 class PatientHomeContent extends StatelessWidget {
   final String name;
   final VoidCallback onLogout;
+  final VoidCallback onOpenNotifications;
   final VoidCallback onSearchTap;
   final ValueChanged<int> onQuickServiceTap;
   final VoidCallback onRecommendedSeeAllTap;
@@ -220,6 +234,7 @@ class PatientHomeContent extends StatelessWidget {
     super.key,
     required this.name,
     required this.onLogout,
+    required this.onOpenNotifications,
     required this.onSearchTap,
     required this.onQuickServiceTap,
     required this.onRecommendedSeeAllTap,
@@ -237,6 +252,7 @@ class PatientHomeContent extends StatelessWidget {
             _HomeHeader(
               onLogout: onLogout,
               name: name,
+              onNotificationTap: onOpenNotifications,
             ),
             const SizedBox(height: 14),
             Padding(
@@ -326,10 +342,12 @@ class _PlaceholderTab extends StatelessWidget {
 
 class _HomeHeader extends StatelessWidget {
   final VoidCallback onLogout;
+  final VoidCallback onNotificationTap;
   final String name;
 
   const _HomeHeader({
     required this.onLogout,
+    required this.onNotificationTap,
     required this.name,
   });
 
@@ -374,34 +392,41 @@ class _HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.16),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onNotificationTap,
                   borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_none_rounded,
-                        color: Colors.white,
-                      ),
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    Positioned(
-                      right: 10,
-                      top: 10,
-                      child: Container(
-                        height: 8,
-                        width: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFF4D4D),
-                          shape: BoxShape.circle,
+                    child: Stack(
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.notifications_none_rounded,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            height: 8,
+                            width: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF4D4D),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(width: 10),

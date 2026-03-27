@@ -3,6 +3,7 @@ import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
+import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 
@@ -22,6 +23,16 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   bool isLoading = true;
 
   void _navigate(int tabIndex) => setState(() => currentTab = tabIndex);
+  void _openNotifications() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const NotificationsScreen(
+          audience: NotificationAudience.nurse,
+          notifications: [],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -62,6 +73,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                   NurseHomeScreen(
                     nurseName: nurseName,
                     onNavigate: _navigate,
+                    onOpenNotifications: _openNotifications,
                   ),
                   const NurseAvailabilityScreen(),
                   const NurseAppointmentsScreen(),
@@ -81,11 +93,13 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 class NurseHomeScreen extends StatelessWidget {
   final String nurseName;
   final NurseDashboardNavigate onNavigate;
+  final VoidCallback onOpenNotifications;
 
   const NurseHomeScreen({
     super.key,
     required this.nurseName,
     required this.onNavigate,
+    required this.onOpenNotifications,
   });
 
   @override
@@ -94,7 +108,10 @@ class NurseHomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NurseHeader(name: nurseName),
+          _NurseHeader(
+            name: nurseName,
+            onNotificationsTap: onOpenNotifications,
+          ),
           const SizedBox(height: 18),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -128,8 +145,9 @@ class NurseHomeScreen extends StatelessWidget {
 
 class _NurseHeader extends StatelessWidget {
   final String name;
+  final VoidCallback onNotificationsTap;
 
-  const _NurseHeader({required this.name});
+  const _NurseHeader({required this.name, required this.onNotificationsTap});
 
   @override
   Widget build(BuildContext context) {
@@ -182,36 +200,43 @@ class _NurseHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onNotificationsTap,
                   borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                  child: Container(
+                    height: 44,
+                    width: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        height: 8,
-                        width: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFF4D4D),
-                          shape: BoxShape.circle,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            height: 8,
+                            width: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF4D4D),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
