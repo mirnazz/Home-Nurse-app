@@ -4,10 +4,19 @@ import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_screen.dart';
-import 'package:nurse_app/Features/Patients/Presentation/patient_review_bottom_sheet.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_dialog.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_more_screen.dart';
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 
+/// Patient shell (tabs + home).
+///
+/// **Review prompts**
+/// - **Backend / API:** When a visit is completed, persist “needs review” and return those rows from
+///   [onFetchPendingReviewRequests] (or clear them after the patient submits via your API).
+/// - **Mobile (this file):** Auto-opens [showPatientReviewModal] for the next pending item after
+///   fetch (or preview data). The modal blocks the shell until the user taps Submit, Later, or X.
+/// - **Later:** skipped for the rest of this app session (in-memory); next cold start can prompt again.
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
   final Future<List<PatientPendingReviewItem>> Function()?
@@ -36,6 +45,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   bool _isLoadingPendingReviews = false;
   late List<PatientPendingReviewItem> _pendingReviewRequests;
 
+  /// Request ids the user skipped with "Later" this app session — no auto-prompt again until restart.
+  final Set<String> _reviewDeferredForSession = {};
+
+  /// Prevents overlapping auto-chained review modals.
+  bool _blockingReviewFlowActive = false;
+
   @override
   void initState() {
     super.initState();
@@ -63,7 +78,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
   Future<void> _fetchPendingReviews() async {
     final fetcher = widget.onFetchPendingReviewRequests;
-    if (fetcher == null) return;
+    if (fetcher == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scheduleBlockingReviewPrompt();
+      });
+      return;
+    }
 
     setState(() => _isLoadingPendingReviews = true);
 
@@ -80,42 +100,97 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       if (mounted) {
         setState(() => _isLoadingPendingReviews = false);
       }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scheduleBlockingReviewPrompt();
+      });
     }
   }
 
-  Future<void> _openReviewBottomSheet(PatientPendingReviewItem request) async {
-    final draft = await showModalBottomSheet<PatientRatingSubmissionDraft>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PatientReviewBottomSheet(request: request),
-    );
+  /// When [onFetchPendingReviewRequests] returns items (or preview list is used), opens the
+  /// blocking review modal for the next eligible booking. Chains until none left or all deferred.
+  ///
+  /// **Backend:** mark appointments as "needs patient review" and expose them via API (this fetcher).
+  /// **Mobile:** this method + [showPatientReviewModal] — no API inside the dialog.
+  void _scheduleBlockingReviewPrompt() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _tryShowBlockingReview();
+    });
+  }
 
-    if (draft == null || !mounted) return;
+  Future<void> _tryShowBlockingReview() async {
+    if (!mounted || _blockingReviewFlowActive || _isLoadingPendingReviews) {
+      return;
+    }
 
-    try {
-      final submitter = widget.onSubmitReview;
-      if (submitter != null) {
-        await submitter(draft);
+    PatientPendingReviewItem? target;
+    for (final r in _pendingReviewRequests) {
+      if (!_reviewDeferredForSession.contains(r.requestId)) {
+        target = r;
+        break;
       }
+    }
+    if (target == null) return;
 
-      if (!mounted) return;
+    _blockingReviewFlowActive = true;
+    try {
+      await _openReviewModal(target);
+    } finally {
+      if (mounted) {
+        _blockingReviewFlowActive = false;
+      }
+    }
 
-      setState(() {
-        _pendingReviewRequests
-            .removeWhere((item) => item.requestId == request.requestId);
-      });
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _tryShowBlockingReview();
+    });
+  }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thanks! Your review was submitted.')),
-      );
-    } catch (e) {
-      if (!mounted) return;
+  Future<void> _openReviewModal(PatientPendingReviewItem request) async {
+    final result = await showPatientReviewModal(context, request: request);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Review submission failed: $e')),
-      );
+    if (!mounted || result == null) return;
+
+    switch (result.action) {
+      case PatientReviewModalAction.later:
+        setState(() {
+          _reviewDeferredForSession.add(request.requestId);
+        });
+        return;
+      case PatientReviewModalAction.dismissedForever:
+        setState(() {
+          _pendingReviewRequests.removeWhere(
+            (item) => item.requestId == request.requestId,
+          );
+        });
+        return;
+      case PatientReviewModalAction.submitted:
+        final draft = result.draft;
+        if (draft == null) return;
+        try {
+          final submitter = widget.onSubmitReview;
+          if (submitter != null) {
+            await submitter(draft);
+          }
+
+          if (!mounted) return;
+
+          setState(() {
+            _pendingReviewRequests.removeWhere(
+              (item) => item.requestId == request.requestId,
+            );
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Thanks! Your review was submitted.')),
+          );
+        } catch (e) {
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Review submission failed: $e')),
+          );
+        }
     }
   }
 
@@ -190,7 +265,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         onRecommendedSeeAllTap: _openBrowseDefault,
         isLoadingPendingReviews: _isLoadingPendingReviews,
         pendingReviewRequests: _pendingReviewRequests,
-        onWriteReview: _openReviewBottomSheet,
+        onWriteReview: _openReviewModal,
       ),
       BrowseNursesScreen(
         key: ValueKey(
@@ -202,7 +277,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       ),
       const PatientAppointmentsScreen(),
       const _PlaceholderTab(title: 'Payments'),
-      const _PlaceholderTab(title: 'More'),
+      const PatientMoreScreen(),
     ];
 
     return Scaffold(

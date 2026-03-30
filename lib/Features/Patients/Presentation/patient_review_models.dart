@@ -14,6 +14,42 @@ class PatientPendingReviewItem {
   });
 }
 
+/// How the patient closed the review modal (local UI only).
+enum PatientReviewModalAction {
+  /// Submitted ratings + optional text.
+  submitted,
+
+  /// Close for now; same booking may prompt again.
+  later,
+
+  /// User chose X — do not show this prompt again for this request.
+  dismissedForever,
+}
+
+class PatientReviewDialogResult {
+  const PatientReviewDialogResult._({
+    required this.action,
+    this.draft,
+  });
+
+  factory PatientReviewDialogResult.submitted(
+    PatientRatingSubmissionDraft draft,
+  ) =>
+      PatientReviewDialogResult._(
+        action: PatientReviewModalAction.submitted,
+        draft: draft,
+      );
+
+  const PatientReviewDialogResult.later()
+      : this._(action: PatientReviewModalAction.later);
+
+  const PatientReviewDialogResult.dismissedForever()
+      : this._(action: PatientReviewModalAction.dismissedForever);
+
+  final PatientReviewModalAction action;
+  final PatientRatingSubmissionDraft? draft;
+}
+
 class PatientRatingSubmissionDraft {
   final String requestId;
   final String appointmentId;

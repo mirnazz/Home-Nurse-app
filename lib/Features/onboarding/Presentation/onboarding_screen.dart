@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
+import 'package:nurse_app/Features/auth/Presentation/SignUpScreen.dart';
 import 'package:nurse_app/Core/theme/api/app_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -48,14 +48,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  Future<void> _goToRoles() async {
+  Future<void> _goToSignUp() async {
     await AppStorage.setSeenOnboardingTrue();
 
     if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const SignUpScreen()),
     );
   }
 
@@ -186,7 +186,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         curve: Curves.easeInOut,
                       );
                     } else {
-                      _goToRoles();
+                      _goToSignUp();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -221,7 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             if (!isLastPage)
               TextButton(
-                onPressed: _goToRoles,
+                onPressed: _goToSignUp,
                 child: const Text(
                   "Skip",
                   style: TextStyle(

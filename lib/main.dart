@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Features/onboarding/Presentation/splash_screen.dart';
 import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
@@ -20,7 +21,7 @@ class NurseApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const NurseDashboardScreen(),
+      home: const SplashScreen(),
       routes: {
         "/login": (_) => const LoginScreen(),
         "/Signup": (_) => const SignUpScreen(),
