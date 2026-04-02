@@ -13,7 +13,6 @@ import 'Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'Features/Nurse/Presentation/nurse_requests_screen.dart';
 import 'Features/Patients/Presentation/patient_appointments_screen.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -33,7 +32,6 @@ class NurseApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
-
       routes: {
         "/login": (_) => const LoginScreen(),
         "/Signup": (_) => const SignUpScreen(),
@@ -50,5 +48,3 @@ class NurseApp extends StatelessWidget {
     );
   }
 }
-
-

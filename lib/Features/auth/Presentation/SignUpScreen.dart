@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Registration/Presentation/nurse_registration_screen.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_data.dart';
+import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_screen.dart';
 
 enum UserRole { patient, nurse }
 
@@ -19,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
@@ -39,6 +43,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     fullNameController.dispose();
     emailController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
@@ -89,6 +94,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 1.35,
                         ),
                       ),
+                      if (!isNurse) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Step 1 of 4',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: _primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -155,6 +181,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
 
                       const SizedBox(height: 14),
+
+                      if (!isNurse) ...[
+                        _buildInputField(
+                          controller: phoneController,
+                          label: "Phone Number",
+                          hint: "e.g. 0790000000",
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          validator: (value) {
+                            final v = value?.trim() ?? '';
+                            if (v.isEmpty) return 'Phone number is required';
+                            if (v.length < 8 || v.length > 15) {
+                              return 'Enter a valid phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                      ],
 
                       _buildInputField(
                         controller: passwordController,
@@ -381,6 +429,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     Widget? suffixIcon,
     String? Function(String?)? validator,
     TextInputAction textInputAction = TextInputAction.next,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,6 +450,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           obscureText: obscureText,
           validator: validator,
           textInputAction: textInputAction,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
@@ -477,7 +527,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, "/patientHome");
+        final phone = phoneController.text.trim();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => PatientOnboardingScreen(
+              data: PatientOnboardingData(phoneNumber: phone),
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
