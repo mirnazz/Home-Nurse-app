@@ -1467,4 +1467,5 @@ static Future<void> markAllNotificationsAsRead() async {
     throw Exception("Failed to mark all notifications as read");
   }
 }
+
 }

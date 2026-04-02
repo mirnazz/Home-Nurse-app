@@ -17,7 +17,9 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
   static const bg = Color(0xFFF6F7F9);
 
   final _formKey = GlobalKey<FormState>();
+
   bool isLoading = false;
+  bool isInitialLoading = true;
 
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
@@ -32,6 +34,12 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
   File? profilePhotoFile;
 
   @override
+  void initState() {
+    super.initState();
+    _loadExistingData();
+  }
+
+  @override
   void dispose() {
     phoneController.dispose();
     addressController.dispose();
@@ -43,7 +51,35 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     super.dispose();
   }
 
-  InputDecoration _dec({required String hint, required IconData icon}) {
+  Future<void> _loadExistingData() async {
+    try {
+      final personal = await ApiService.getNursePersonalInfo();
+      final professional = await ApiService.getNurseProfessionalDetails();
+
+      phoneController.text = (personal["phoneNumber"] ?? "").toString();
+      addressController.text = (personal["address"] ?? "").toString();
+      locationController.text = (personal["location"] ?? "").toString();
+      nationalIdController.text = (personal["nationalId"] ?? "").toString();
+
+      licenseNumberController.text =
+          (professional["licenseNumber"] ?? "").toString();
+      specializationController.text =
+          (professional["specialization"] ?? "").toString();
+      experienceYearsController.text =
+          (professional["experienceYears"] ?? "").toString();
+    } catch (e) {
+      debugPrint("Failed to load nurse data: $e");
+    } finally {
+      if (mounted) {
+        setState(() => isInitialLoading = false);
+      }
+    }
+  }
+
+  InputDecoration _dec({
+    required String hint,
+    required IconData icon,
+  }) {
     return InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF)),
@@ -140,9 +176,9 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Submit failed: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Submit failed: $e")),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -240,339 +276,310 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-              child: Row(
+        child: isInitialLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: primary),
+              )
+            : Column(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF111827),
+                            ),
+                            onPressed:
+                                isLoading ? null : () => Navigator.pop(context),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            "Resubmit Verification",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: Color(0xFF111827),
-                      ),
-                      onPressed: isLoading ? null : () => Navigator.pop(context),
-                    ),
                   ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      "Resubmit Verification",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 16,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _sectionTitle(
-                            "Update your details",
-                            "Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.",
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  "Update your details",
+                                  "Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.",
+                                ),
+                                const SizedBox(height: 14),
+                                Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: [
+                                      TextFormField(
+                                        controller: phoneController,
+                                        keyboardType: TextInputType.phone,
+                                        decoration: _dec(
+                                          hint: "Phone number",
+                                          icon: Icons.phone_outlined,
+                                        ),
+                                        validator: (v) {
+                                          final s = (v ?? "").trim();
+                                          if (s.isEmpty) return "Phone is required";
+                                          if (s.length < 9) {
+                                            return "Enter a valid phone number";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: addressController,
+                                        decoration: _dec(
+                                          hint: "Address",
+                                          icon: Icons.location_on_outlined,
+                                        ),
+                                        validator: (v) {
+                                          if ((v ?? "").trim().isEmpty) {
+                                            return "Address is required";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: locationController,
+                                        decoration: _dec(
+                                          hint: "City / Location (e.g., Amman)",
+                                          icon: Icons.map_outlined,
+                                        ),
+                                        validator: (v) {
+                                          if ((v ?? "").trim().isEmpty) {
+                                            return "Location is required";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: nationalIdController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _dec(
+                                          hint: "National ID number",
+                                          icon: Icons.badge_outlined,
+                                        ),
+                                        validator: (v) {
+                                          final s = (v ?? "").trim();
+                                          if (s.isEmpty) {
+                                            return "National ID is required";
+                                          }
+                                          if (s.length < 8) {
+                                            return "Enter a valid National ID";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: licenseNumberController,
+                                        decoration: _dec(
+                                          hint: "License number",
+                                          icon: Icons.assignment_ind_outlined,
+                                        ),
+                                        validator: (v) {
+                                          final s = (v ?? "").trim();
+                                          if (s.isEmpty) {
+                                            return "License number is required";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: specializationController,
+                                        decoration: _dec(
+                                          hint: "Specialization (e.g., ICU)",
+                                          icon: Icons.medical_services_outlined,
+                                        ),
+                                        validator: (v) {
+                                          if ((v ?? "").trim().isEmpty) {
+                                            return "Specialization is required";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: experienceYearsController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _dec(
+                                          hint: "Experience years",
+                                          icon: Icons.timeline_outlined,
+                                        ),
+                                        validator: (v) {
+                                          final s = (v ?? "").trim();
+                                          if (s.isEmpty) {
+                                            return "Experience years is required";
+                                          }
+                                          final n = int.tryParse(s);
+                                          if (n == null || n < 0 || n > 60) {
+                                            return "Enter a valid number";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 14),
-
-                          Form(
-                            key: _formKey,
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TextFormField(
-                                  controller: phoneController,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: _dec(
-                                    hint: "Phone number",
-                                    icon: Icons.phone_outlined,
-                                  ),
-                                  validator: (v) {
-                                    final s = (v ?? "").trim();
-                                    if (s.isEmpty) return "Phone is required";
-                                    if (s.length < 9) {
-                                      return "Enter a valid phone number";
+                                _sectionTitle(
+                                  "Documents",
+                                  "Upload the requested updated files.",
+                                ),
+                                const SizedBox(height: 14),
+                                _fileCard(
+                                  title: "National ID",
+                                  hint: "Upload your National ID (image/PDF)",
+                                  file: nationalIdFile,
+                                  icon: Icons.perm_identity_outlined,
+                                  onPick: () async {
+                                    final f = await _pickFile(
+                                      allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
+                                    );
+                                    if (f != null && mounted) {
+                                      setState(() => nationalIdFile = f);
                                     }
-                                    return null;
                                   },
                                 ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: addressController,
-                                  decoration: _dec(
-                                    hint: "Address",
-                                    icon: Icons.location_on_outlined,
-                                  ),
-                                  validator: (v) {
-                                    if ((v ?? "").trim().isEmpty) {
-                                      return "Address is required";
+                                const SizedBox(height: 10),
+                                _fileCard(
+                                  title: "Nursing License",
+                                  hint: "Upload your license (image/PDF)",
+                                  file: licenseFile,
+                                  icon: Icons.assignment_outlined,
+                                  onPick: () async {
+                                    final f = await _pickFile(
+                                      allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
+                                    );
+                                    if (f != null && mounted) {
+                                      setState(() => licenseFile = f);
                                     }
-                                    return null;
                                   },
                                 ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: locationController,
-                                  decoration: _dec(
-                                    hint: "City / Location (e.g., Amman)",
-                                    icon: Icons.map_outlined,
-                                  ),
-                                  validator: (v) {
-                                    if ((v ?? "").trim().isEmpty) {
-                                      return "Location is required";
+                                const SizedBox(height: 10),
+                                _fileCard(
+                                  title: "Profile Photo",
+                                  hint: "Upload a profile photo (image)",
+                                  file: profilePhotoFile,
+                                  icon: Icons.photo_camera_outlined,
+                                  onPick: () async {
+                                    final f = await _pickFile(
+                                      allowedExtensions: ["png", "jpg", "jpeg"],
+                                    );
+                                    if (f != null && mounted) {
+                                      setState(() => profilePhotoFile = f);
                                     }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: nationalIdController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: _dec(
-                                    hint: "National ID number",
-                                    icon: Icons.badge_outlined,
-                                  ),
-                                  validator: (v) {
-                                    final s = (v ?? "").trim();
-                                    if (s.isEmpty) {
-                                      return "National ID is required";
-                                    }
-                                    if (s.length < 8) {
-                                      return "Enter a valid National ID";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: licenseNumberController,
-                                  decoration: _dec(
-                                    hint: "License number",
-                                    icon: Icons.assignment_ind_outlined,
-                                  ),
-                                  validator: (v) {
-                                    final s = (v ?? "").trim();
-                                    if (s.isEmpty) {
-                                      return "License number is required";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: specializationController,
-                                  decoration: _dec(
-                                    hint: "Specialization (e.g., ICU)",
-                                    icon: Icons.medical_services_outlined,
-                                  ),
-                                  validator: (v) {
-                                    if ((v ?? "").trim().isEmpty) {
-                                      return "Specialization is required";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: experienceYearsController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: _dec(
-                                    hint: "Experience years",
-                                    icon: Icons.timeline_outlined,
-                                  ),
-                                  validator: (v) {
-                                    final s = (v ?? "").trim();
-                                    if (s.isEmpty) {
-                                      return "Experience years is required";
-                                    }
-                                    final n = int.tryParse(s);
-                                    if (n == null || n < 0 || n > 60) {
-                                      return "Enter a valid number";
-                                    }
-                                    return null;
                                   },
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 16,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sectionTitle(
-                            "Documents",
-                            "Files are selected locally for now.\nBackend upload is not connected yet in the current API service.",
-                          ),
                           const SizedBox(height: 14),
-
-                          _fileCard(
-                            title: "National ID",
-                            hint: "Upload your National ID (image/PDF)",
-                            file: nationalIdFile,
-                            icon: Icons.perm_identity_outlined,
-                            onPick: () async {
-                              final f = await _pickFile(
-                                allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
-                              );
-                              if (f != null && mounted) {
-                                setState(() => nationalIdFile = f);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 10),
-
-                          _fileCard(
-                            title: "Nursing License",
-                            hint: "Upload your license (image/PDF)",
-                            file: licenseFile,
-                            icon: Icons.assignment_outlined,
-                            onPick: () async {
-                              final f = await _pickFile(
-                                allowedExtensions: ["png", "jpg", "jpeg", "pdf"],
-                              );
-                              if (f != null && mounted) {
-                                setState(() => licenseFile = f);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 10),
-
-                          _fileCard(
-                            title: "Profile Photo",
-                            hint: "Upload a profile photo (image)",
-                            file: profilePhotoFile,
-                            icon: Icons.photo_camera_outlined,
-                            onPick: () async {
-                              final f = await _pickFile(
-                                allowedExtensions: ["png", "jpg", "jpeg"],
-                              );
-                              if (f != null && mounted) {
-                                setState(() => profilePhotoFile = f);
-                              }
-                            },
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.orange.shade200),
-                            ),
-                            child: const Text(
-                              "Note: document upload is currently pending backend support. The selected files are not sent yet with the current API service.",
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.orange,
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
                               ),
+                              onPressed: isLoading ? null : _submit,
+                              child: isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Submit for Review",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 14),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        onPressed: isLoading ? null : _submit,
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                "Submit for Review",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -6,214 +6,247 @@ import 'package:nurse_app/Features/auth/Presentation/login_screen.dart';
 class NurseRejectedScreen extends StatelessWidget {
   const NurseRejectedScreen({super.key});
 
+  static const Color primary = Color(0xFF1F7A8C);
+  static const Color bg = Color(0xFFF7F9FB);
+  static const Color titleColor = Color(0xFF1F2937);
+  static const Color subtitleColor = Color(0xFF6B7280);
+  static const Color borderColor = Color(0xFFE5E7EB);
+  static const Color danger = Color(0xFFE94B5C);
+  static const Color dangerBg = Color(0xFFFFF1F2);
+
+  static const String rejectionReason =
+      "Your uploaded license is unclear.\n"
+      "Please re-upload a clear document with\n"
+      "all details visible.";
+
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF1F7A8C);
-    const bg = Color(0xFFF7F9FB);
-
-    const rejectionReason =
-        "The uploaded nursing license image is unclear.\n"
-        "Please upload a clear document where all information is readable.";
-
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ===== Header =====
-              Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.health_and_safety_outlined,
-                      color: primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Verification Status",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // ===== Main Card =====
-              Container(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 18),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFE9EEF3)),
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Color(0x0D000000),
                       blurRadius: 18,
-                      offset: const Offset(0, 12),
+                      offset: Offset(0, 8),
                     ),
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Status icon
-                    Container(
-                      width: 86,
-                      height: 86,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF4F4),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: const Icon(
-                        Icons.error_outline_rounded,
-                        size: 42,
-                        color: Color(0xFFE11D48),
-                      ),
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.verified_user_outlined,
+                            color: primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          "Verification Result",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: titleColor,
+                          ),
+                        ),
+                      ],
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
 
-                    const Text(
-                      "Action Required",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      "Your nurse profile needs a small update\nbefore approval.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFF6B7280),
-                        fontWeight: FontWeight.w600,
-                        height: 1.35,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Reason box
+                    // Main content card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        color: const Color(0xFFFCFCFD),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: const Color(0xFFF0F2F5)),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: primary,
-                                size: 20,
+                        children: [
+                          Container(
+                            width: 76,
+                            height: 76,
+                            decoration: BoxDecoration(
+                              color: dangerBg,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 34,
+                                color: danger,
                               ),
-                              SizedBox(width: 8),
-                              Text(
-                                "Reason",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            rejectionReason,
+
+                          const SizedBox(height: 16),
+
+                          const Text(
+                            "Verification Rejected",
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Color(0xFF374151),
-                              fontWeight: FontWeight.w600,
-                              height: 1.4,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: titleColor,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          const Text(
+                            "Your profile needs updates before\napproval.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.45,
+                              color: subtitleColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 19,
+                                      color: primary,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Reason",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w900,
+                                        color: titleColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  rejectionReason,
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    height: 1.45,
+                                    color: Color(0xFF374151),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NurseResubmissionScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Update & Resubmit",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: primary, width: 1.3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () async {
+                          await TokenStorage.clearToken();
+                          if (!context.mounted) return;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                            (_) => false,
+                          );
+                        },
+                        child: const Text(
+                          "Logout",
+                          style: TextStyle(
+                            color: primary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-
-              const Spacer(),
-
-              // ===== Primary Action =====
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NurseResubmissionScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Update & Resubmit",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ===== Secondary Action =====
-              Center(
-                child: TextButton(
-                  onPressed: () async {
-                    await TokenStorage.clearToken();
-                    if (!context.mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      (_) => false,
-                    );
-                  },
-                  child: const Text(
-                    "Logout",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

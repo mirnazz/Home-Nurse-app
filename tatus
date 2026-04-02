@@ -1,0 +1,32 @@
+[33mfb33031[m[33m ([m[1;31morigin/new-Sprint-5[m[33m)[m added Patient profile steps and Block Review modal
+[33m784be67[m Patient profile screen and blocking review modal
+[33m31418e2[m Add notifications screen and integrate with nurse and patient dashboards
+[33m902038f[m add patient payment UI flow screens and navigation
+[33m2163466[m Fixes the nurse dashboared
+[33m6644841[m Refactor schedule UI, profile structure, and navigation cleanup
+[33m812e705[m resolve pubspec conflict and keep intl 0.20.2
+[33m6ee6469[m update intl dependency to 0.20.2
+[33mf1c557f[m[33m ([m[1;32msprint-22[m[33m)[m finish appointments integration before switching branch
+[33m1b801bb[m merge appointments-ui into sprint-22
+[33mc91a8d7[m[33m ([m[1;31morigin/sprint-22[m[33m)[m finish sprint 2 before merge appointments-ui
+[33md13a1db[m merge new-screens into sprint-22 and resolve conflicts
+[33m99c5bc6[m[33m ([m[1;32mbackup-before-merge-sprint22[m[33m)[m save local patient screens changes before merging new-screens
+[33m9a63508[m docs: Abeer handoff + appointments UI, Call/WhatsApp, url_launcher
+[33md8913c9[m[33m ([m[1;31morigin/new-screens[m[33m)[m last Nurse 3 Screens & Rating form-Sprint2
+[33m4851023[m[33m ([m[1;32mbackup-before-restore[m[33m)[m merge new screens and keep my changes
+[33m478d0d2[m Merge remote-tracking branch 'origin/new-screens' into sprint-22
+[33m89259e9[m Add patient screens and improve nurse profile UI
+[33m9605a5b[m Merge branch 'new-screens' of https://github.com/mirnazz/Home-Nurse-app into sprint-22
+[33mf614791[m Add browse nurses screen, nurse profile screen
+[33m00c74e6[m Merge remote-tracking branch 'origin/new-screens' into sprint-22
+[33mbf82341[m my changes before merging new-screens
+[33me0b30fd[m Add nurse availability UI and fix routing/build issues
+[33m800b93c[m Sprint 2*: Nurse profile, services management, and API integration
+[33m6de2ac3[m[33m ([m[1;31morigin/sprint-1[m[33m, [m[1;32msprint-1[m[33m)[m Merge patient-ui into sprint-1
+[33m780fec7[m Sprint 1 completed
+[33m24fd063[m Finish Sprint 1 API integration
+[33mf9c6476[m Add nurse registration with image upload and governorate dropdown
+[33med842e3[m Merge pull request #1 from mirnazz/patient-ui
+[33m65d32dc[m Add patient UI screens and navigation flow
+[33m9de7621[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Add splash screen and onboarding flow
+[33m06a0a75[m Initial Flutter project setup
