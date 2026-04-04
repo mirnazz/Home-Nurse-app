@@ -2,7 +2,7 @@ class ApiConstants {
   // =========================
   // Base
   // =========================
-static const String baseUrl = "http://172.20.10.6:5235";
+  static const String baseUrl = "http://172.20.10.6:5235";
 
   // =========================
   // Auth
@@ -28,14 +28,12 @@ static const String baseUrl = "http://172.20.10.6:5235";
   static const String nurseProfessionalDetails =
       "$nurseProfileBase/profile/professional-details";
 
-  static const String nurseServices =
-      "$nurseProfileBase/services";
+  static const String nurseServices = "$nurseProfileBase/services";
 
   static const String nurseServiceCatalog =
       "$nurseProfileBase/service-catalog";
 
-  static const String nurseProfile =
-      "$nurseProfileBase/profile";
+  static const String nurseProfile = "$nurseProfileBase/profile";
 
   static const String nurseUpdateProfile =
       "$nurseProfileBase/update-profile";
@@ -62,6 +60,12 @@ static const String baseUrl = "http://172.20.10.6:5235";
       "$nurseProfileBase/availability/override";
 
   // =========================
+  // Nurse Requests / Appointments
+  // =========================
+  static const String nurseRequests = "$nurseProfileBase/requests";
+  static const String nurseAppointments = "$nurseProfileBase/appointments";
+
+  // =========================
   // Patient - Nurses
   // =========================
   static const String patientBase = "/api/patient";
@@ -71,39 +75,60 @@ static const String baseUrl = "http://172.20.10.6:5235";
 
   static const String patientNurseDetails =
       "$patientBase/nurses";
-  // usage: /api/patient/nurses/{nurseId}
 
   static const String patientNurseServices =
       "$patientBase/nurses";
-  // usage: /api/patient/nurses/{nurseId}/services
 
   static const String patientAvailableDates =
       "$patientBase/nurses";
-  // usage: /api/patient/nurses/{nurseId}/available-dates
 
   static const String patientAvailableSlots =
       "$patientBase/nurses";
-  // usage: /api/patient/nurses/{nurseId}/available-slots
-  static const String nurseAppointments = "$nurseProfileBase/appointments";
 
   // =========================
-  // Patient - Bookings
+  // Patient - Bookings / Appointments
   // =========================
-  static const String patientBookings =
-      "$patientBase/bookings";
+  static const String patientBookings = "$patientBase/bookings";
+  static const String patientAppointments = "/api/patient/appointments";
+
+  // =========================
+  // Patient - Profile
+  // =========================
+  static const String patientProfile = "/api/patientprofile";
+  static const String patientProfilePersonalInfo =
+      "/api/patientprofile/personal-info";
+  static const String patientProfileAddress =
+      "/api/patientprofile/address";
+  static const String patientProfileMedicalInfo =
+      "/api/patientprofile/medical-info";
+
+  // =========================
+  // Patient - Dashboard
+  // =========================
+  static const String patientDashboardSummary =
+      "/api/patient/dashboard-summary";
+
+  // =========================
+  // Reviews
+  // =========================
+  static const String reviewBase = "/api/review";
+  static const String reviewPending = "/api/review/pending";
 
   // =========================
   // Admin
   // =========================
-  static const String pendingNurses =
-      "/api/admin/pending-nurses";
-      static const String nurseRequests = "$nurseProfileBase/requests";
-      static const String patientAppointments = '/api/patient/appointments';
+  static const String pendingNurses = "/api/admin/pending-nurses";
 
+  // =========================
+  // Payments
+  // =========================
+  static const String paymentSummary = "/api/patient/payments/summary";
+  static const String createPaymentIntent = "/api/patient/payments/create-intent";
+  static const String confirmPayment = "/api/patient/payments/confirm";
 
-  static const String paymentSummary = '/api/patient/payments/summary';
-  static const String createPaymentIntent = '/api/patient/payments/create-intent';
-  static const String confirmPayment = '/api/patient/payments/confirm';
+  // =========================
+  // Notifications
+  // =========================
   static const String notifications = "/api/notification";
-      
 }
+

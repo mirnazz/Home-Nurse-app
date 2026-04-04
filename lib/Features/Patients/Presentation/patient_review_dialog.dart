@@ -26,6 +26,7 @@ class PatientReviewDialog extends StatefulWidget {
 
 class _PatientReviewDialogState extends State<PatientReviewDialog> {
   final TextEditingController _reviewController = TextEditingController();
+
   int _overallRating = 0;
   int _professionalismRating = 0;
   int _punctualityRating = 0;
@@ -430,20 +431,24 @@ class _StarPicker extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
-        final selected = index < rating;
+        final starValue = index + 1;
+        final selected = starValue <= rating;
+
         return IconButton(
           visualDensity: VisualDensity.compact,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           padding: const EdgeInsets.symmetric(horizontal: 2),
           splashRadius: 20,
-          onPressed: () => onChanged(index + 1),
+          onPressed: () => onChanged(starValue),
           icon: Icon(
             selected ? Icons.star_rounded : Icons.star_border_rounded,
             size: size,
-            color: selected ? const Color(0xFFFFB000) : const Color(0xFFD1D5DB),
+            color: selected ? const Color(0xFFFFB020) : const Color(0xFFD1D5DB),
           ),
         );
       }),
     );
   }
 }
+
+

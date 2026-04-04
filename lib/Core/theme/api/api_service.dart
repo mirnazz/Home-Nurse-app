@@ -8,6 +8,7 @@ import 'api_constants.dart';
 import 'token_storage.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/models/notification_model.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
 class ApiService {
   // =========================
@@ -38,10 +39,20 @@ class ApiService {
     return body.isNotEmpty ? body : fallback;
   }
 
-  // FIX: Backend expects full ISO 8601 DateTime string for DateTime fields
-  // "2026-03-18" → "2026-03-18T00:00:00.000Z"
   static String _toIsoDateTime(String date) {
     return '${date}T00:00:00.000Z';
+  }
+
+  static Map<String, String> _jsonHeaders(String token) {
+    return {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+  }
+
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   // =========================
@@ -191,13 +202,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.me);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) throw Exception("Unauthorized");
@@ -207,6 +212,251 @@ class ApiService {
   static Future<Map<String, dynamic>> getAccount() async => getMe();
 
   // =========================
+  // Patient Profile
+  // =========================
+
+  static Future<Map<String, dynamic>> getPatientProfile() async {
+    final token = await _requireToken();
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.patientProfile);
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to load patient profile"),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
+  }
+
+  static Future<void> updatePatientPersonalInfo({
+    String? gender,
+    DateTime? dateOfBirth,
+    String? bloodType,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.patientProfilePersonalInfo,
+    );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "gender": gender,
+            "dateOfBirth": dateOfBirth?.toUtc().toIso8601String(),
+            "bloodType": bloodType,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to update personal info"),
+      );
+    }
+  }
+
+  static Future<void> updatePatientAddress({
+    String? governorate,
+    String? area,
+    String? address,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.patientProfileAddress,
+    );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "governorate": governorate,
+            "area": area,
+            "address": address,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to update address"),
+      );
+    }
+  }
+
+  static Future<void> updatePatientMedicalInfo({
+    String? conditions,
+    String? allergies,
+    String? notes,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.patientProfileMedicalInfo,
+    );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "conditions": conditions,
+            "allergies": allergies,
+            "notes": notes,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to update medical info"),
+      );
+    }
+  }
+
+  // =========================
+  // Reviews
+  // =========================
+
+  static Future<PatientPendingReviewItem?> getPendingReview() async {
+    final token = await _requireToken();
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.reviewPending);
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to load pending review"),
+      );
+    }
+
+    if (response.body.trim().isEmpty || response.body.trim() == 'null') {
+      return null;
+    }
+
+    final data = jsonDecode(response.body);
+    if (data is! Map<String, dynamic>) return null;
+
+    final bookingId = (data['bookingId'] ?? '').toString();
+    if (bookingId.isEmpty) return null;
+
+    DateTime? completedAt;
+    final rawDate = data['date']?.toString();
+    if (rawDate != null && rawDate.isNotEmpty) {
+      completedAt = DateTime.tryParse(rawDate);
+    }
+
+    return PatientPendingReviewItem(
+      requestId: bookingId,
+      appointmentId: bookingId,
+      serviceName: (data['serviceName'] ?? '').toString(),
+      nurseName: (data['nurseName'] ?? '').toString(),
+      completedAt: completedAt,
+    );
+  }
+
+  static Future<void> submitReview({
+    required PatientRatingSubmissionDraft draft,
+  }) async {
+    final token = await _requireToken();
+    final bookingId = int.tryParse(draft.bookingId);
+
+    if (bookingId == null) {
+      throw Exception("Invalid booking id for review submission");
+    }
+
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.reviewBase);
+
+    final response = await http
+        .post(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "bookingId": bookingId,
+            "rating": draft.overallRating,
+            "comment": draft.reviewText.trim().isEmpty ? null : draft.reviewText.trim(),
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to submit review"),
+      );
+    }
+  }
+
+  static Future<void> dismissReviewPrompt({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.reviewBase}/$bookingId/dismiss",
+    );
+
+    final response = await http
+        .put(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to dismiss review prompt"),
+      );
+    }
+  }
+
+  static Future<void> remindReviewLater({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.reviewBase}/$bookingId/later",
+    );
+
+    final response = await http
+        .put(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to postpone review prompt"),
+      );
+    }
+  }
+
+  // =========================
+  // Patient Dashboard
+  // =========================
+
+  static Future<Map<String, dynamic>> getPatientDashboardSummary() async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.patientDashboardSummary,
+    );
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to load dashboard summary"),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
+  }
+
+  // =========================
   // Nurse - Personal Info
   // =========================
 
@@ -214,13 +464,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nursePersonalInfo);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -243,10 +487,7 @@ class ApiService {
     final response = await http
         .put(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({
             "fullName": fullName,
             "phoneNumber": phoneNumber,
@@ -272,13 +513,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseProfessionalDetails);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -299,10 +534,7 @@ class ApiService {
     final response = await http
         .put(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({
             "licenseNumber": licenseNumber,
             "specialization": specialization,
@@ -326,13 +558,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseProfile);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -342,10 +568,6 @@ class ApiService {
     }
     return jsonDecode(response.body);
   }
-
-  // =========================
-  // Nurse - Update Full Profile (multipart)
-  // =========================
 
   static Future<Map<String, dynamic>> updateNurseProfileMultipart({
     required String phoneNumber,
@@ -392,7 +614,8 @@ class ApiService {
       );
     }
 
-    final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 30));
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode != 200) {
@@ -413,13 +636,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseServiceCatalog);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -435,13 +652,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseServices);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -462,10 +673,7 @@ class ApiService {
     final response = await http
         .post(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({"serviceCatalogId": serviceCatalogId, "price": price}),
         )
         .timeout(const Duration(seconds: 15));
@@ -487,10 +695,7 @@ class ApiService {
     final response = await http
         .put(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({"serviceCatalogId": serviceCatalogId, "price": price}),
         )
         .timeout(const Duration(seconds: 15));
@@ -506,13 +711,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse("${ApiConstants.baseUrl}${ApiConstants.nurseServices}/$id");
     final response = await http
-        .delete(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .delete(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -530,13 +729,7 @@ class ApiService {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseWeeklyAvailability);
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -558,10 +751,7 @@ class ApiService {
     final response = await http
         .post(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({
             "dayOfWeek": dayOfWeek,
             "startTime": startTime,
@@ -583,13 +773,7 @@ class ApiService {
       "${ApiConstants.baseUrl}${ApiConstants.nurseWeeklyAvailability}/$id",
     );
     final response = await http
-        .delete(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .delete(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -605,13 +789,7 @@ class ApiService {
       "${ApiConstants.baseUrl}${ApiConstants.nurseWeeklyToggle}/$id",
     );
     final response = await http
-        .put(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .put(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -625,8 +803,6 @@ class ApiService {
   // Nurse Availability - Day
   // =========================
 
-  // FIX: correct endpoint is /api/Nurse/availability/day-details
-  // backend returns: selectedDate, dayOfWeek, defaultWorkingHours, dayOverride, bookedAppointments
   static Future<Map<String, dynamic>> getDayAvailability({
     required String date,
   }) async {
@@ -635,13 +811,7 @@ class ApiService {
       "${ApiConstants.baseUrl}${ApiConstants.nurseDayDetails}?date=${_toIsoDateTime(date)}",
     );
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -653,28 +823,21 @@ class ApiService {
     return data is Map<String, dynamic> ? data : {};
   }
 
-  // FIX: POST /api/Nurse/availability/override
-  // Body: { date: ISO string, startTime: "HH:mm:ss", endTime: "HH:mm:ss" }
-  // startTime/endTime are TimeSpan in C# → send as "08:00:00" format
   static Future<void> overrideDayAvailability({
     required String date,
-    required String startTime, // format: "HH:mm" → we append ":00"
+    required String startTime,
     required String endTime,
   }) async {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseDayOverride);
 
-    // Ensure seconds are included for TimeSpan parsing: "08:00" → "08:00:00"
     final start = startTime.length == 5 ? '$startTime:00' : startTime;
     final end = endTime.length == 5 ? '$endTime:00' : endTime;
 
     final response = await http
         .post(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({
             "date": _toIsoDateTime(date),
             "startTime": start,
@@ -690,9 +853,6 @@ class ApiService {
     }
   }
 
-  // FIX: POST /api/Nurse/availability/block-day
-  // Body: { date: ISO DateTime string }
-  // Backend DTO: BlockDayDto { DateTime Date }
   static Future<void> blockDayAvailability({required String date}) async {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseDayBlock);
@@ -700,12 +860,9 @@ class ApiService {
     final response = await http
         .post(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
+          headers: _jsonHeaders(token),
           body: jsonEncode({
-            "date": _toIsoDateTime(date), // "2026-03-18T00:00:00.000Z"
+            "date": _toIsoDateTime(date),
           }),
         )
         .timeout(const Duration(seconds: 15));
@@ -717,8 +874,6 @@ class ApiService {
     }
   }
 
-  // FIX: DELETE /api/Nurse/availability/override?date=ISO_DATE
-  // This is the unblock — it deletes the override record (which had IsBlocked=true)
   static Future<void> unblockDayAvailability({required String date}) async {
     final token = await _requireToken();
     final url = Uri.parse(
@@ -726,13 +881,7 @@ class ApiService {
     );
 
     final response = await http
-        .delete(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .delete(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -741,13 +890,10 @@ class ApiService {
       );
     }
   }
-    // =========================
+
+  // =========================
   // Patient - Nurses / Booking
   // =========================
-
-  static String _ensureTimeSeconds(String time) {
-    return time.length == 5 ? "$time:00" : time;
-  }
 
   static Future<Map<String, dynamic>> browseNurses({
     String? search,
@@ -775,10 +921,7 @@ class ApiService {
 
       final response = await http.get(
         uri,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
+        headers: _jsonHeaders(token),
       ).timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(response.body);
@@ -806,13 +949,7 @@ class ApiService {
     );
 
     final response = await http
-        .get(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -825,458 +962,239 @@ class ApiService {
     return data is Map<String, dynamic> ? data : {};
   }
 
- static Future<List<dynamic>> getPatientNurseServices({
-  required String nurseId,
-}) async {
-  final token = await _requireToken();
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientNurseServices}/$nurseId/services",
-  );
-
-  print('🌐 GET PATIENT NURSE SERVICES URL: $url');
-  print('🔐 AUTH HEADER EXISTS: ${token.isNotEmpty}');
-
-  final response = await http
-      .get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      )
-      .timeout(const Duration(seconds: 15));
-
-  print('📡 GET PATIENT NURSE SERVICES STATUS: ${response.statusCode}');
-  print('📦 GET PATIENT NURSE SERVICES BODY: ${response.body}');
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load nurse services",
-      ),
+  static Future<List<dynamic>> getPatientNurseServices({
+    required String nurseId,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientNurseServices}/$nurseId/services",
     );
-  }
 
-  final data = jsonDecode(response.body);
-  return data is List ? data : [];
-}
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse services",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is List ? data : [];
+  }
 
   static Future<List<String>> getPatientAvailableSlots({
-  required String nurseId,
-  required int serviceId,
-  required String date,
-}) async {
-  final token = await _requireToken();
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAvailableSlots}/$nurseId/available-slots"
-    "?serviceId=$serviceId&date=$date",
-  );
-
-  final response = await http
-      .get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      )
-      .timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load available slots",
-      ),
+    required String nurseId,
+    required int serviceId,
+    required String date,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAvailableSlots}/$nurseId/available-slots"
+      "?serviceId=$serviceId&date=$date",
     );
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load available slots",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    if (data is! List) return [];
+    return data.map((e) => e.toString()).toList();
   }
 
-  final data = jsonDecode(response.body);
-  if (data is! List) return [];
-  return data.map((e) => e.toString()).toList();
-}
   static Future<Map<String, dynamic>> createBooking({
-  required String nurseId,
-  required int serviceId,
-  required String date,
-  required String startTime,
-  required String serviceAddress,
-  String? additionalNotes,
-}) async {
-  final token = await _requireToken();
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientBookings}",
-  );
-
-  final body = {
-    "nurseId": nurseId,
-    "serviceId": serviceId,
-    "date": date,
-    "startTime": startTime,
-    "serviceAddress": serviceAddress,
-    "additionalNotes": additionalNotes,
-  };
-
-  print("📤 BOOKING BODY: $body");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-    body: jsonEncode(body),
-  );
-
-  print("📡 BOOKING STATUS: ${response.statusCode}");
-  print("📦 BOOKING RESPONSE: ${response.body}");
-
-  if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to create booking",
-      ),
+    required String nurseId,
+    required int serviceId,
+    required String date,
+    required String startTime,
+    required String serviceAddress,
+    String? additionalNotes,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientBookings}",
     );
-  }
 
-  final data = jsonDecode(response.body);
-  return data is Map<String, dynamic> ? data : <String, dynamic>{};
-}
- static Future<List<dynamic>> getPatientAvailableDates({
-  required String nurseId,
-  int daysAhead = 14,
-}) async {
-  final token = await _requireToken();
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAvailableDates}/$nurseId/available-dates?daysAhead=$daysAhead",
-  );
+    final body = {
+      "nurseId": nurseId,
+      "serviceId": serviceId,
+      "date": date,
+      "startTime": startTime,
+      "serviceAddress": serviceAddress,
+      "additionalNotes": additionalNotes,
+    };
 
-  final response = await http
-      .get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      )
-      .timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load available dates",
-      ),
+    final response = await http.post(
+      url,
+      headers: _jsonHeaders(token),
+      body: jsonEncode(body),
     );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to create booking",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
-  final data = jsonDecode(response.body);
-  return data is List ? data : [];
-}
-static Future<List<dynamic>> getNurseRequests({
-  String? status,
-}) async {
-  final token = await _requireToken();
-
-  final uri = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}",
-  ).replace(
-    queryParameters: status == null ? null : {"status": status},
-  );
-
-  final response = await http.get(
-    uri,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load nurse requests",
-      ),
+  static Future<List<dynamic>> getPatientAvailableDates({
+    required String nurseId,
+    int daysAhead = 14,
+  }) async {
+    final token = await _requireToken();
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAvailableDates}/$nurseId/available-dates?daysAhead=$daysAhead",
     );
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load available dates",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is List ? data : [];
   }
 
-  final data = jsonDecode(response.body);
-  return data is List ? data : [];
-}
+  // =========================
+  // Nurse Requests
+  // =========================
 
-static Future<Map<String, dynamic>> getNurseRequestDetails({
-  required int bookingId,
-}) async {
-  final token = await _requireToken();
+  static Future<List<dynamic>> getNurseRequests({
+    String? status,
+  }) async {
+    final token = await _requireToken();
 
-  final uri = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId",
-  );
-
-  final response = await http.get(
-    uri,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load request details",
-      ),
+    final uri = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}",
+    ).replace(
+      queryParameters: status == null ? null : {"status": status},
     );
+
+    final response = await http.get(
+      uri,
+      headers: _jsonHeaders(token),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse requests",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is List ? data : [];
   }
 
-  final data = jsonDecode(response.body);
-  return data is Map<String, dynamic> ? data : <String, dynamic>{};
-}
+  static Future<Map<String, dynamic>> getNurseRequestDetails({
+    required int bookingId,
+  }) async {
+    final token = await _requireToken();
 
-static Future<void> acceptNurseRequest({
-  required int bookingId,
-}) async {
-  final token = await _requireToken();
-
-  final uri = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/accept",
-  );
-
-  final response = await http.put(
-    uri,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to accept request",
-      ),
+    final uri = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId",
     );
+
+    final response = await http.get(
+      uri,
+      headers: _jsonHeaders(token),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load request details",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
-}
 
-static Future<void> declineNurseRequest({
-  required int bookingId,
-}) async {
-  final token = await _requireToken();
+  static Future<void> acceptNurseRequest({
+    required int bookingId,
+  }) async {
+    final token = await _requireToken();
 
-  final uri = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/decline",
-  );
-
-  final response = await http.put(
-    uri,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to decline request",
-      ),
+    final uri = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/accept",
     );
+
+    final response = await http.put(
+      uri,
+      headers: _jsonHeaders(token),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to accept request",
+        ),
+      );
+    }
   }
-}
 
-// =========================
-// Patient - Appointments
-// =========================
+  static Future<void> declineNurseRequest({
+    required int bookingId,
+  }) async {
+    final token = await _requireToken();
 
-static Future<List<Appointment>> getPatientAppointments({
-  required String tab,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
-  );
-
-  print("GET PATIENT APPOINTMENTS URL: $url");
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  print("GET PATIENT APPOINTMENTS STATUS: ${response.statusCode}");
-  print("GET PATIENT APPOINTMENTS BODY: ${response.body}");
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load appointments",
-      ),
+    final uri = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/decline",
     );
+
+    final response = await http.put(
+      uri,
+      headers: _jsonHeaders(token),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to decline request",
+        ),
+      );
+    }
   }
 
-  final data = jsonDecode(response.body);
-
-  if (data is! List) return [];
-
-  return data
-      .map<Appointment>(
-        (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
-      )
-      .toList();
-}
-static Future<void> cancelPatientAppointment({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId/cancel",
-  );
-
-  final response = await http
-      .put(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      )
-      .timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to cancel appointment",
-      ),
-    );
-  }
-}
-static Future<Appointment> getPatientAppointmentDetails({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId",
-  );
-
-  print("GET PATIENT APPOINTMENT DETAILS URL: $url");
-  print("GET PATIENT APPOINTMENT DETAILS BOOKING ID: $bookingId");
-
-  final response = await http
-      .get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      )
-      .timeout(const Duration(seconds: 15));
-
-  print("GET PATIENT APPOINTMENT DETAILS STATUS: ${response.statusCode}");
-  print("GET PATIENT APPOINTMENT DETAILS BODY: ${response.body}");
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load appointment details",
-      ),
-    );
-  }
-
-  final data = jsonDecode(response.body);
-
-  if (data is! Map<String, dynamic>) {
-    throw Exception("Invalid appointment details response");
-  }
-
-  return Appointment.fromPatientDetailsJson(data);
-}
-static Future<List<Appointment>> getNurseAppointments({
-  required String tab,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}?tab=$tab",
-  );
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load nurse appointments",
-      ),
-    );
-  }
-
-  final data = jsonDecode(response.body);
-  if (data is! List) return [];
-
-  return data
-      .map<Appointment>(
-        (item) => Appointment.fromNurseJson(item as Map<String, dynamic>),
-      )
-      .toList();
-}
-
-static Future<Appointment> getNurseAppointmentDetails({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId",
-  );
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load nurse appointment details",
-      ),
-    );
-  }
-
-  final data = jsonDecode(response.body);
-  if (data is! Map<String, dynamic>) {
-    throw Exception("Invalid nurse appointment details response");
-  }
-
-  return Appointment.fromNurseDetailsJson(data);
-}
-
-static Future<void> completeNurseAppointment({
+  // =========================
+  // Nurse Appointments
+  // =========================
+  static Future<void> completeNurseAppointment({
   required String bookingId,
 }) async {
   final token = await _requireToken();
@@ -1285,187 +1203,395 @@ static Future<void> completeNurseAppointment({
     "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/complete",
   );
 
-  final response = await http.put(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
+  final response = await http
+      .put(
+        url,
+        headers: _jsonHeaders(token),
+      )
+      .timeout(const Duration(seconds: 15));
 
   if (response.statusCode != 200) {
     throw Exception(
       _extractErrorMessage(
         response.body,
-        fallback: "Failed to complete appointment",
+        fallback: "Failed to complete nurse appointment",
       ),
     );
   }
 }
 
-static Future<void> cancelNurseAppointment({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
+  static Future<List<Appointment>> getNurseAppointments({
+    required String tab,
+  }) async {
+    final token = await _requireToken();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/cancel",
-  );
-
-  final response = await http.put(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to cancel appointment",
-      ),
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}?tab=$tab",
     );
-  }
-}
-static Future<void> confirmPayment({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.confirmPayment}/$bookingId",
-  );
+    final response = await http
+        .get(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
 
-  final response = await http.post(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse appointments",
+        ),
+      );
+    }
 
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to confirm payment",
-      ),
-    );
-  }
-}
-static Future<String> createPaymentIntent({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.createPaymentIntent}/$bookingId",
-  );
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
-    return data["clientSecret"];
-  } else {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to create payment intent",
-      ),
+    if (data is! List) return [];
+
+    return data
+        .map<Appointment>(
+          (item) => Appointment.fromNurseJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  static Future<Appointment> getNurseAppointmentDetails({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId",
     );
+
+    final response = await http
+        .get(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse appointment details",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return Appointment.fromNurseJson(data as Map<String, dynamic>);
   }
-}
-static Future<Map<String, dynamic>> getPaymentSummary({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.paymentSummary}/$bookingId",
-  );
+  static Future<void> cancelNurseAppointment({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
 
-  final response = await http.get(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  ).timeout(const Duration(seconds: 15));
-
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load payment summary",
-      ),
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/cancel",
     );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to cancel nurse appointment",
+        ),
+      );
+    }
   }
-}
-static Future<List<NotificationModel>> getNotifications() async {
+
+  // =========================
+  // Patient - Appointments
+  // =========================
+
+  static Future<List<Appointment>> getPatientAppointments({
+    required String tab,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
+    );
+
+    final response = await http.get(
+      url,
+      headers: _jsonHeaders(token),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load appointments",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+
+    if (data is! List) return [];
+
+    return data
+        .map<Appointment>(
+          (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  static Future<void> cancelPatientAppointment({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId/cancel",
+    );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to cancel appointment",
+        ),
+      );
+    }
+  }
+
+  static Future<Appointment> getPatientAppointmentDetails({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}/$bookingId",
+    );
+
+    final response = await http
+        .get(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load appointment details",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return Appointment.fromPatientJson(data as Map<String, dynamic>);
+  }
+
+  // =========================
+  // Payments
+  // =========================
+
+  static Future<Map<String, dynamic>> getPaymentSummary({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.paymentSummary}?bookingId=$bookingId",
+    );
+
+    final response = await http
+        .get(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load payment summary",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
+  }
+
+  static Future<String> createPaymentIntent({
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.createPaymentIntent,
+    );
+
+    final response = await http
+        .post(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "bookingId": _toInt(bookingId),
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to create payment intent",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+
+    if (data is Map<String, dynamic>) {
+      final secret = data["clientSecret"] ??
+          data["client_secret"] ??
+          data["paymentIntentClientSecret"];
+
+      if (secret != null && secret.toString().isNotEmpty) {
+        return secret.toString();
+      }
+    }
+
+    throw Exception("Client secret was not returned by backend");
+  }
+
+  static Future<void> confirmPayment({
+    required String bookingId,
+    String? paymentIntentId,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.confirmPayment,
+    );
+
+    final body = <String, dynamic>{
+      "bookingId": _toInt(bookingId),
+      if (paymentIntentId != null && paymentIntentId.trim().isNotEmpty)
+        "paymentIntentId": paymentIntentId.trim(),
+    };
+
+    final response = await http
+        .post(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to confirm payment",
+        ),
+      );
+    }
+  }
+
+  // =========================
+  // Notifications
+  // =========================
+
+  static Future<List<NotificationModel>> getNotifications() async {
+    final token = await _requireToken();
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.notifications);
+
+    final response = await http
+        .get(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(response.body, fallback: "Failed to load notifications"),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    if (data is! List) return [];
+
+    return data
+        .map<NotificationModel>(
+          (item) => NotificationModel.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  static Future<void> markNotificationAsRead(dynamic notificationId) async {
   final token = await _requireToken();
 
-  final url = Uri.parse("${ApiConstants.baseUrl}${ApiConstants.notifications}");
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final List data = jsonDecode(response.body);
-    return data.map((e) => NotificationModel.fromJson(e)).toList();
-  } else {
-    throw Exception("Failed to load notifications");
-  }
-}
-static Future<void> markNotificationAsRead(int id) async {
-  final token = await _requireToken();
+  final id = notificationId.toString();
 
   final url = Uri.parse(
     "${ApiConstants.baseUrl}${ApiConstants.notifications}/$id/read",
   );
 
-  final response = await http.put(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-    },
-  );
+  final response = await http
+      .put(
+        url,
+        headers: _jsonHeaders(token),
+      )
+      .timeout(const Duration(seconds: 15));
 
-  if (response.statusCode != 200) {
-    throw Exception("Failed to mark notification as read");
-  }
-}
-static Future<void> markAllNotificationsAsRead() async {
-  final token = await _requireToken();
-
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.notifications}/read-all",
-  );
-
-  final response = await http.put(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-    },
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception("Failed to mark all notifications as read");
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to mark notification as read",
+      ),
+    );
   }
 }
 
+  static Future<void> markAllNotificationsAsRead() async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.notifications}/mark-all-read",
+    );
+
+    final response = await http
+        .put(
+          url,
+          headers: _jsonHeaders(token),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to mark all notifications as read",
+        ),
+      );
+    }
+  }
 }
+

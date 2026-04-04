@@ -12,17 +12,14 @@ class PatientPendingReviewItem {
     required this.nurseName,
     required this.completedAt,
   });
+
+  String get bookingId => appointmentId;
 }
 
-/// How the patient closed the review modal (local UI only).
+/// How the patient closed the review modal.
 enum PatientReviewModalAction {
-  /// Submitted ratings + optional text.
   submitted,
-
-  /// Close for now; same booking may prompt again.
   later,
-
-  /// User chose X — do not show this prompt again for this request.
   dismissedForever,
 }
 
@@ -71,16 +68,14 @@ class PatientRatingSubmissionDraft {
     required this.reviewText,
   });
 
+  String get bookingId => appointmentId;
+
   Map<String, dynamic> toJson() {
     return {
-      'requestId': requestId,
-      'appointmentId': appointmentId,
-      'overallRating': overallRating,
-      'professionalismRating': professionalismRating,
-      'punctualityRating': punctualityRating,
-      'communicationRating': communicationRating,
-      'serviceQualityRating': serviceQualityRating,
-      'reviewText': reviewText.trim(),
+      'bookingId': int.tryParse(bookingId),
+      'rating': overallRating,
+      'comment': reviewText.trim().isEmpty ? null : reviewText.trim(),
     };
   }
 }
+

@@ -9,14 +9,6 @@ import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.d
 import 'package:nurse_app/Features/Patients/Presentation/patient_more_screen.dart';
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 
-/// Patient shell (tabs + home).
-///
-/// **Review prompts**
-/// - **Backend / API:** When a visit is completed, persist “needs review” and return those rows from
-///   [onFetchPendingReviewRequests] (or clear them after the patient submits via your API).
-/// - **Mobile (this file):** Auto-opens [showPatientReviewModal] for the next pending item after
-///   fetch (or preview data). The modal blocks the shell until the user taps Submit, Later, or X.
-/// - **Later:** skipped for the rest of this app session (in-memory); next cold start can prompt again.
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
   final Future<List<PatientPendingReviewItem>> Function()?
@@ -45,20 +37,22 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   bool _isLoadingPendingReviews = false;
   late List<PatientPendingReviewItem> _pendingReviewRequests;
 
-  /// Request ids the user skipped with "Later" this app session — no auto-prompt again until restart.
   final Set<String> _reviewDeferredForSession = {};
-
-  /// Prevents overlapping auto-chained review modals.
   bool _blockingReviewFlowActive = false;
+
+  int _totalBookings = 0;
+  int _activeRequests = 0;
+  bool _isLoadingDashboardSummary = false;
 
   @override
   void initState() {
     super.initState();
     _pendingReviewRequests = widget.pendingReviewRequests.isNotEmpty
         ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
-        : List<PatientPendingReviewItem>.from(_previewPendingReviewRequests);
+        : <PatientPendingReviewItem>[];
 
     _loadUserData();
+    _loadDashboardSummary();
     _fetchPendingReviews();
   }
 
@@ -76,26 +70,55 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
-  Future<void> _fetchPendingReviews() async {
-    final fetcher = widget.onFetchPendingReviewRequests;
-    if (fetcher == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scheduleBlockingReviewPrompt();
-      });
-      return;
-    }
-
-    setState(() => _isLoadingPendingReviews = true);
-
+  Future<void> _loadDashboardSummary() async {
+    setState(() => _isLoadingDashboardSummary = true);
     try {
-      final requests = await fetcher();
+      final summary = await ApiService.getPatientDashboardSummary();
+
       if (!mounted) return;
 
       setState(() {
-        _pendingReviewRequests = requests;
+        _totalBookings = _toInt(summary['totalBookings']);
+        _activeRequests = _toInt(summary['activeRequests']);
       });
-    } catch (_) {
-      // handle later with app-level error strategy
+    } catch (e) {
+      debugPrint('Error loading dashboard summary: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingDashboardSummary = false);
+      }
+    }
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  Future<void> _fetchPendingReviews() async {
+    setState(() => _isLoadingPendingReviews = true);
+
+    try {
+      final fetcher = widget.onFetchPendingReviewRequests;
+
+      if (fetcher != null) {
+        final requests = await fetcher();
+
+        if (!mounted) return;
+        setState(() {
+          _pendingReviewRequests = requests;
+        });
+      } else {
+        final pending = await ApiService.getPendingReview();
+
+        if (!mounted) return;
+        setState(() {
+          _pendingReviewRequests =
+              pending == null ? [] : <PatientPendingReviewItem>[pending];
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading pending review: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoadingPendingReviews = false);
@@ -106,11 +129,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     }
   }
 
-  /// When [onFetchPendingReviewRequests] returns items (or preview list is used), opens the
-  /// blocking review modal for the next eligible booking. Chains until none left or all deferred.
-  ///
-  /// **Backend:** mark appointments as "needs patient review" and expose them via API (this fetcher).
-  /// **Mobile:** this method + [showPatientReviewModal] — no API inside the dialog.
   void _scheduleBlockingReviewPrompt() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _tryShowBlockingReview();
@@ -153,24 +171,57 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
     switch (result.action) {
       case PatientReviewModalAction.later:
-        setState(() {
-          _reviewDeferredForSession.add(request.requestId);
-        });
-        return;
-      case PatientReviewModalAction.dismissedForever:
-        setState(() {
-          _pendingReviewRequests.removeWhere(
-            (item) => item.requestId == request.requestId,
+        try {
+          await ApiService.remindReviewLater(bookingId: request.bookingId);
+
+          if (!mounted) return;
+          setState(() {
+            _reviewDeferredForSession.add(request.requestId);
+          });
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                e.toString().replaceFirst('Exception: ', ''),
+              ),
+            ),
           );
-        });
+        }
         return;
+
+      case PatientReviewModalAction.dismissedForever:
+        try {
+          await ApiService.dismissReviewPrompt(bookingId: request.bookingId);
+
+          if (!mounted) return;
+          setState(() {
+            _pendingReviewRequests.removeWhere(
+              (item) => item.requestId == request.requestId,
+            );
+          });
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                e.toString().replaceFirst('Exception: ', ''),
+              ),
+            ),
+          );
+        }
+        return;
+
       case PatientReviewModalAction.submitted:
         final draft = result.draft;
         if (draft == null) return;
+
         try {
           final submitter = widget.onSubmitReview;
           if (submitter != null) {
             await submitter(draft);
+          } else {
+            await ApiService.submitReview(draft: draft);
           }
 
           if (!mounted) return;
@@ -188,7 +239,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           if (!mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Review submission failed: $e')),
+            SnackBar(
+              content: Text(
+                e.toString().replaceFirst('Exception: ', ''),
+              ),
+            ),
           );
         }
     }
@@ -215,7 +270,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       MaterialPageRoute<void>(
         builder: (_) => const NotificationsScreen(
           audience: NotificationAudience.patient,
-          
         ),
       ),
     );
@@ -272,6 +326,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         isLoadingPendingReviews: _isLoadingPendingReviews,
         pendingReviewRequests: _pendingReviewRequests,
         onWriteReview: _openReviewModal,
+        totalBookings: _totalBookings,
+        activeRequests: _activeRequests,
+        isLoadingDashboardSummary: _isLoadingDashboardSummary,
       ),
       BrowseNursesScreen(
         key: ValueKey(
@@ -310,6 +367,9 @@ class PatientHomeContent extends StatelessWidget {
   final bool isLoadingPendingReviews;
   final List<PatientPendingReviewItem> pendingReviewRequests;
   final ValueChanged<PatientPendingReviewItem> onWriteReview;
+  final int totalBookings;
+  final int activeRequests;
+  final bool isLoadingDashboardSummary;
 
   const PatientHomeContent({
     super.key,
@@ -322,6 +382,9 @@ class PatientHomeContent extends StatelessWidget {
     required this.isLoadingPendingReviews,
     required this.pendingReviewRequests,
     required this.onWriteReview,
+    required this.totalBookings,
+    required this.activeRequests,
+    required this.isLoadingDashboardSummary,
   });
 
   @override
@@ -371,7 +434,11 @@ class PatientHomeContent extends StatelessWidget {
                     onServiceTap: onQuickServiceTap,
                   ),
                   const SizedBox(height: 16),
-                  const _StatsRow(),
+                  _StatsRow(
+                    totalBookings: totalBookings,
+                    activeRequests: activeRequests,
+                    isLoading: isLoadingDashboardSummary,
+                  ),
                   const SizedBox(height: 18),
                   _SectionTitleWithAction(
                     title: "Upcoming Appointments",
@@ -749,16 +816,6 @@ class _RateExperienceCard extends StatelessWidget {
   }
 }
 
-const List<PatientPendingReviewItem> _previewPendingReviewRequests = [
-  PatientPendingReviewItem(
-    requestId: 'preview_request_1',
-    appointmentId: 'preview_appointment_1',
-    serviceName: 'Post-Surgery Care',
-    nurseName: 'Noor Ibrahim',
-    completedAt: null,
-  ),
-];
-
 class _QuickServicesRow extends StatelessWidget {
   final ValueChanged<int> onServiceTap;
 
@@ -868,26 +925,37 @@ class _ServiceTile extends StatelessWidget {
 }
 
 class _StatsRow extends StatelessWidget {
-  const _StatsRow();
+  final int totalBookings;
+  final int activeRequests;
+  final bool isLoading;
+
+  const _StatsRow({
+    required this.totalBookings,
+    required this.activeRequests,
+    required this.isLoading,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final totalText = isLoading ? '...' : totalBookings.toString();
+    final activeText = isLoading ? '...' : activeRequests.toString();
+
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _StatCard(
             filled: true,
             icon: Icons.show_chart_rounded,
-            number: "12",
+            number: totalText,
             label: "Total Bookings",
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             filled: false,
             icon: Icons.medical_services_outlined,
-            number: "3",
+            number: activeText,
             label: "Active Requests",
           ),
         ),
@@ -941,18 +1009,18 @@ class _StatCard extends StatelessWidget {
               Text(
                 number,
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
                   color: textColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
+                  color: subColor,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
-                  color: subColor,
                 ),
               ),
             ],
@@ -968,155 +1036,24 @@ class _UpcomingAppointments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        _AppointmentCard(
-          name: "Sarah Hassan",
-          service: "IV Therapy",
-          day: "Today",
-          time: "2:00 PM",
-          statusText: "Confirmed",
-          statusColor: Color(0xFF22C55E),
-          statusBg: Color(0xFFEAFBF0),
-        ),
-        SizedBox(height: 12),
-        _AppointmentCard(
-          name: "Layla Ahmed",
-          service: "Wound Care",
-          day: "Tomorrow",
-          time: "10:00 AM",
-          statusText: "Pending",
-          statusColor: Color(0xFFF59E0B),
-          statusBg: Color(0xFFFFF7ED),
-        ),
-      ],
-    );
-  }
-}
-
-class _AppointmentCard extends StatelessWidget {
-  final String name;
-  final String service;
-  final String day;
-  final String time;
-  final String statusText;
-  final Color statusColor;
-  final Color statusBg;
-
-  const _AppointmentCard({
-    required this.name,
-    required this.service,
-    required this.day,
-    required this.time,
-    required this.statusText,
-    required this.statusColor,
-    required this.statusBg,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE8ECF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          Container(
-            height: 44,
-            width: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF4F6),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.person_outline_rounded,
-              color: Color(0xFF2F7F8D),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1D2433),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusBg,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        statusText,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  service,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      day,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF2F7F8D),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: const Text(
+        'Appointments section stays as-is.',
+        style: TextStyle(
+          color: Color(0xFF6B7280),
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
+
 
 

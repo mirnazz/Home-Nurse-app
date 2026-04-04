@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_constants.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_styled_dropdown.dart';
 
-/// Local profile state only — wire to GET/PUT when backend is ready.
 class PatientProfileLocalModel {
   PatientProfileLocalModel();
 
@@ -130,6 +130,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   PatientProfileLocalModel? _editBaseline;
 
   bool _isEditing = false;
+  bool _isInitialLoading = true;
+  bool _isSaving = false;
 
   late final TextEditingController _fullNameCtrl;
   late final TextEditingController _emailCtrl;
@@ -156,6 +158,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     _otherCondCtrl = TextEditingController();
     _otherAllergiesCtrl = TextEditingController();
     _notesCtrl = TextEditingController();
+
+    _loadProfile();
   }
 
   @override
@@ -169,6 +173,130 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     _otherAllergiesCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isInitialLoading = true);
+
+    try {
+      final data = await ApiService.getPatientProfile();
+      _applyApiToModel(data);
+      _pushControllersFromModel();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isInitialLoading = false);
+      }
+    }
+  }
+
+  void _applyApiToModel(Map<String, dynamic> data) {
+    _model.fullName = (data['fullName'] ?? '').toString();
+    _model.email = (data['email'] ?? '').toString();
+    _model.phone = (data['phoneNumber'] ?? data['phone'] ?? '').toString();
+
+    final gender = data['gender']?.toString().trim();
+    _model.gender = (gender == null || gender.isEmpty) ? null : gender;
+
+    final dobRaw = data['dateOfBirth']?.toString();
+    _model.dateOfBirth =
+        (dobRaw == null || dobRaw.isEmpty) ? null : DateTime.tryParse(dobRaw);
+
+    final bloodType = data['bloodType']?.toString().trim();
+    _model.bloodType =
+        (bloodType == null || bloodType.isEmpty) ? null : bloodType;
+
+    final governorate = data['governorate']?.toString().trim();
+    _model.governorate =
+        (governorate == null || governorate.isEmpty) ? null : governorate;
+
+    _model.area = (data['area'] ?? '').toString();
+    _model.addressLine = (data['address'] ?? '').toString();
+
+    final parsedConditions = _parseConditions(data['conditions']?.toString());
+    _model.conditionKeys = parsedConditions.$1;
+    _model.otherConditionsText = parsedConditions.$2;
+
+    final parsedAllergies = _parseAllergies(data['allergies']?.toString());
+    _model.selectedAllergyChips = parsedAllergies.$1;
+    _model.otherAllergiesText = parsedAllergies.$2;
+
+    _model.notes = (data['notes'] ?? '').toString();
+  }
+
+  (Set<String>, String) _parseConditions(String? raw) {
+    final known = <String, String>{
+      'diabetes': 'diabetes',
+      'hypertension': 'hypertension',
+      'asthma': 'asthma',
+      'heart disease': 'heart_disease',
+      'arthritis': 'arthritis',
+      'none': 'none',
+    };
+
+    final selected = <String>{};
+    final custom = <String>[];
+
+    if (raw == null || raw.trim().isEmpty) {
+      return (selected, '');
+    }
+
+    final items = raw
+        .split(RegExp(r'[,;\n]'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
+
+    for (final item in items) {
+      final normalized = item.toLowerCase();
+      final matched = known[normalized];
+      if (matched != null) {
+        selected.add(matched);
+      } else {
+        custom.add(item);
+      }
+    }
+
+    return (selected, custom.join(', '));
+  }
+
+  (Set<String>, String) _parseAllergies(String? raw) {
+    final chipSet =
+        PatientProfileScreen.allergyChips.map((e) => e.toLowerCase()).toSet();
+
+    final selected = <String>{};
+    final custom = <String>[];
+
+    if (raw == null || raw.trim().isEmpty) {
+      return (selected, '');
+    }
+
+    final items = raw
+        .split(RegExp(r'[,;\n]'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
+
+    for (final item in items) {
+      final normalized = item.toLowerCase();
+      final matched = PatientProfileScreen.allergyChips.where(
+        (chip) => chip.toLowerCase() == normalized,
+      );
+
+      if (matched.isNotEmpty && chipSet.contains(normalized)) {
+        selected.add(matched.first);
+      } else {
+        custom.add(item);
+      }
+    }
+
+    return (selected, custom.join(', '));
   }
 
   void _pushControllersFromModel() {
@@ -192,8 +320,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     _model.phone = _phoneCtrl.text.trim();
     _model.area = _areaCtrl.text.trim();
     _model.addressLine = _addressCtrl.text.trim();
-    _model.otherConditionsText = _otherCondCtrl.text;
-    _model.otherAllergiesText = _otherAllergiesCtrl.text;
+    _model.otherConditionsText = _otherCondCtrl.text.trim();
+    _model.otherAllergiesText = _otherAllergiesCtrl.text.trim();
     _model.notes = _notesCtrl.text.trim();
     _model.gender = _gender;
     _model.dateOfBirth = _dob;
@@ -209,17 +337,92 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     });
   }
 
-  void _save() {
+  String? _joinConditionsForApi() {
+    if (_model.conditionKeys.contains('none')) {
+      return 'None';
+    }
+
+    final labels = <String>[
+      for (final key in _model.conditionKeys)
+        if (PatientProfileScreen.conditionKeyLabels.containsKey(key))
+          PatientProfileScreen.conditionKeyLabels[key]!,
+    ];
+
+    final custom = _model.otherConditionsText
+        .split(RegExp(r'[,;\n]'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
+
+    final result = [...labels, ...custom].join(', ').trim();
+    return result.isEmpty ? null : result;
+  }
+
+  String? _joinAllergiesForApi() {
+    final custom = _model.otherAllergiesText
+        .split(RegExp(r'[,;\n]'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
+
+    final result = [..._model.selectedAllergyChips, ...custom].join(', ').trim();
+    return result.isEmpty ? null : result;
+  }
+
+  Future<void> _save() async {
+    if (_isSaving) return;
+
     setState(() {
       _pullControllersIntoModel();
-      _isEditing = false;
-      _editBaseline = null;
+      _isSaving = true;
     });
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile saved locally.')),
-    );
-    // TODO(backend): PUT patient profile
+
+    try {
+      await ApiService.updatePatientPersonalInfo(
+        gender: _model.gender,
+        dateOfBirth: _model.dateOfBirth,
+        bloodType: _model.bloodType,
+      );
+
+      await ApiService.updatePatientAddress(
+        governorate: _model.governorate,
+        area: _model.area.isEmpty ? null : _model.area,
+        address: _model.addressLine.isEmpty ? null : _model.addressLine,
+      );
+
+      await ApiService.updatePatientMedicalInfo(
+        conditions: _joinConditionsForApi(),
+        allergies: _joinAllergiesForApi(),
+        notes: _model.notes.isEmpty ? null : _model.notes,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isEditing = false;
+        _editBaseline = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully.')),
+      );
+    } catch (e) {
+      if (_editBaseline != null) {
+        _model.applyFrom(_editBaseline!);
+        _pushControllersFromModel();
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   void _cancel() {
@@ -275,7 +478,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: PatientProfileScreen.primary,
               onPrimary: Colors.white,
               onSurface: PatientProfileScreen.text,
@@ -285,7 +488,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         );
       },
     );
-    if (picked != null) setState(() => _dob = picked);
+    if (picked != null) {
+      setState(() => _dob = picked);
+    }
   }
 
   String _formatDob(DateTime? d) {
@@ -335,104 +540,64 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _ProfileSectionCard(
-                    child: _buildHeader(p),
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileSectionCard(
+      body: _isInitialLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildSectionTitle('Personal info'),
-                        _isEditing
-                            ? _buildPersonalEdit(p)
-                            : _buildPersonalView(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileSectionCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Address'),
-                        _isEditing
-                            ? _buildAddressEdit(p)
-                            : _buildAddressView(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileSectionCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Medical info'),
-                        _isEditing
-                            ? _buildMedicalEdit(p)
-                            : _buildMedicalView(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (!_isEditing) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _startEdit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: p,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                        _ProfileSectionCard(
+                          child: _buildHeader(p),
+                        ),
+                        const SizedBox(height: 12),
+                        _ProfileSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Personal info'),
+                              _isEditing
+                                  ? _buildPersonalEdit(p)
+                                  : _buildPersonalView(),
+                            ],
                           ),
                         ),
-                        child: const Text(
-                          'Edit profile',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                        const SizedBox(height: 12),
+                        _ProfileSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Address'),
+                              _isEditing
+                                  ? _buildAddressEdit(p)
+                                  : _buildAddressView(),
+                            ],
                           ),
                         ),
-                      ),
-                    ),
-                  ] else ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: _cancel,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: PatientProfileScreen.muted,
-                              side: const BorderSide(color: PatientProfileScreen.border),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(fontWeight: FontWeight.w800),
-                            ),
+                        const SizedBox(height: 12),
+                        _ProfileSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Medical info'),
+                              _isEditing
+                                  ? _buildMedicalEdit(p)
+                                  : _buildMedicalView(),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
+                        const SizedBox(height: 16),
+                        if (!_isEditing) ...[
+                          SizedBox(
+                            width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: _save,
+                              onPressed: _startEdit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: p,
                                 foregroundColor: Colors.white,
@@ -442,7 +607,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                                 ),
                               ),
                               child: const Text(
-                                'Save',
+                                'Edit profile',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
@@ -450,17 +615,74 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                               ),
                             ),
                           ),
-                        ),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: _isSaving ? null : _cancel,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: PatientProfileScreen.muted,
+                                    side: const BorderSide(
+                                      color: PatientProfileScreen.border,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: SizedBox(
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: _isSaving ? null : _save,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: p,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: _isSaving
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Save',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 24),
                       ],
                     ),
-                  ],
-                  const SizedBox(height: 24),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -535,18 +757,21 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           p,
           label: 'Full name',
           controller: _fullNameCtrl,
+          readOnly: true,
         ),
         _textField(
           p,
           label: 'Email',
           controller: _emailCtrl,
           keyboard: TextInputType.emailAddress,
+          readOnly: true,
         ),
         _textField(
           p,
           label: 'Phone number',
           controller: _phoneCtrl,
           keyboard: TextInputType.phone,
+          readOnly: true,
         ),
         _dropdown<String>(
           p,
@@ -565,8 +790,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             decoration: patientOnboardingOutlineDecoration(p),
             child: Row(
               children: [
-                Icon(Icons.calendar_today_outlined,
-                    size: 20, color: PatientProfileScreen.muted),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: PatientProfileScreen.muted,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -823,7 +1051,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               label: Text(label),
               selected: sel,
               onSelected: (v) => _onAllergyToggle(label, v),
-              selectedColor: p.withValues(alpha: 0.18),
+              selectedColor: p.withOpacity(0.18),
               checkmarkColor: p,
               labelStyle: TextStyle(
                 fontWeight: FontWeight.w700,
@@ -849,55 +1077,42 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           controller: _otherAllergiesCtrl,
           decoration: patientOnboardingOutlineDecoration(
             p,
-            hint: 'e.g. Sulfa, nuts, seafood',
+            hint: 'e.g. Seafood, Aspirin',
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Notes',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
-            color: PatientProfileScreen.text,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
+        _textField(
+          p,
+          label: 'Notes',
           controller: _notesCtrl,
           maxLines: 4,
-          minLines: 3,
-          decoration: patientOnboardingOutlineDecoration(
-            p,
-            hint: 'Anything else your care team should know...',
-          ),
         ),
       ],
     );
   }
 
-  static Widget _viewRow(String label, String value) {
+  Widget _viewRow(String label, String value) {
+    final safe = value.trim().isEmpty ? '—' : value.trim();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
               color: PatientProfileScreen.muted,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            value.isEmpty ? '—' : value,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: value.isEmpty
-                  ? PatientProfileScreen.muted
-                  : PatientProfileScreen.text,
+            safe,
+            style: const TextStyle(
+              color: PatientProfileScreen.text,
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -906,93 +1121,80 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   }
 
   Widget _textField(
-    Color p, {
+    Color primary, {
     required String label,
     required TextEditingController controller,
-    TextInputType keyboard = TextInputType.text,
+    TextInputType? keyboard,
     int maxLines = 1,
+    bool readOnly = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-              color: PatientProfileScreen.text,
-            ),
-          ),
+          _label(label),
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
             keyboardType: keyboard,
             maxLines: maxLines,
-            decoration: patientOnboardingOutlineDecoration(p),
+            readOnly: readOnly,
+            decoration: patientOnboardingOutlineDecoration(primary),
           ),
         ],
       ),
     );
   }
+
+ Widget _dropdown<T extends Object>(
+  Color primary, {
+  required String label,
+  required T? value,
+  required String hint,
+  required List<T> items,
+  required ValueChanged<T?> onChanged,
+}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label(label),
+        const SizedBox(height: 8),
+        PatientOnboardingStyledDropdown<T>(
+          primary: primary,
+          value: value,
+          hint: hint,
+          items: items,
+          onChanged: onChanged,
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _label(String text) {
     return Text(
       text,
       style: const TextStyle(
-        fontWeight: FontWeight.w700,
         fontSize: 14,
+        fontWeight: FontWeight.w700,
         color: PatientProfileScreen.text,
-      ),
-    );
-  }
-
-  Widget _dropdown<T extends Object>(
-    Color p, {
-    required String label,
-    required T? value,
-    required String hint,
-    required List<T> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-              color: PatientProfileScreen.text,
-            ),
-          ),
-          const SizedBox(height: 8),
-          PatientOnboardingStyledDropdown<T>(
-            value: value,
-            hint: hint,
-            items: items,
-            onChanged: onChanged,
-            primary: p,
-          ),
-        ],
       ),
     );
   }
 }
 
 class _ProfileSectionCard extends StatelessWidget {
-  const _ProfileSectionCard({required this.child});
-
   final Widget child;
+
+  const _ProfileSectionCard({required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1002,7 +1204,7 @@ class _ProfileSectionCard extends StatelessWidget {
           BoxShadow(
             color: Color(0x12000000),
             blurRadius: 12,
-            offset: Offset(0, 4),
+            offset: Offset(0, 8),
           ),
         ],
       ),
@@ -1010,3 +1212,4 @@ class _ProfileSectionCard extends StatelessWidget {
     );
   }
 }
+
