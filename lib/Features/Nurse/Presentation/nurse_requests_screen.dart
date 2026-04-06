@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
@@ -143,24 +144,23 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
   Future<bool?> _showRejectDialog() {
     return showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext)!;
         return AlertDialog(
-          title: const Text('Reject Request'),
-          content: const Text(
-            'Are you sure you want to reject this request?',
-          ),
+          title: Text(l10n.nurseRequestsRejectDialogTitle),
+          content: Text(l10n.nurseRequestsRejectDialogMessage),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.nurseDialogNo),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFDC2626),
                 foregroundColor: Colors.white,
               ),
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Reject'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.nurseReject),
             ),
           ],
         );
@@ -192,12 +192,13 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
 
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             status == NurseServiceRequestStatus.accepted
-                ? 'Request accepted successfully.'
-                : 'Request rejected successfully.',
+                ? l10n.nurseRequestsAcceptedSuccess
+                : l10n.nurseRequestsRejectedSuccess,
           ),
         ),
       );
@@ -221,35 +222,36 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
     }
   }
 
-  String get _headerSubtitle {
+  String _headerSubtitle(AppLocalizations l10n) {
     switch (_activeFilter) {
       case NurseRequestsFilter.pending:
-        return '${_pendingRequests.length} pending requests';
+        return l10n.nurseRequestsPendingCountSubtitle(_pendingRequests.length);
       case NurseRequestsFilter.rejected:
-        return '${_rejectedRequests.length} rejected requests';
+        return l10n.nurseRequestsRejectedCountSubtitle(_rejectedRequests.length);
     }
   }
 
-  String get _emptyTitle {
+  String _emptyTitle(AppLocalizations l10n) {
     switch (_activeFilter) {
       case NurseRequestsFilter.pending:
-        return 'No pending requests';
+        return l10n.nurseRequestsEmptyPendingTitle;
       case NurseRequestsFilter.rejected:
-        return 'No rejected requests';
+        return l10n.nurseRequestsEmptyRejectedTitle;
     }
   }
 
-  String get _emptySubtitle {
+  String _emptySubtitle(AppLocalizations l10n) {
     switch (_activeFilter) {
       case NurseRequestsFilter.pending:
-        return 'New service requests will appear here.';
+        return l10n.nurseRequestsEmptyPendingSubtitle;
       case NurseRequestsFilter.rejected:
-        return 'Rejected requests will appear here for reference.';
+        return l10n.nurseRequestsEmptyRejectedSubtitle;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Container(
@@ -265,9 +267,9 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Service Requests',
-                  style: TextStyle(
+                Text(
+                  l10n.nurseRequestsTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 19,
                     fontWeight: FontWeight.w900,
@@ -275,7 +277,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _headerSubtitle,
+                  _headerSubtitle(l10n),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
                     fontWeight: FontWeight.w600,
@@ -301,8 +303,16 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
                       fontSize: 13,
                     ),
                     tabs: [
-                      Tab(text: 'Pending (${_pendingRequests.length})'),
-                      Tab(text: 'Rejected (${_rejectedRequests.length})'),
+                      Tab(
+                        text: l10n.nurseRequestsTabPending(
+                          _pendingRequests.length,
+                        ),
+                      ),
+                      Tab(
+                        text: l10n.nurseRequestsTabRejected(
+                          _rejectedRequests.length,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -313,14 +323,14 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadRequests,
-            child: _buildBody(),
+            child: _buildBody(l10n),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppLocalizations l10n) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -337,9 +347,9 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
                 child: Center(
                   child: _InfoStateCard(
                     icon: Icons.wifi_off_rounded,
-                    title: 'Failed to load requests',
-                    subtitle: 'Please check your connection and try again.',
-                    actionText: 'Retry',
+                    title: l10n.nurseRequestsLoadErrorTitle,
+                    subtitle: l10n.nurseRequestsLoadErrorSubtitle,
+                    actionText: l10n.nurseRetry,
                     onTap: _loadRequests,
                   ),
                 ),
@@ -364,8 +374,8 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
                 child: Center(
                   child: _InfoStateCard(
                     icon: Icons.inbox_outlined,
-                    title: _emptyTitle,
-                    subtitle: _emptySubtitle,
+                    title: _emptyTitle(l10n),
+                    subtitle: _emptySubtitle(l10n),
                   ),
                 ),
               ),
@@ -381,6 +391,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
         final request = visible[index];
 
         return _RequestCard(
+          l10n: l10n,
           request: request,
           isActionLoading: _updatingRequestIds.contains(request.requestId),
           onTap: () => _openRequestDetails(request),
@@ -401,6 +412,7 @@ class _NurseRequestsScreenState extends State<NurseRequestsScreen>
 }
 
 class _RequestCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final NurseServiceRequestItem request;
   final bool isActionLoading;
   final VoidCallback onTap;
@@ -408,6 +420,7 @@ class _RequestCard extends StatelessWidget {
   final VoidCallback onReject;
 
   const _RequestCard({
+    required this.l10n,
     required this.request,
     required this.isActionLoading,
     required this.onTap,
@@ -418,8 +431,9 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPending = request.status == NurseServiceRequestStatus.pending;
-    final dateStr = DateFormat('EEE, MMM d').format(request.dateTime);
-    final timeStr = DateFormat.jm().format(request.dateTime);
+    final localeTag = Localizations.localeOf(context).toString();
+    final dateStr = DateFormat.MMMEd(localeTag).format(request.dateTime);
+    final timeStr = DateFormat.jm(localeTag).format(request.dateTime);
     final accentBar = isPending
         ? const Color(0xFFE53935)
         : const Color(0xFFBDBDBD);
@@ -478,7 +492,7 @@ class _RequestCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '${request.priceJod} JOD',
+                                  l10n.nurseHomeEarningsJod('${request.priceJod}'),
                                   style: const TextStyle(
                                     color: Color(0xFF111827),
                                     fontWeight: FontWeight.w900,
@@ -486,7 +500,9 @@ class _RequestCard extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  '${request.durationMinutes} min',
+                                  l10n.nurseRequestsDurationMinutes(
+                                    request.durationMinutes,
+                                  ),
                                   style: const TextStyle(
                                     color: Color(0xFF6B7280),
                                     fontWeight: FontWeight.w700,
@@ -577,9 +593,9 @@ class _RequestCard extends StatelessWidget {
                               color: const Color(0xFFFEE2E2),
                               borderRadius: BorderRadius.circular(999),
                             ),
-                            child: const Text(
-                              'Rejected',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.nurseStatusRejected,
+                              style: const TextStyle(
                                 color: Color(0xFFDC2626),
                                 fontWeight: FontWeight.w900,
                                 fontSize: 11.5,
@@ -601,10 +617,11 @@ class _RequestCard extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'Reject',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.w800),
+                                  child: Text(
+                                    l10n.nurseReject,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -628,9 +645,9 @@ class _RequestCard extends StatelessWidget {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text(
-                                          'Accept',
-                                          style: TextStyle(
+                                      : Text(
+                                          l10n.nurseAccept,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.w800,
                                           ),
                                         ),

@@ -1,6 +1,919 @@
 {
-  "welcome": "Welcome Back",
+  "@@locale": "en",
+  "welcomeBackTitle": "Welcome Back!",
+  "signInToContinue": "Sign in to continue",
+  "emailAddressLabel": "Email Address",
+  "emailFieldHint": "your.email@example.com",
+  "passwordLabel": "Password",
+  "passwordFieldHint": "Enter your password",
+  "forgotPassword": "Forgot Password?",
+  "login": "Login",
+  "dontHaveAccount": "Don't have an account?",
+  "createNewAccount": "Create New Account",
+  "errorValidEmail": "Please enter a valid email",
+  "errorEnterPassword": "Please enter your password",
+  "errorUnknownNurseStatus": "Unknown nurse verification status: {status}",
+  "@errorUnknownNurseStatus": {
+    "placeholders": {
+      "status": {"type": "String"}
+    }
+  },
+  "errorUnknownRole": "Unknown role: {role}",
+  "@errorUnknownRole": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "errorLoginFailed": "Login failed: {message}",
+  "@errorLoginFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "signupCreateNurseAccount": "Create Nurse Account",
+  "signupCreateAccount": "Create Account",
+  "signupNurseSubtitle": "Complete nurse registration in two steps",
+  "signupPatientSubtitle": "Sign up to get started",
+  "signupStep1Of4": "Step 1 of 4",
+  "signupIAmA": "I am a:",
+  "rolePatient": "Patient",
+  "roleNurse": "Nurse",
+  "fullNameLabel": "Full Name",
+  "fullNameHint": "Enter your full name",
+  "validationFullNameRequired": "Full name is required",
+  "signupEmailLabel": "Email Address",
+  "signupEmailHint": "Enter your email",
+  "validationEmailInvalid": "Enter valid email",
+  "phoneNumberLabel": "Phone Number",
+  "phoneNumberHint": "e.g. 0790000000",
+  "validationPhoneRequired": "Phone number is required",
+  "validationPhoneInvalid": "Enter a valid phone number",
+  "signupPasswordLabel": "Password",
+  "signupPasswordHint": "Create a password",
+  "validationPasswordMin": "Minimum 6 characters",
+  "confirmPasswordLabel": "Confirm Password",
+  "confirmPasswordHint": "Confirm your password",
+  "validationPasswordsMismatch": "Passwords do not match",
+  "continueButton": "Continue",
+  "signUp": "Sign Up",
+  "signupFooterNurse": "You will complete verification in the next step.",
+  "signupFooterPatient": "Create your account to continue.",
+  "backToLogin": "Back to Login",
+  "signUpErrorFailed": "Sign up failed: {message}",
+  "@signUpErrorFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "patientNavHome": "Home",
+  "patientNavNurses": "Nurses",
+  "patientNavAppointments": "Appointments",
+  "patientNavPayments": "Payments",
+  "patientNavMore": "More",
+  "patientWelcomeBackLine": "Welcome back,",
+  "patientSearchNursesHint": "Search nurses by name or specialty...",
+  "patientQuickServices": "Quick Services",
+  "patientUpcomingAppointments": "Upcoming Appointments",
+  "patientViewAll": "View All",
+  "patientTotalBookings": "Total Bookings",
+  "patientActiveRequests": "Active Requests",
+  "patientAppointmentsPlaceholder": "Appointments section stays as-is.",
+  "patientLogout": "Logout",
+  "patientServiceIvTherapy": "IV\nTherapy",
+  "patientServiceWoundCare": "Wound\nCare",
+  "patientServicePostSurgery": "Post-\nSurgery",
+  "patientServiceMedication": "Medication",
+  "patientRateExperienceTitle": "Rate Your Experience",
+  "patientRateExperienceSubtitle": "Help others by sharing your feedback\nabout {nurseName}",
+  "@patientRateExperienceSubtitle": {
+    "placeholders": {
+      "nurseName": {"type": "String"}
+    }
+  },
+  "patientWriteReview": "Write Review",
+  "patientReviewSubmittedThanks": "Thanks! Your review was submitted.",
+  "patientLogoutFailed": "Logout failed: {message}",
+  "@patientLogoutFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "user": "User",
+  "patientRetry": "Retry",
+  "patientBrowseTitle": "Browse Nurses",
+  "patientBrowseSearchHint": "Search by name or specialty...",
+  "patientBrowseFilters": "Filters",
+  "patientBrowseFilterSheetTitle": "Filter Nurses",
+  "patientBrowseReset": "Reset",
+  "patientBrowseServiceType": "Service Type",
+  "patientBrowseChooseService": "Choose a service",
+  "patientBrowseAllServices": "All Services",
+  "patientBrowseGovernorate": "Governorate",
+  "patientBrowseAllLocations": "All Locations",
+  "patientGovZarqa": "Zarqa",
+  "patientGovIrbid": "Irbid",
+  "patientGovAmman": "Amman",
+  "patientGovTafilah": "Tafilah",
+  "patientGovKarak": "Karak",
+  "patientGovMadaba": "Madaba",
+  "patientGovBalqa": "Balqa",
+  "patientGovAjloun": "Ajloun",
+  "patientGovJerash": "Jerash",
+  "patientGovAqaba": "Aqaba",
+  "patientGovMaan": "Ma'an",
+  "patientGovMafraq": "Mafraq",
+  "patientBrowseApplyFilters": "Apply Filters",
+  "patientBrowseClearAll": "Clear all",
+  "patientBrowseFoundNurses": "Found {count} nurses",
+  "@patientBrowseFoundNurses": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientBrowsePageIndicator": "Page {current}/{total}",
+  "@patientBrowsePageIndicator": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "patientBrowseNoResults": "No nurses match your filters.",
+  "patientBrowseViewProfile": "View Profile",
+  "patientBrowseExperienceYears": "{years} years",
+  "@patientBrowseExperienceYears": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "patientBrowseCatalog1": "IV Therapy",
+  "patientBrowseCatalog2": "Wound Care and Dressing",
+  "patientBrowseCatalog3": "Injection or Medication Administration",
+  "patientBrowseCatalog4": "Post-Surgery Care",
+  "patientBrowseCatalog5": "Medication Management",
+  "patientBrowseCatalog6": "Vital Signs Monitoring",
+  "patientBrowseCatalog7": "Blood Draw or Lab Sample Collection",
+  "patientBrowseCatalog8": "Catheter Care",
+  "patientBrowseCatalog9": "Diabetes Monitoring and Insulin Injection",
+  "patientBrowseCatalog10": "Elderly Home Care Visit",
+  "patientBrowseCatalog11": "Oxygen Therapy Setup",
+  "patientBrowseCatalog12": "Nebulizer Therapy Session",
+  "patientBrowseCatalog13": "Stitches Removal",
+  "patientBrowseCatalog14": "Pressure Ulcer Care",
+  "patientBrowseCatalog15": "General Nursing Home Visit",
+  "patientBrowseCatalog16": "Blood Pressure Check",
+  "patientBrowseCatalog17": "Short Care Shift (4 hours)",
+  "patientBrowseCatalog18": "Half-Day Home Care (6 hours)",
+  "patientBrowseCatalog19": "Full-Day Home Care (12 hours)",
+  "patientAppointmentsTitle": "My Appointments",
+  "patientAppointmentsUpcomingCount": "Upcoming ({count})",
+  "@patientAppointmentsUpcomingCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientAppointmentsPastCount": "Past ({count})",
+  "@patientAppointmentsPastCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientAppointmentsNoUpcoming": "No upcoming appointments.",
+  "patientAppointmentsNoPast": "No past appointments.",
+  "patientAppointmentsLoadFailed": "Failed to load appointments",
+  "patientAppointmentTotal": "Total",
+  "patientAppointmentStatusPending": "Pending",
+  "patientAppointmentStatusConfirmed": "Confirmed",
+  "patientAppointmentStatusActivePaid": "Active/Paid",
+  "patientAppointmentStatusCompleted": "Completed",
+  "patientAppointmentStatusCancelled": "Cancelled",
+  "patientAppointmentStatusRejected": "Rejected",
+  "patientPayBannerTitlePayContinue": "Pay to continue",
+  "patientPayBannerTitlePaymentRequired": "Payment required",
+  "patientPayBannerBodyPayContinue": "Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.",
+  "patientPayBannerBodyPaymentRequired": "Complete payment to confirm your appointment.",
+  "patientPaymentTitle": "Payment",
+  "patientPaymentBookingSummary": "Booking Summary",
+  "patientPaymentLabelNurse": "Nurse",
+  "patientPaymentLabelService": "Service",
+  "patientPaymentLabelDate": "Date",
+  "patientPaymentLabelTime": "Time",
+  "patientPaymentLabelAmount": "Amount",
+  "patientPaymentMethod": "Payment Method",
+  "patientPaymentStripeDisabled": "Card payments (Stripe) are turned off in this build for local development.",
+  "patientPaymentConfirm": "Confirm Payment",
+  "patientPaymentStripeDisabledSnack": "Stripe is disabled in this build. Re-enable flutter_stripe in pubspec and restore _confirmPayment below.",
+  "patientPaymentError": "Payment error: {message}",
+  "@patientPaymentError": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "patientMoreProfileTitle": "Profile",
+  "patientMoreProfileSubtitle": "View and edit your information",
+  "patientPaymentsTabEmpty": "Payment history and receipts will appear here when available.",
+  "patientReviewSetRatingFirstSnack": "Please set your overall rating first.",
+  "patientReviewOverallRating": "Overall Rating",
+  "patientReviewTapToRate": "Tap to rate",
+  "patientReviewRateSpecificAreas": "Rate Specific Areas",
+  "patientReviewProfessionalism": "Professionalism",
+  "patientReviewPunctuality": "Punctuality",
+  "patientReviewCommunication": "Communication",
+  "patientReviewServiceQuality": "Service Quality",
+  "patientReviewTextOptional": "Review Text (Optional)",
+  "patientReviewTextHint": "Share details about your experience...",
+  "patientReviewLater": "Later",
+  "patientReviewSubmit": "Submit Review",
+  "patientReviewServiceShort": "Service",
+  "patientReviewServiceLine": "Service: {name}",
+  "@patientReviewServiceLine": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "patientReviewNurseShort": "Nurse",
+  "patientReviewNurseLine": "Nurse: {name}",
+  "@patientReviewNurseLine": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "patientReviewCloseTooltip": "Close",
+  "profileTitle": "Profile",
+  "personalInfo": "Personal info",
+  "profileAddressSection": "Address",
+  "profileMedicalSection": "Medical info",
+  "fullName": "Full name",
   "email": "Email",
-  "password": "Password",
-  "login": "Login"
+  "phoneNumber": "Phone number",
+  "gender": "Gender",
+  "dateOfBirth": "Date of birth",
+  "bloodType": "Blood type",
+  "address": "Address",
+  "governorate": "Governorate",
+  "area": "Area",
+  "profileEditProfile": "Edit profile",
+  "profileCancel": "Cancel",
+  "profileSave": "Save",
+  "profileSelectGender": "Select gender",
+  "profileSelectBloodType": "Select blood type",
+  "profileSelectGovernorate": "Select governorate",
+  "profileSelectDate": "Select date",
+  "profileUpdatedSuccess": "Profile updated successfully.",
+  "profileConditions": "Conditions",
+  "profileAllergies": "Allergies",
+  "profileNotes": "Notes",
+  "profileNoneCombinationWarning": "None cannot be combined with other conditions.",
+  "profileOtherConditionOptional": "Other condition (optional)",
+  "profileConditionHint": "e.g. Cancer, Kidney disease",
+  "profileOtherAllergiesOptional": "Other allergies (optional)",
+  "profileAllergiesHint": "e.g. Seafood, Aspirin",
+  "profileConditionDiabetes": "Diabetes",
+  "profileConditionHypertension": "Hypertension",
+  "profileConditionAsthma": "Asthma",
+  "profileConditionHeartDisease": "Heart disease",
+  "profileConditionArthritis": "Arthritis",
+  "profileConditionNone": "None",
+  "profileGenderMale": "Male",
+  "profileGenderFemale": "Female",
+  "profileAllergyPenicillin": "Penicillin",
+  "profileAllergyDust": "Dust",
+  "profileAllergyFood": "Food",
+  "profileAllergyLatex": "Latex",
+  "profileAllergyPollen": "Pollen",
+  "notLoggedIn": "Please log in first",
+  "patientMoreLanguage": "Language",
+  "patientMoreLanguageEnglish": "English",
+  "patientMoreLanguageArabic": "Arabic",
+  "languageSelectorTitle": "Choose language",
+  "languageSelectorSubtitle": "Change app language",
+  "nurseHomeWelcomeBack": "Welcome back,",
+  "nurseHomeDefaultName": "Nurse",
+  "nurseHomeSummaryTodayAppointments": "Today's Appointments",
+  "nurseHomeSummaryPendingRequests": "Pending Requests",
+  "nurseHomeSummaryJodToday": "JOD Today",
+  "nurseHomeWeekSummaryTitle": "This Week Summary",
+  "nurseHomeWeekCompleted": "Completed",
+  "nurseHomeWeekCancelled": "Cancelled",
+  "nurseHomeWeekJodEarned": "JOD Earned",
+  "nurseHomeQuickActionsTitle": "Quick Actions",
+  "nurseHomeActionManageAvailabilityTitle": "Manage Availability",
+  "nurseHomeActionManageAvailabilitySubtitle": "Set your working hours",
+  "nurseHomeActionViewRequestsTitle": "View Requests",
+  "nurseHomeActionViewRequestsSubtitle": "Pending and rejected requests",
+  "nurseHomeActionAppointmentsTitle": "Appointments",
+  "nurseHomeActionAppointmentsSubtitle": "View your appointments",
+  "nurseHomeTodayScheduleTitle": "Today's Schedule",
+  "nurseHomeViewAll": "View All",
+  "nurseStatusAccepted": "Accepted",
+  "nurseStatusActive": "Active",
+  "nurseStatusCompleted": "Completed",
+  "nurseStatusCancelled": "Cancelled",
+  "nurseStatusRejected": "Rejected",
+  "nurseStatusPending": "Pending",
+  "nurseHomePatientFallback": "Patient",
+  "nurseHomeEarningsJod": "{amount} JOD",
+  "@nurseHomeEarningsJod": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseHomeNoAppointmentsToday": "No appointments for today",
+  "nurseHomeNoAppointmentsTodayHint": "Today appointments will appear here.",
+  "nurseHomeAvailableTitle": "You're Available",
+  "nurseHomeAvailableSubtitle": "You can receive new service requests",
+  "nurseNavHome": "Home",
+  "nurseNavAvailability": "Availability",
+  "nurseNavAppointments": "Appointments",
+  "nurseNavRequests": "Requests",
+  "nurseNavProfile": "Profile",
+  "nurseRequestsTitle": "Service Requests",
+  "nurseRequestsPendingCountSubtitle": "{count} pending requests",
+  "@nurseRequestsPendingCountSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsRejectedCountSubtitle": "{count} rejected requests",
+  "@nurseRequestsRejectedCountSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsTabPending": "Pending ({count})",
+  "@nurseRequestsTabPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsTabRejected": "Rejected ({count})",
+  "@nurseRequestsTabRejected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsEmptyPendingTitle": "No pending requests",
+  "nurseRequestsEmptyPendingSubtitle": "New service requests will appear here.",
+  "nurseRequestsEmptyRejectedTitle": "No rejected requests",
+  "nurseRequestsEmptyRejectedSubtitle": "Rejected requests will appear here for reference.",
+  "nurseRequestsLoadErrorTitle": "Failed to load requests",
+  "nurseRequestsLoadErrorSubtitle": "Please check your connection and try again.",
+  "nurseRetry": "Retry",
+  "nurseRequestsRejectDialogTitle": "Reject Request",
+  "nurseRequestsRejectDialogMessage": "Are you sure you want to reject this request?",
+  "nurseDialogNo": "No",
+  "nurseReject": "Reject",
+  "nurseAccept": "Accept",
+  "nurseRequestsAcceptedSuccess": "Request accepted successfully.",
+  "nurseRequestsRejectedSuccess": "Request rejected successfully.",
+  "nurseRequestsDurationMinutes": "{minutes} min",
+  "@nurseRequestsDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAvailEmbeddedTitle": "Availability",
+  "nurseAvailManageTitle": "Manage Availability",
+  "nurseAvailTapDateHint": "Tap any date to manage or block it",
+  "nurseAvailWeeklySchedule": "Weekly Schedule",
+  "nurseAvailAddTimeSlot": "Add Time Slot",
+  "nurseAvailNoScheduleYet": "No schedule set yet",
+  "nurseAvailNoScheduleHint": "Tap \"Add Time Slot\" to set your working hours",
+  "nurseAvailSave": "Save Availability",
+  "nurseAvailSaveAutoMessage": "Changes are saved automatically after each action",
+  "nurseAvailTimeSlotAdded": "Time slot added successfully",
+  "nurseAvailDayBlocked": "Day blocked successfully",
+  "nurseAvailDayUnblocked": "Day unblocked successfully",
+  "nurseAvailOverrideSuccess": "Working hours overridden: {start} - {end}",
+  "@nurseAvailOverrideSuccess": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "nurseAvailSlotDeleted": "Slot deleted successfully",
+  "nurseAvailSlotStatusUpdated": "Slot status updated",
+  "nurseAvailManageDayTitle": "Manage Day",
+  "nurseAvailWorkingHours": "Working Hours",
+  "nurseAvailNoHoursThisDay": "No scheduled hours for this day",
+  "nurseAvailFromWeeklySchedule": "From your weekly schedule",
+  "nurseAvailDayBlockedShort": "This day is blocked",
+  "nurseAvailCustomOverrideApplied": "Custom override applied",
+  "nurseAvailOverrideHoursTitle": "Override Working Hours",
+  "nurseAvailOverrideHoursSubtitle": "Set custom hours for this date only",
+  "nurseAvailBlockDayTitle": "Block This Day",
+  "nurseAvailUnblockDayTitle": "Unblock This Day",
+  "nurseAvailUnblockDaySubtitle": "Make this day available again",
+  "nurseAvailBlockDaySubtitle": "Mark as unavailable (vacation, day off)",
+  "nurseAvailOverrideHoursForDate": "Set custom hours for {date}",
+  "@nurseAvailOverrideHoursForDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "nurseAvailStartTime": "Start Time",
+  "nurseAvailEndTime": "End Time",
+  "nurseAvailCancel": "Cancel",
+  "nurseAvailSaveOverride": "Save Override",
+  "nurseAvailBlockConfirmTitle": "Block this day?",
+  "nurseAvailBlockConfirmMessage": "Patients will not be able to book appointments on this day.",
+  "nurseAvailBlockDay": "Block Day",
+  "nurseAvailQuickSettingsTitle": "Quick Settings",
+  "nurseAvailQuickCopyWeekdays": "Copy to All Weekdays",
+  "nurseAvailQuickCopyWeekdaysSubtitle": "Apply Monday schedule to Tue–Fri",
+  "nurseAvailQuickWeekend": "Set Weekend Availability",
+  "nurseAvailQuickWeekendSubtitle": "Configure Saturday & Sunday hours",
+  "nurseAvailQuickBlockDays": "Block Specific Days",
+  "nurseAvailQuickBlockDaysSubtitle": "Mark days when you're unavailable",
+  "nurseAvailQuickPlaceholder": "Quick settings are UI-only for now",
+  "nurseAvailQuickBlockHint": "Use the calendar to block specific days",
+  "nurseAvailAddWorkingHoursTitle": "Add Working Hours",
+  "nurseAvailAddWorkingHoursSubtitle": "Set your weekly schedule",
+  "nurseAvailSelectDay": "Select Day",
+  "nurseAvailSummary": "Summary",
+  "nurseAvailSummaryDay": "Day",
+  "nurseAvailSummaryHours": "Hours",
+  "nurseAvailSummaryDuration": "Duration",
+  "nurseAvailBookingNote": "Note: The system will automatically generate available booking slots based on your working hours and service durations.",
+  "nurseAvailAddButton": "Add Working Hours",
+  "nurseAvailInvalidTimeRange": "Invalid range",
+  "nurseAvailEndAfterStart": "End time must be after start time",
+  "nurseAvailWeekdayMonday": "Monday",
+  "nurseAvailWeekdayTuesday": "Tuesday",
+  "nurseAvailWeekdayWednesday": "Wednesday",
+  "nurseAvailWeekdayThursday": "Thursday",
+  "nurseAvailWeekdayFriday": "Friday",
+  "nurseAvailWeekdaySaturday": "Saturday",
+  "nurseAvailWeekdaySunday": "Sunday",
+  "nurseAvailSlotCount": "{count, plural, one{1 slot} other{{count} slots}}",
+  "@nurseAvailSlotCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nurseAvailDeactivateSlot": "Deactivate slot",
+  "nurseAvailActivateSlot": "Activate slot",
+  "nurseAvailDelete": "Delete",
+  "nurseAppointmentsTitle": "My Appointments",
+  "nurseAppointmentsTabToday": "Today ({count})",
+  "@nurseAppointmentsTabToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsTabUpcoming": "Upcoming ({count})",
+  "@nurseAppointmentsTabUpcoming": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsTabPast": "Past ({count})",
+  "@nurseAppointmentsTabPast": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsEmpty": "No appointments right now",
+  "nurseAppointmentsErrorGeneric": "Something went wrong.",
+  "nurseLoginRequiredShort": "Please log in",
+  "nurseProfileTitle": "Profile",
+  "nurseProfileSubtitle": "Account & preferences",
+  "nurseProfilePersonalInfoTitle": "Personal Info",
+  "nurseProfilePersonalInfoSubtitle": "Profile, services & professional details",
+  "nurseProfileRatingsTitle": "Ratings",
+  "nurseProfileRatingsSubtitle": "Reviews from patients",
+  "nurseProfileEarningsTitle": "Earnings",
+  "nurseProfileEarningsSubtitle": "Payouts and transaction history",
+  "nurseProfileLogoutTitle": "Logout",
+  "nurseProfileLogoutSubtitle": "Sign out of this device",
+  "nurseProfileLogoutDialogTitle": "Log out?",
+  "nurseProfileLogoutDialogMessage": "You will need to sign in again to access your account.",
+  "nurseProfileLogoutFailed": "Logout failed: {error}",
+  "@nurseProfileLogoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalLoadFailed": "Failed to load profile: {error}",
+  "@nursePersonalLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalExperienceInvalid": "Experience must be a valid number",
+  "nursePersonalUpdatedSuccess": "Profile updated successfully",
+  "nursePersonalUpdateFailed": "Failed to update profile: {error}",
+  "@nursePersonalUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalHeaderTitle": "Personal Info",
+  "nursePersonalHeaderSubtitle": "Manage your professional information",
+  "nursePersonalSectionPersonal": "Personal Information",
+  "nursePersonalSectionProfessional": "Professional Details",
+  "nursePersonalSaveChanges": "Save Changes",
+  "nursePersonalFullName": "Full Name",
+  "nursePersonalEmail": "Email",
+  "nursePersonalPhone": "Phone Number",
+  "nursePersonalLocation": "Location",
+  "nursePersonalAddress": "Address",
+  "nursePersonalNationalId": "National ID",
+  "nursePersonalBio": "Bio",
+  "nursePersonalLicenseNumber": "License Number",
+  "nursePersonalSpecialization": "Specialization",
+  "nursePersonalExperience": "Experience",
+  "nursePersonalServicesOffered": "Services Offered",
+  "nursePersonalNoServicesFound": "No services found.",
+  "nurseServiceAddTitle": "Add Service",
+  "nurseServiceAddSubtitle": "Add a service you provide",
+  "nurseServiceEditTitle": "Edit Service",
+  "nurseServiceEditSubtitle": "Update your service pricing",
+  "nurseServiceSelectRequired": "Please select a service",
+  "nurseServicePriceInvalid": "Please enter a valid price",
+  "nurseServiceAddedSuccess": "Service added successfully",
+  "nurseServiceUpdatedSuccess": "Service updated successfully",
+  "nurseServiceDeletedSuccess": "Service deleted successfully",
+  "nurseServiceSelectLabel": "Select Service *",
+  "nurseServiceDurationLabel": "Service Duration",
+  "nurseServicePriceLabel": "Your Price *",
+  "nurseServicePriceHint": "Enter your price",
+  "nurseServicePriceHelp": "Set your price for this service",
+  "nurseServiceChooseHint": "Choose a service...",
+  "nurseServiceSelectFirst": "Select a service first",
+  "nurseServiceFixedDuration": "(Fixed duration)",
+  "nurseServiceMinutes": "{count} minutes",
+  "@nurseServiceMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseServiceCurrencyJod": "JOD",
+  "nurseServiceAddButton": "Add Service",
+  "nurseServiceUpdateButton": "Update Service",
+  "nurseServiceDeleteTitle": "Delete Service",
+  "nurseServiceDeleteConfirm": "Are you sure you want to delete this service?",
+  "nurseServiceNoteTitle": "Note:",
+  "nurseServiceAddNoteBody": "Service duration comes from the backend catalog. You only choose the service and enter your price.",
+  "nurseServiceEditNoteBody": "Service duration comes from the backend catalog. You can update the selected service and price only.",
+  "nurseServiceSummaryService": "Service: {name}",
+  "@nurseServiceSummaryService": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseServiceSummaryDuration": "Duration: {value}",
+  "@nurseServiceSummaryDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseServiceSummaryPriceLabel": "Your Price:",
+  "nurseServiceSummaryPriceValue": "{price} JOD",
+  "@nurseServiceSummaryPriceValue": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseRatingsBasedOn": "Based on {count} reviews",
+  "@nurseRatingsBasedOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRatingsRecentReviews": "Recent reviews",
+  "nurseRatingsMockName1": "Ahmad M.",
+  "nurseRatingsMockComment1": "Very professional and punctual. Highly recommend.",
+  "nurseRatingsMockName2": "Rania K.",
+  "nurseRatingsMockComment2": "Excellent wound care. Clear explanations.",
+  "nurseRatingsMockName3": "Sara Al-Masri",
+  "nurseRatingsMockComment3": "Great visit; would book again.",
+  "nurseEarningsPlaceholderTitle": "Earnings",
+  "nurseEarningsPlaceholderBody": "Detailed earnings and payout history will appear here once connected to your backend."
+  ,
+  "nurseRegTitle": "Nurse Registration",
+  "nurseRegPhoneLabel": "Phone Number",
+  "nurseRegPhoneHint": "e.g. 079XXXXXXX",
+  "nurseRegNationalIdLabel": "National ID Number",
+  "nurseRegNationalIdHint": "Enter your national ID",
+  "nurseRegLicenseLabel": "License Number",
+  "nurseRegLicenseHint": "Enter your nursing license number",
+  "nurseRegGovernorateLabel": "Governorate",
+  "nurseRegGovernorateSelect": "Select governorate",
+  "nurseRegAreaLabel": "Area / Neighborhood",
+  "nurseRegAreaHint": "e.g. Abdoun, Jabal Amman",
+  "nurseRegSpecializationLabel": "Specialization",
+  "nurseRegSpecializationHint": "e.g. ICU, Elderly Care",
+  "nurseRegExperienceLabel": "Experience Years",
+  "nurseRegExperienceHint": "e.g. 5",
+  "nurseRegBioLabel": "Bio",
+  "nurseRegBioHint": "Write a short bio about your experience",
+  "nurseRegUploadNationalIdTitle": "Upload National ID Image",
+  "nurseRegUploadLicenseTitle": "Upload Nursing License PDF",
+  "nurseRegUploadProfileTitle": "Upload Profile Photo",
+  "nurseRegUploadImageHint": "JPG / JPEG / PNG",
+  "nurseRegUploadPdfHint": "PDF only",
+  "nurseRegConfirmAccuracy": "I confirm all information is accurate",
+  "nurseRegSubmit": "Submit Registration",
+  "nurseRegRequiredField": "Required field",
+  "nurseRegSelectGovernorateError": "Please select governorate",
+  "nurseRegConfirmInfoError": "Please confirm the information",
+  "nurseRegExperienceInvalid": "Experience years must be a valid number",
+  "nurseRegUploadNationalIdError": "Please upload national ID image",
+  "nurseRegUploadLicenseError": "Please upload nursing license PDF",
+  "nurseRegUploadProfilePhotoError": "Please upload profile photo",
+  "nurseRegSubmittedSuccess": "Registration submitted successfully",
+  "notificationsTitle": "Notifications",
+  "notificationsNurseTitle": "Nurse Notifications",
+  "notificationsLoadFailed": "Failed to load notifications",
+  "notificationsMarkOneFailed": "Failed to mark notification as read",
+  "notificationsMarkAllFailed": "Failed to mark all notifications as read",
+  "notificationsNoLinkedScreen": "No screen linked to this notification",
+  "notificationsNoBookingLinked": "No booking linked",
+  "notificationsOpenDetailsFailed": "Failed to open appointment details",
+  "notificationsUnhandledTarget": "Unhandled target screen: {target}",
+  "@notificationsUnhandledTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsReadAll": "Read all",
+  "notificationsUnreadCount": "{count, plural, one{1 unread notification} other{{count} unread notifications}}",
+  "@notificationsUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsAllRead": "All notifications are read",
+  "notificationsEmpty": "No notifications yet.",
+  "notificationsJustNow": "Just now",
+  "notificationsMinAgo": "{count} min ago",
+  "@notificationsMinAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsHoursAgo": "{count} h ago",
+  "@notificationsHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsDaysAgo": "{count} d ago",
+  "@notificationsDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsMarkAsRead": "Mark as read"
+  ,
+  "nurseAppointmentDetailsTitle": "Appointment Details",
+  "nurseAppointmentWaitingBanner": "Waiting for Payment\nYou confirmed this appointment. The patient needs to complete payment to activate it.",
+  "nurseAppointmentStatusLabel": "Status",
+  "nurseAppointmentPatientInformation": "Patient Information",
+  "nurseAppointmentCallPatient": "Call Patient",
+  "nurseAppointmentWhatsAppPatient": "Message on WhatsApp",
+  "nurseAppointmentDetailsSectionTitle": "Appointment Details",
+  "nurseAppointmentDateLabel": "Date",
+  "nurseAppointmentTimeDurationLabel": "Time & Duration",
+  "nurseAppointmentServiceLocationLabel": "Service Location",
+  "nurseAppointmentYourEarnings": "Your Earnings",
+  "nurseAppointmentPaymentStatusLabel": "Payment Status",
+  "nurseAppointmentMarkCompleted": "Mark as completed",
+  "nurseAppointmentCancelTitle": "Cancel Appointment",
+  "nurseAppointmentCancelConfirmMessage": "Are you sure you want to cancel this appointment?",
+  "nurseAppointmentCompleteConfirmMessage": "Are you sure you want to mark this appointment as completed?",
+  "nurseAppointmentCancelledSuccess": "Appointment cancelled successfully.",
+  "nurseAppointmentCompletedSuccess": "Appointment marked as completed.",
+  "nurseAppointmentStatusWaitingPayment": "Waiting for Payment",
+  "nurseAppointmentStatusActivePaid": "Active / Paid",
+  "nurseAppointmentPaymentPaid": "Paid",
+  "nurseAppointmentPaymentUnpaid": "Unpaid",
+  "nurseAppointmentPaymentNotApplicable": "N/A",
+  "nurseAppointmentServiceFallback": "Service",
+  "nurseAppointmentPaymentPendingBannerBody": "Patient hasn't paid yet — you can contact or cancel.",
+  "patientAppointmentDetailsTitle": "Appointment Details",
+  "patientAppointmentNurseInformation": "Nurse Information",
+  "patientAppointmentCall": "Call",
+  "patientAppointmentWhatsApp": "WhatsApp",
+  "patientAppointmentDate": "Date",
+  "patientAppointmentTimeDuration": "Time & Duration",
+  "patientAppointmentAddress": "Address",
+  "patientAppointmentTotalCost": "Total Cost",
+  "patientAppointmentPaymentStatus": "Payment Status",
+  "patientAppointmentPayNow": "Pay now",
+  "patientAppointmentNoActions": "No actions available for this appointment.",
+  "patientAppointmentCancelling": "Cancelling...",
+  "patientAppointmentCancelButton": "Cancel Appointment",
+  "patientAppointmentLoadFailed": "Failed to load appointment details",
+  "patientAppointmentPayToContinueTitle": "Pay to continue",
+  "patientAppointmentPayToContinueBody": "Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.",
+  "patientAppointmentStatusLabel": "Status",
+  "patientAppointmentPhoneUnavailable": "Phone number is not available.",
+  "patientAppointmentDialerOpenFailed": "Could not open dialer.",
+  "patientAppointmentWhatsAppOpenFailed": "Could not open WhatsApp.",
+  "patientAppointmentCancelTitle": "Cancel appointment",
+  "patientAppointmentCancelConfirm": "Are you sure you want to cancel this appointment?",
+  "patientAppointmentCancelConfirmAction": "Yes, cancel",
+  "patientAppointmentCancelledSuccess": "Appointment cancelled successfully.",
+  "patientAppointmentHours": "{count} hr",
+  "@patientAppointmentHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientAppointmentMinutes": "{count} min",
+  "@patientAppointmentMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientAppointmentPaymentAwaitingNurse": "AWAITING NURSE",
+  "patientAppointmentPaymentUnpaid": "UNPAID",
+  "patientAppointmentPaymentPaid": "PAID",
+  "patientAppointmentPaymentCancelled": "CANCELLED",
+  "patientAppointmentPaymentRejected": "REJECTED",
+  "patientNurseProfileAboutTab": "About",
+  "patientNurseProfileReviewsTab": "Reviews ({count})",
+  "@patientNurseProfileReviewsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientNurseProfileLocation": "Location",
+  "patientNurseProfileAvailability": "Availability",
+  "patientNurseProfileServicesOffered": "Services Offered",
+  "patientNurseProfileNoServicesTitle": "This nurse has no available services yet.",
+  "patientNurseProfileNoServicesSubtitle": "You cannot book a service at the moment.",
+  "patientNurseProfileReviews": "Reviews",
+  "patientNurseProfileReviewsPlaceholder": "Reviews will appear after backend review endpoints are available.",
+  "patientNurseProfileBookServiceRequest": "Book Service Request",
+  "patientNurseProfileNoServicesAvailable": "No Services Available",
+  "patientRequestServiceTitle": "Service Request",
+  "patientRequestStepServiceDetails": "Service Details",
+  "patientRequestStepReviewConfirm": "Review & Confirm",
+  "patientRequestRequiredFields": "Please complete all required fields.",
+  "patientRequestSelectServiceType": "Select Service Type",
+  "patientRequestNoServicesForNurse": "No services available for this nurse.",
+  "patientRequestSelectDate": "Select Date",
+  "patientRequestNoAvailableDates": "No available dates found.",
+  "patientRequestSelectTimeSlot": "Select Available Time Slot",
+  "patientRequestSelectServiceDateFirst": "Select a service and date to view available time slots.",
+  "patientRequestNoAvailableTimeSlots": "No available time slots for this date.",
+  "patientRequestServiceAddress": "Service Address",
+  "patientRequestAddressHint": "Enter your complete address",
+  "patientRequestAdditionalNotesOptional": "Additional Notes (Optional)",
+  "patientRequestNotesHint": "Any special instructions or medical information...",
+  "patientRequestReviewAndConfirm": "Review and Confirm",
+  "patientRequestReviewYourRequest": "Review Your Request",
+  "patientRequestServiceType": "Service Type",
+  "patientRequestDuration": "Duration",
+  "patientRequestTime": "Time",
+  "patientRequestNotes": "Notes",
+  "patientRequestServiceCost": "Service Cost",
+  "patientRequestService": "Service",
+  "patientRequestTotalPrice": "Total Price",
+  "patientRequestSubmitRequest": "Submit Request",
+  "patientRequestSubmittedTitle": "Request Submitted!",
+  "patientRequestSubmittedBody": "Your service request has been sent to\n{name}. You will receive a\nnotification once the nurse responds.",
+  "@patientRequestSubmittedBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "patientRequestSummary": "Request Summary",
+  "patientRequestNurseLabel": "Nurse:",
+  "patientRequestServiceLabel": "Service:",
+  "patientRequestDurationLabel": "Duration:",
+  "patientRequestDateLabel": "Date:",
+  "patientRequestTimeLabel": "Time:",
+  "patientRequestTotalPriceLabel": "Total Price:",
+  "patientRequestBackToNurses": "Back to Nurses",
+  "statusBannerNursePending": "This booking is waiting for your response.",
+  "statusBannerPatientPending": "Your request is pending confirmation.",
+  "statusBannerConfirmed": "Appointment confirmed. See you at the scheduled time.",
+  "statusBannerNurseWaitingPayment": "Payment is pending from the patient.",
+  "statusBannerPatientWaitingPayment": "Please complete payment to finalize this appointment.",
+  "statusBannerPaid": "Payment received. Appointment is active.",
+  "statusBannerCompleted": "This appointment has been completed.",
+  "statusBannerCancelled": "This appointment was cancelled.",
+  "statusBannerRejected": "This request was not accepted.",
+  "paymentSuccessTitle": "Payment Successful",
+  "paymentSuccessAmountPaid": "Amount paid: {amount}",
+  "@paymentSuccessAmountPaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentBackToAppointments": "Back to Appointments",
+  "paymentFailedTitle": "Payment Failed",
+  "paymentFailedBody": "We could not process your payment. Please try again.",
+  "paymentRetryButton": "Retry Payment",
+  "forgotTitle": "Forgot Password",
+  "forgotEnterEmail": "Please enter your email",
+  "forgotEnterValidEmail": "Please enter a valid email",
+  "forgotServerTimeoutMessage": "The server took too long to respond. Check backend/email settings and try again.",
+  "forgotResetPasswordTitle": "Reset your password",
+  "forgotResetPasswordSubtitle": "Enter your email and we will send you a link to reset your password.",
+  "forgotResetLinkHint": "We will send a reset link to your email.",
+  "forgotSendResetLink": "Send Reset Link",
+  "nurseResubmitTitle": "Resubmit Verification",
+  "nurseResubmitNoFileSelected": "No file selected",
+  "nurseResubmitExperienceInvalid": "Experience years must be a valid number",
+  "nurseResubmitSubmittedSuccess": "Resubmitted successfully. Waiting for admin approval.",
+  "nurseResubmitSubmitFailed": "Submit failed: {error}",
+  "@nurseResubmitSubmitFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseResubmitUpdateDetailsTitle": "Update your details",
+  "nurseResubmitUpdateDetailsSubtitle": "Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.",
+  "nurseResubmitPhoneRequired": "Phone is required",
+  "nurseResubmitPhoneInvalid": "Enter a valid phone number",
+  "nurseResubmitAddressRequired": "Address is required",
+  "nurseResubmitLocationHint": "City / Location (e.g., Amman)",
+  "nurseResubmitLocationRequired": "Location is required",
+  "nurseResubmitNationalIdRequired": "National ID is required",
+  "nurseResubmitNationalIdInvalid": "Enter a valid National ID",
+  "nurseResubmitLicenseRequired": "License number is required",
+  "nurseResubmitSpecializationRequired": "Specialization is required",
+  "nurseResubmitExperienceRequired": "Experience years is required",
+  "nurseResubmitEnterValidNumber": "Enter a valid number",
+  "nurseResubmitDocumentsTitle": "Documents",
+  "nurseResubmitDocumentsSubtitle": "Upload the requested updated files.",
+  "nurseResubmitNationalIdTitle": "National ID",
+  "nurseResubmitNationalIdHint": "Upload your National ID (image/PDF)",
+  "nurseResubmitLicenseTitle": "Nursing License",
+  "nurseResubmitLicenseHint": "Upload your license (image/PDF)",
+  "nurseResubmitProfilePhotoTitle": "Profile Photo",
+  "nurseResubmitProfilePhotoHint": "Upload a profile photo (image)",
+  "nurseResubmitChoose": "Choose",
+  "nurseResubmitSubmitForReview": "Submit for Review",
+  "nurseAvailDurationHoursMinutes": "{hours}h {minutes}m",
+  "@nurseAvailDurationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

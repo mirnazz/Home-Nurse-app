@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_screen.dart';
@@ -10,12 +11,16 @@ class PaymentFailedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppointmentUiColors.pageBackground,
       appBar: AppBar(
         backgroundColor: AppointmentUiColors.tealHeader,
         elevation: 0,
-        title: const Text('Payment Status', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+          l10n.patientAppointmentPaymentStatus,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -43,8 +48,8 @@ class PaymentFailedScreen extends StatelessWidget {
                   child: const Icon(Icons.error_rounded, size: 52, color: Color(0xFFDC2626)),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Payment Failed',
+                Text(
+                  l10n.paymentFailedTitle,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -54,7 +59,7 @@ class PaymentFailedScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'We could not process your payment. Please try again.',
+                  l10n.paymentFailedBody,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -79,8 +84,8 @@ class PaymentFailedScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text(
-                      'Retry Payment',
+                    child: Text(
+                      l10n.paymentRetryButton,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
@@ -96,8 +101,8 @@ class PaymentFailedScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text(
-                      'Back to Appointments',
+                    child: Text(
+                      l10n.paymentBackToAppointments,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),

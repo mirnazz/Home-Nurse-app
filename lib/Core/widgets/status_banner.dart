@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 
 /// Contextual banner for appointment details (Material 3 style).
@@ -13,6 +14,7 @@ class StatusBanner extends StatelessWidget {
   });
 
   static (Color bg, Color fg, IconData icon, String message) _content({
+    required AppLocalizations l10n,
     required AppointmentStatus status,
     required bool isNurseContext,
   }) {
@@ -23,15 +25,15 @@ class StatusBanner extends StatelessWidget {
           const Color(0xFF374151),
           Icons.schedule_rounded,
           isNurseContext
-              ? 'This booking is waiting for your response.'
-              : 'Your request is pending confirmation.',
+              ? l10n.statusBannerNursePending
+              : l10n.statusBannerPatientPending,
         );
       case AppointmentStatus.confirmed:
         return (
           const Color(0xFFD1FAE5),
           const Color(0xFF047857),
           Icons.check_circle_outline_rounded,
-          'Appointment confirmed. See you at the scheduled time.',
+          l10n.statusBannerConfirmed,
         );
       case AppointmentStatus.waitingPayment:
         return (
@@ -39,43 +41,45 @@ class StatusBanner extends StatelessWidget {
           const Color(0xFFC2410C),
           Icons.payments_outlined,
           isNurseContext
-              ? 'Payment is pending from the patient.'
-              : 'Please complete payment to finalize this appointment.',
+              ? l10n.statusBannerNurseWaitingPayment
+              : l10n.statusBannerPatientWaitingPayment,
         );
       case AppointmentStatus.paid:
         return (
           const Color(0xFFD1FAE5),
           const Color(0xFF15803D),
           Icons.verified_outlined,
-          'Payment received. Appointment is active.',
+          l10n.statusBannerPaid,
         );
       case AppointmentStatus.completed:
         return (
           const Color(0xFFDBEAFE),
           const Color(0xFF1D4ED8),
           Icons.task_alt_rounded,
-          'This appointment has been completed.',
+          l10n.statusBannerCompleted,
         );
       case AppointmentStatus.cancelled:
         return (
           const Color(0xFFFEE2E2),
           const Color(0xFFB91C1C),
           Icons.cancel_outlined,
-          'This appointment was cancelled.',
+          l10n.statusBannerCancelled,
         );
       case AppointmentStatus.rejected:
         return (
           const Color(0xFFFEE2E2),
           const Color(0xFF991B1B),
           Icons.block_rounded,
-          'This request was not accepted.',
+          l10n.statusBannerRejected,
         );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final (bg, fg, icon, message) = _content(
+      l10n: l10n,
       status: status,
       isNurseContext: isNurseContext,
     );

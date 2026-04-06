@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
@@ -39,22 +40,22 @@ class _NurseAppointmentDetailsScreenState
         _appointment.status == AppointmentStatus.paid;
   }
 
-  String get _statusLabel {
+  String _statusLabel(AppLocalizations l10n) {
     switch (_appointment.status) {
       case AppointmentStatus.pending:
-        return 'Waiting for Payment';
+        return l10n.nurseAppointmentStatusWaitingPayment;
       case AppointmentStatus.confirmed:
-        return 'Accepted';
+        return l10n.nurseStatusAccepted;
       case AppointmentStatus.paid:
-        return 'Active / Paid';
+        return l10n.nurseAppointmentStatusActivePaid;
       case AppointmentStatus.completed:
-        return 'Completed';
+        return l10n.nurseStatusCompleted;
       case AppointmentStatus.cancelled:
-        return 'Cancelled';
+        return l10n.nurseStatusCancelled;
       case AppointmentStatus.rejected:
-        return 'Rejected';
+        return l10n.nurseStatusRejected;
       case AppointmentStatus.waitingPayment:
-        return 'Waiting for Payment';
+        return l10n.nurseAppointmentStatusWaitingPayment;
     }
   }
 
@@ -92,26 +93,29 @@ class _NurseAppointmentDetailsScreenState
     }
   }
 
-  String get _paymentLabel {
+  String _paymentLabel(AppLocalizations l10n) {
     switch (_appointment.status) {
       case AppointmentStatus.paid:
       case AppointmentStatus.completed:
-        return 'PAID';
+        return l10n.nurseAppointmentPaymentPaid;
       case AppointmentStatus.cancelled:
       case AppointmentStatus.rejected:
-        return '—';
+        return l10n.nurseAppointmentPaymentNotApplicable;
       case AppointmentStatus.pending:
       case AppointmentStatus.waitingPayment:
       case AppointmentStatus.confirmed:
-        return 'UNPAID';
+        return l10n.nurseAppointmentPaymentUnpaid;
     }
   }
 
-  Color get _paymentChipBg {
-    switch (_paymentLabel) {
-      case 'PAID':
+  Color _paymentChipBg(AppLocalizations l10n) {
+    switch (_appointment.status) {
+      case AppointmentStatus.paid:
+      case AppointmentStatus.completed:
         return Colors.white.withOpacity(0.18);
-      case 'UNPAID':
+      case AppointmentStatus.pending:
+      case AppointmentStatus.waitingPayment:
+      case AppointmentStatus.confirmed:
         return Colors.white.withOpacity(0.18);
       default:
         return Colors.white.withOpacity(0.12);
@@ -122,22 +126,22 @@ class _NurseAppointmentDetailsScreenState
     return DateFormat('yyyy-MM-dd').format(_appointment.dateTime);
   }
 
-  String get _formattedTimeAndDuration {
+  String _formattedTimeAndDuration(AppLocalizations l10n) {
     final time = DateFormat.jm().format(_appointment.dateTime);
     final duration = _appointment.durationMinutes;
     if (duration == null || duration <= 0) return time;
-    return '$time (${duration}min)';
+    return '$time (${l10n.nurseRequestsDurationMinutes(duration)})';
   }
 
-  String get _patientName {
+  String _patientName(AppLocalizations l10n) {
     return _appointment.patientName.trim().isEmpty
-        ? 'Patient'
+        ? l10n.nurseHomePatientFallback
         : _appointment.patientName.trim();
   }
 
-  String get _serviceName {
+  String _serviceName(AppLocalizations l10n) {
     return _appointment.serviceName.trim().isEmpty
-        ? 'Service'
+        ? l10n.nurseAppointmentServiceFallback
         : _appointment.serviceName.trim();
   }
 
@@ -157,7 +161,8 @@ class _NurseAppointmentDetailsScreenState
   }
 
   String get _initials {
-    final parts = _patientName
+    final l10n = AppLocalizations.of(context)!;
+    final parts = _patientName(l10n)
         .split(' ')
         .where((e) => e.trim().isNotEmpty)
         .toList();
@@ -182,7 +187,7 @@ class _NurseAppointmentDetailsScreenState
           actions: [
             TextButton(
               onPressed: _isProcessing ? null : () => Navigator.pop(context, false),
-              child: const Text('No'),
+              child: Text(AppLocalizations.of(context)!.nurseDialogNo),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -200,10 +205,11 @@ class _NurseAppointmentDetailsScreenState
   }
 
   Future<void> _handleCancel() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await _showConfirmDialog(
-      title: 'Cancel Appointment',
-      message: 'Are you sure you want to cancel this appointment?',
-      confirmText: 'Cancel Appointment',
+      title: l10n.nurseAppointmentCancelTitle,
+      message: l10n.nurseAppointmentCancelConfirmMessage,
+      confirmText: l10n.nurseAppointmentCancelTitle,
       destructive: true,
     );
 
@@ -223,9 +229,7 @@ class _NurseAppointmentDetailsScreenState
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Appointment cancelled successfully.'),
-        ),
+        SnackBar(content: Text(l10n.nurseAppointmentCancelledSuccess)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -244,10 +248,11 @@ class _NurseAppointmentDetailsScreenState
   }
 
   Future<void> _handleComplete() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await _showConfirmDialog(
-      title: 'Mark as Completed',
-      message: 'Are you sure you want to mark this appointment as completed?',
-      confirmText: 'Mark as Completed',
+      title: l10n.nurseAppointmentMarkCompleted,
+      message: l10n.nurseAppointmentCompleteConfirmMessage,
+      confirmText: l10n.nurseAppointmentMarkCompleted,
     );
 
     if (confirmed != true) return;
@@ -266,9 +271,7 @@ class _NurseAppointmentDetailsScreenState
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Appointment marked as completed.'),
-        ),
+        SnackBar(content: Text(l10n.nurseAppointmentCompletedSuccess)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -288,6 +291,7 @@ class _NurseAppointmentDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
       appBar: AppBar(
@@ -298,16 +302,16 @@ class _NurseAppointmentDetailsScreenState
         leading: TextButton.icon(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: Colors.white),
-          label: const Text(
-            'Back',
+          label: Text(
+            l10n.profileCancel,
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        title: const Text(
-          'Appointment Details',
+        title: Text(
+          l10n.nurseAppointmentDetailsTitle,
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
         ),
         centerTitle: true,
@@ -325,19 +329,19 @@ class _NurseAppointmentDetailsScreenState
                   color: const Color(0xFFF97316),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.error_outline,
                       color: Colors.white,
                       size: 20,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Waiting for Payment\nYou confirmed this appointment. The patient needs to complete payment to activate it.',
-                        style: TextStyle(
+                        l10n.nurseAppointmentWaitingBanner,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 12.5,
@@ -350,11 +354,11 @@ class _NurseAppointmentDetailsScreenState
               ),
 
             _SectionCard(
-              title: 'Status',
+              title: l10n.nurseAppointmentStatusLabel,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: _StatusChip(
-                  label: _statusLabel,
+                  label: _statusLabel(l10n),
                   color: _statusColor,
                   background: _statusBg,
                 ),
@@ -363,7 +367,7 @@ class _NurseAppointmentDetailsScreenState
             const SizedBox(height: 12),
 
             _SectionCard(
-              title: 'Patient Information',
+              title: l10n.nurseAppointmentPatientInformation,
               child: Column(
                 children: [
                   Row(
@@ -388,7 +392,7 @@ class _NurseAppointmentDetailsScreenState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _patientName,
+                                _patientName(l10n),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 14,
@@ -397,7 +401,7 @@ class _NurseAppointmentDetailsScreenState
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                _serviceName,
+                                _serviceName(l10n),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
@@ -427,7 +431,7 @@ class _NurseAppointmentDetailsScreenState
                       Expanded(
                         child: _ActionMiniButton(
                           icon: Icons.call_outlined,
-                          label: 'Call Patient',
+                          label: l10n.nurseAppointmentCallPatient,
                           enabled: _phone.isNotEmpty,
                           borderColor: const Color(0xFFE5E7EB),
                           textColor: const Color(0xFF9CA3AF),
@@ -439,7 +443,7 @@ class _NurseAppointmentDetailsScreenState
                       Expanded(
                         child: _ActionMiniButton(
                           icon: Icons.chat_outlined,
-                          label: 'Message on WhatsApp',
+                          label: l10n.nurseAppointmentWhatsAppPatient,
                           enabled: _phone.isNotEmpty,
                           borderColor: const Color(0xFF22C55E),
                           textColor: const Color(0xFF22C55E),
@@ -455,24 +459,24 @@ class _NurseAppointmentDetailsScreenState
             const SizedBox(height: 12),
 
             _SectionCard(
-              title: 'Appointment Details',
+              title: l10n.nurseAppointmentDetailsSectionTitle,
               child: Column(
                 children: [
                   _InfoTile(
                     icon: Icons.calendar_today_outlined,
-                    label: 'Date',
+                    label: l10n.nurseAppointmentDateLabel,
                     value: _formattedDate,
                   ),
                   const SizedBox(height: 10),
                   _InfoTile(
                     icon: Icons.access_time_outlined,
-                    label: 'Time & Duration',
-                    value: _formattedTimeAndDuration,
+                    label: l10n.nurseAppointmentTimeDurationLabel,
+                    value: _formattedTimeAndDuration(l10n),
                   ),
                   const SizedBox(height: 10),
                   _InfoTile(
                     icon: Icons.location_on_outlined,
-                    label: 'Service Location',
+                    label: l10n.nurseAppointmentServiceLocationLabel,
                     value: _appointment.location.trim().isEmpty
                         ? '-'
                         : _appointment.location.trim(),
@@ -494,8 +498,8 @@ class _NurseAppointmentDetailsScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Your Earnings',
+                        Text(
+                          l10n.nurseAppointmentYourEarnings,
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 11,
@@ -517,8 +521,8 @@ class _NurseAppointmentDetailsScreenState
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text(
-                        'Payment Status',
+                      Text(
+                        l10n.nurseAppointmentPaymentStatusLabel,
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 11,
@@ -532,11 +536,11 @@ class _NurseAppointmentDetailsScreenState
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _paymentChipBg,
+                          color: _paymentChipBg(l10n),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          _paymentLabel,
+                          _paymentLabel(l10n),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
@@ -574,8 +578,8 @@ class _NurseAppointmentDetailsScreenState
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Mark as completed',
+                      : Text(
+                          l10n.nurseAppointmentMarkCompleted,
                           style: TextStyle(fontWeight: FontWeight.w800),
                         ),
                 ),
@@ -592,8 +596,8 @@ class _NurseAppointmentDetailsScreenState
                     color: Color(0xFFDC2626),
                     size: 18,
                   ),
-                  label: const Text(
-                    'Cancel Appointment',
+                  label: Text(
+                    l10n.nurseAppointmentCancelTitle,
                     style: TextStyle(
                       color: Color(0xFFDC2626),
                       fontWeight: FontWeight.w800,

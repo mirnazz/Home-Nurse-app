@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 
 /// Small pill showing [AppointmentStatus] with role-aware colors.
@@ -9,56 +10,59 @@ class StatusChip extends StatelessWidget {
 
   const StatusChip({super.key, required this.status});
 
-  static (Color bg, Color fg, String label) styleFor(AppointmentStatus s) {
+  static (Color bg, Color fg, String label) styleFor(
+    AppLocalizations l10n,
+    AppointmentStatus s,
+  ) {
     switch (s) {
       case AppointmentStatus.pending:
         return (
           const Color(0xFFE5E7EB),
           const Color(0xFF374151),
-          'Pending',
+          l10n.patientAppointmentStatusPending,
         );
       case AppointmentStatus.confirmed:
         return (
           const Color(0xFFD1FAE5),
           const Color(0xFF047857),
-          'Confirmed',
+          l10n.patientAppointmentStatusConfirmed,
         );
       case AppointmentStatus.waitingPayment:
         return (
           const Color(0xFFFFEDD5),
           const Color(0xFFC2410C),
-          'Waiting payment',
+          l10n.nurseAppointmentStatusWaitingPayment,
         );
       case AppointmentStatus.paid:
         return (
           const Color(0xFFD1FAE5),
           const Color(0xFF15803D),
-          'Active/Paid',
+          l10n.patientAppointmentStatusActivePaid,
         );
       case AppointmentStatus.completed:
         return (
           const Color(0xFFD1FAE5),
           const Color(0xFF15803D),
-          'Completed',
+          l10n.patientAppointmentStatusCompleted,
         );
       case AppointmentStatus.cancelled:
         return (
           const Color(0xFFFEE2E2),
           const Color(0xFFB91C1C),
-          'Cancelled',
+          l10n.patientAppointmentStatusCancelled,
         );
       case AppointmentStatus.rejected:
         return (
           const Color(0xFFFEE2E2),
           const Color(0xFF991B1B),
-          'Rejected',
+          l10n.patientAppointmentStatusRejected,
         );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, label) = styleFor(status);
+    final (bg, fg, label) = styleFor(AppLocalizations.of(context)!, status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(

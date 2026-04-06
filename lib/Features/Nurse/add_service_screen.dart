@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'service_catalog_item.dart';
@@ -61,9 +62,10 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   }
 
   Future<void> _addService() async {
+    final l10n = AppLocalizations.of(context)!;
     if (selectedService == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a service")),
+        SnackBar(content: Text(l10n.nurseServiceSelectRequired)),
       );
       return;
     }
@@ -71,7 +73,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     final price = double.tryParse(_priceController.text.trim());
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid price")),
+        SnackBar(content: Text(l10n.nurseServicePriceInvalid)),
       );
       return;
     }
@@ -87,7 +89,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Service added successfully")),
+        SnackBar(content: Text(l10n.nurseServiceAddedSuccess)),
       );
 
       Navigator.pop(context, true);
@@ -110,6 +112,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -122,11 +125,11 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           ),
           onPressed: isLoading ? null : () => Navigator.pop(context),
         ),
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Add Service",
+              l10n.nurseServiceAddTitle,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
@@ -134,7 +137,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               ),
             ),
             Text(
-              "Add a service you provide",
+              l10n.nurseServiceAddSubtitle,
               style: TextStyle(
                 color: Colors.white70,
                 fontWeight: FontWeight.w500,
@@ -151,20 +154,20 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLabel("Select Service *"),
+                  _buildLabel(l10n.nurseServiceSelectLabel),
                   const SizedBox(height: 8),
                   _buildServiceDropdown(),
                   const SizedBox(height: 20),
-                  _buildLabel("Service Duration"),
+                  _buildLabel(l10n.nurseServiceDurationLabel),
                   const SizedBox(height: 8),
                   _buildDurationField(),
                   const SizedBox(height: 20),
-                  _buildLabel("Your Price *"),
+                  _buildLabel(l10n.nurseServicePriceLabel),
                   const SizedBox(height: 8),
                   _buildPriceField(),
                   const SizedBox(height: 8),
                   Text(
-                    "Set your price for this service",
+                    l10n.nurseServicePriceHelp,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -172,7 +175,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildNoteCard(),
+                  _buildNoteCard(l10n),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
@@ -194,8 +197,8 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              "Add Service",
+                          : Text(
+                              l10n.nurseServiceAddButton,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -222,6 +225,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   }
 
   Widget _buildServiceDropdown() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
@@ -232,7 +236,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<ServiceCatalogItem>(
           value: selectedService,
-          hint: const Text("Choose a service..."),
+          hint: Text(l10n.nurseServiceChooseHint),
           isExpanded: true,
           items: serviceCatalog.map((service) {
             return DropdownMenuItem<ServiceCatalogItem>(
@@ -249,6 +253,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   }
 
   Widget _buildDurationField() {
+    final l10n = AppLocalizations.of(context)!;
     final hasSelection = selectedService != null;
 
     return Container(
@@ -270,8 +275,10 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           const SizedBox(width: 12),
           Text(
             hasSelection
-                ? "${selectedService!.defaultDurationInMinutes} minutes"
-                : "Select a service first",
+                ? l10n.nurseServiceMinutes(
+                    selectedService!.defaultDurationInMinutes,
+                  )
+                : l10n.nurseServiceSelectFirst,
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: hasSelection
@@ -281,7 +288,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            "(Fixed duration)",
+            l10n.nurseServiceFixedDuration,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -294,6 +301,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   }
 
   Widget _buildPriceField() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
@@ -310,14 +318,14 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               controller: _priceController,
               enabled: !isLoading,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: "Enter your price",
+              decoration: InputDecoration(
+                hintText: l10n.nurseServicePriceHint,
                 border: InputBorder.none,
               ),
             ),
           ),
-          const Text(
-            "JOD",
+          Text(
+            l10n.nurseServiceCurrencyJod,
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: Color(0xFF6B7280),
@@ -328,7 +336,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     );
   }
 
-  Widget _buildNoteCard() {
+  Widget _buildNoteCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -336,11 +344,11 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFB8DCE8)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Note: ",
+            "${l10n.nurseServiceNoteTitle} ",
             style: TextStyle(
               fontWeight: FontWeight.w900,
               color: Color(0xFF1D2433),
@@ -349,7 +357,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           ),
           Expanded(
             child: Text(
-              "Service duration comes from the backend catalog. You only choose the service and enter your price.",
+              l10n.nurseServiceAddNoteBody,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,

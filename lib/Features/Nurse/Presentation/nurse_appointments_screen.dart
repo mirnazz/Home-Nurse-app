@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
@@ -187,6 +188,10 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
   }
 
   Widget _buildErrorState() {
+    final l10n = AppLocalizations.of(context)!;
+    final errorText = (_error != null && _error!.toLowerCase().contains('user not logged in'))
+        ? l10n.nurseLoginRequiredShort
+        : (_error ?? l10n.nurseAppointmentsErrorGeneric);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -194,7 +199,7 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _error ?? 'Something went wrong.',
+              errorText,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey.shade700,
@@ -205,7 +210,7 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
             const SizedBox(height: 14),
             ElevatedButton(
               onPressed: _loadAppointments,
-              child: const Text('Retry'),
+              child: Text(l10n.nurseRetry),
             ),
           ],
         ),
@@ -214,6 +219,7 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
   }
 
   Widget _buildBody() {
+    final l10n = AppLocalizations.of(context)!;
     final today = _todayAppointments;
     final upcoming = _upcomingAppointments;
     final past = _pastAppointments;
@@ -235,8 +241,8 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'My Appointments',
+          Text(
+            l10n.nurseAppointmentsTitle,
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
@@ -263,9 +269,9 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
                 fontSize: 13,
               ),
               tabs: [
-                Tab(text: 'Today ($todayCount)'),
-                Tab(text: 'Upcoming ($upcomingCount)'),
-                Tab(text: 'Past ($pastCount)'),
+                Tab(text: l10n.nurseAppointmentsTabToday(todayCount)),
+                Tab(text: l10n.nurseAppointmentsTabUpcoming(upcomingCount)),
+                Tab(text: l10n.nurseAppointmentsTabPast(pastCount)),
               ],
             ),
           ),
@@ -282,9 +288,9 @@ class _NurseAppointmentsScreenState extends State<NurseAppointmentsScreen>
       content = TabBarView(
         controller: _appointmentsTabController,
         children: [
-          _buildListView(today, 'No appointments for today.'),
-          _buildListView(upcoming, 'No upcoming appointments.'),
-          _buildListView(past, 'No past appointments.'),
+          _buildListView(today, l10n.nurseAppointmentsEmpty),
+          _buildListView(upcoming, l10n.nurseAppointmentsEmpty),
+          _buildListView(past, l10n.nurseAppointmentsEmpty),
         ],
       );
     }

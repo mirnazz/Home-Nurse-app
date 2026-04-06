@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
@@ -88,12 +89,13 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final upcoming = _upcomingAppointments;
     final past = _pastAppointments;
     final list = _segmentIndex == 0 ? upcoming : past;
     final emptyMessage = _segmentIndex == 0
-        ? 'No upcoming appointments.'
-        : 'No past appointments.';
+        ? l10n.patientAppointmentsNoUpcoming
+        : l10n.patientAppointmentsNoPast;
 
     return Scaffold(
       backgroundColor: AppointmentUiColors.pageBackground,
@@ -167,6 +169,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -179,9 +182,9 @@ class _ErrorState extends StatelessWidget {
               color: Colors.redAccent,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Failed to load appointments',
-              style: TextStyle(
+            Text(
+              l10n.patientAppointmentsLoadFailed,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
@@ -199,7 +202,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(l10n.patientRetry),
             ),
           ],
         ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Registration/Presentation/nurse_registration_screen.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_data.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_screen.dart';
+import 'package:nurse_app/app_locale_scope.dart';
 
 enum UserRole { patient, nurse }
 
@@ -51,6 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bool isNurse = selectedRole == UserRole.nurse;
 
     return Scaffold(
@@ -63,7 +66,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBackToLogin(context),
+                Row(
+                  children: [
+                    Expanded(child: _buildBackToLogin(context, l10n)),
+                    TextButton(
+                      onPressed: () => AppLocaleScope.of(context)
+                          .setLocale(const Locale('en')),
+                      child: Text(l10n.patientMoreLanguageEnglish),
+                    ),
+                    TextButton(
+                      onPressed: () => AppLocaleScope.of(context)
+                          .setLocale(const Locale('ar')),
+                      child: Text(l10n.patientMoreLanguageArabic),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 26),
 
@@ -71,7 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     children: [
                       Text(
-                        isNurse ? "Create Nurse Account" : "Create Account",
+                        isNurse
+                            ? l10n.signupCreateNurseAccount
+                            : l10n.signupCreateAccount,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 28,
@@ -84,8 +103,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 8),
                       Text(
                         isNurse
-                            ? "Complete nurse registration in two steps"
-                            : "Sign up to get started",
+                            ? l10n.signupNurseSubtitle
+                            : l10n.signupPatientSubtitle,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 15,
@@ -106,7 +125,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            'Step 1 of 4',
+                            l10n.signupStep1Of4,
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,
@@ -139,9 +158,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "I am a:",
-                        style: TextStyle(
+                      Text(
+                        l10n.signupIAmA,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: _text,
@@ -149,19 +168,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      _buildRoleSelector(),
+                      _buildRoleSelector(l10n),
 
                       const SizedBox(height: 18),
 
                       _buildInputField(
                         controller: fullNameController,
-                        label: "Full Name",
-                        hint: "Enter your full name",
+                        label: l10n.fullNameLabel,
+                        hint: l10n.fullNameHint,
                         textInputAction: TextInputAction.next,
                         validator:
                             (value) =>
                                 value == null || value.trim().isEmpty
-                                    ? "Full name is required"
+                                    ? l10n.validationFullNameRequired
                                     : null,
                       ),
 
@@ -169,14 +188,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       _buildInputField(
                         controller: emailController,
-                        label: "Email Address",
-                        hint: "Enter your email",
+                        label: l10n.signupEmailLabel,
+                        hint: l10n.signupEmailHint,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         validator:
                             (value) =>
                                 value == null || !value.contains('@')
-                                    ? "Enter valid email"
+                                    ? l10n.validationEmailInvalid
                                     : null,
                       ),
 
@@ -185,8 +204,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (!isNurse) ...[
                         _buildInputField(
                           controller: phoneController,
-                          label: "Phone Number",
-                          hint: "e.g. 0790000000",
+                          label: l10n.phoneNumberLabel,
+                          hint: l10n.phoneNumberHint,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
                           inputFormatters: [
@@ -194,9 +213,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                           validator: (value) {
                             final v = value?.trim() ?? '';
-                            if (v.isEmpty) return 'Phone number is required';
+                            if (v.isEmpty) return l10n.validationPhoneRequired;
                             if (v.length < 8 || v.length > 15) {
-                              return 'Enter a valid phone number';
+                              return l10n.validationPhoneInvalid;
                             }
                             return null;
                           },
@@ -206,8 +225,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       _buildInputField(
                         controller: passwordController,
-                        label: "Password",
-                        hint: "Create a password",
+                        label: l10n.signupPasswordLabel,
+                        hint: l10n.signupPasswordHint,
                         obscureText: obscurePassword,
                         textInputAction: TextInputAction.next,
                         suffixIcon: IconButton(
@@ -225,7 +244,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         validator:
                             (value) =>
                                 value == null || value.length < 6
-                                    ? "Minimum 6 characters"
+                                    ? l10n.validationPasswordMin
                                     : null,
                       ),
 
@@ -233,8 +252,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       _buildInputField(
                         controller: confirmPasswordController,
-                        label: "Confirm Password",
-                        hint: "Confirm your password",
+                        label: l10n.confirmPasswordLabel,
+                        hint: l10n.confirmPasswordHint,
                         obscureText: obscureConfirmPassword,
                         textInputAction: TextInputAction.done,
                         suffixIcon: IconButton(
@@ -256,7 +275,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         validator:
                             (value) =>
                                 value != passwordController.text
-                                    ? "Passwords do not match"
+                                    ? l10n.validationPasswordsMismatch
                                     : null,
                       ),
 
@@ -286,7 +305,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ),
                                   )
                                   : Text(
-                                    isNurse ? "Continue" : "Sign Up",
+                                    isNurse
+                                        ? l10n.continueButton
+                                        : l10n.signUp,
                                     style: const TextStyle(
                                       fontSize: 16.5,
                                       fontWeight: FontWeight.w800,
@@ -300,8 +321,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Center(
                         child: Text(
                           isNurse
-                              ? "You will complete verification in the next step."
-                              : "Create your account to continue.",
+                              ? l10n.signupFooterNurse
+                              : l10n.signupFooterPatient,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 12.8,
@@ -324,7 +345,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildBackToLogin(BuildContext context) {
+  Widget _buildBackToLogin(BuildContext context, AppLocalizations l10n) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
@@ -338,12 +359,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: _muted),
-            SizedBox(width: 6),
+          children: [
+            const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: _muted),
+            const SizedBox(width: 6),
             Text(
-              "Back to Login",
-              style: TextStyle(
+              l10n.backToLogin,
+              style: const TextStyle(
                 color: _muted,
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
@@ -355,7 +376,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildRoleSelector() {
+  Widget _buildRoleSelector(AppLocalizations l10n) {
     final bool patientSelected = selectedRole == UserRole.patient;
     final bool nurseSelected = selectedRole == UserRole.nurse;
 
@@ -370,7 +391,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         children: [
           Expanded(
             child: _roleChip(
-              title: "Patient",
+              title: l10n.rolePatient,
               selected: patientSelected,
               onTap: () => setState(() => selectedRole = UserRole.patient),
             ),
@@ -378,7 +399,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: _roleChip(
-              title: "Nurse",
+              title: l10n.roleNurse,
               selected: nurseSelected,
               onTap: () => setState(() => selectedRole = UserRole.nurse),
             ),
@@ -539,9 +560,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.signUpErrorFailed(e.toString()))),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }

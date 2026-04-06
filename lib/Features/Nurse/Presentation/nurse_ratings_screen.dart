@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 
@@ -23,36 +24,36 @@ class NurseRatingsScreen extends StatelessWidget {
   static const _mockAverage = 4.7;
   static const _mockTotalReviews = 24;
 
-  static final List<_ReviewItem> _mockReviews = [
-    _ReviewItem(
-      patientName: 'Ahmad M.',
-      rating: 5,
-      comment: 'Very professional and punctual. Highly recommend.',
-      date: DateTime(2026, 2, 2),
-    ),
-    _ReviewItem(
-      patientName: 'Rania K.',
-      rating: 5,
-      comment: 'Excellent wound care. Clear explanations.',
-      date: DateTime(2026, 1, 28),
-    ),
-    _ReviewItem(
-      patientName: 'Sara Al-Masri',
-      rating: 4,
-      comment: 'Great visit; would book again.',
-      date: DateTime(2026, 1, 15),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final dateFmt = DateFormat.yMMMd();
+    final l10n = AppLocalizations.of(context)!;
+    final dateFmt = DateFormat.yMMMd(Localizations.localeOf(context).toString());
+    final mockReviews = [
+      _ReviewItem(
+        patientName: l10n.nurseRatingsMockName1,
+        rating: 5,
+        comment: l10n.nurseRatingsMockComment1,
+        date: DateTime(2026, 2, 2),
+      ),
+      _ReviewItem(
+        patientName: l10n.nurseRatingsMockName2,
+        rating: 5,
+        comment: l10n.nurseRatingsMockComment2,
+        date: DateTime(2026, 1, 28),
+      ),
+      _ReviewItem(
+        patientName: l10n.nurseRatingsMockName3,
+        rating: 4,
+        comment: l10n.nurseRatingsMockComment3,
+        date: DateTime(2026, 1, 15),
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Ratings',
+        title: Text(
+          l10n.nurseProfileRatingsTitle,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         backgroundColor: AppColors.primary,
@@ -109,7 +110,7 @@ class NurseRatingsScreen extends StatelessWidget {
                 const SizedBox(width: 24),
                 Expanded(
                   child: Text(
-                    'Based on $_mockTotalReviews reviews',
+                    l10n.nurseRatingsBasedOn(_mockTotalReviews),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -121,8 +122,8 @@ class NurseRatingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
-          const Text(
-            'Recent reviews',
+          Text(
+            l10n.nurseRatingsRecentReviews,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w900,
@@ -130,7 +131,7 @@ class NurseRatingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ..._mockReviews.map((r) {
+          ...mockReviews.map((r) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Material(

@@ -10,6 +10,7 @@ class PatientOnboardingStyledDropdown<T extends Object> extends StatelessWidget 
     required this.items,
     required this.onChanged,
     required this.primary,
+    this.itemLabel,
   });
 
   final T? value;
@@ -17,6 +18,9 @@ class PatientOnboardingStyledDropdown<T extends Object> extends StatelessWidget 
   final List<T> items;
   final ValueChanged<T?> onChanged;
   final Color primary;
+
+  /// Optional display label; values sent to [onChanged] stay as [T] (e.g. API strings).
+  final String Function(T item)? itemLabel;
 
   static const _fieldTextStyle = TextStyle(
     fontSize: 15,
@@ -67,10 +71,11 @@ class PatientOnboardingStyledDropdown<T extends Object> extends StatelessWidget 
           ),
           selectedItemBuilder: (context) {
             return items.map((e) {
+              final label = itemLabel?.call(e) ?? e.toString();
               return Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
-                  e.toString(),
+                  label,
                   style: _fieldTextStyle,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -78,7 +83,7 @@ class PatientOnboardingStyledDropdown<T extends Object> extends StatelessWidget 
             }).toList();
           },
           items: items.map((e) {
-            final label = e.toString();
+            final label = itemLabel?.call(e) ?? e.toString();
             final selected = value == e;
             return DropdownMenuItem<T>(
               value: e,

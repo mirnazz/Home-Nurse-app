@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 
 /// Patient dashboard appointment presentation (list + details).
@@ -65,5 +66,17 @@ bool patientAppointmentShowsPaymentBanner(AppointmentStatus status) {
         'Rejected',
         null,
       ),
+  };
+}
+
+String patientAppointmentStatusLabel(AppLocalizations l10n, AppointmentStatus status) {
+  return switch (status) {
+    AppointmentStatus.pending => l10n.patientAppointmentStatusPending,
+    AppointmentStatus.confirmed => l10n.patientAppointmentStatusConfirmed,
+    AppointmentStatus.waitingPayment => l10n.patientAppointmentStatusConfirmed,
+    AppointmentStatus.paid => l10n.patientAppointmentStatusActivePaid,
+    AppointmentStatus.completed => l10n.patientAppointmentStatusCompleted,
+    AppointmentStatus.cancelled => l10n.patientAppointmentStatusCancelled,
+    AppointmentStatus.rejected => l10n.patientAppointmentStatusRejected,
   };
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
@@ -13,12 +14,16 @@ class PaymentSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppointmentUiColors.pageBackground,
       appBar: AppBar(
         backgroundColor: AppointmentUiColors.tealHeader,
         elevation: 0,
-        title: const Text('Payment Status', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+          l10n.patientAppointmentPaymentStatus,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -50,8 +55,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Payment Successful',
+                Text(
+                  l10n.paymentSuccessTitle,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -61,7 +66,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Amount paid: ${_formatAmount(amount)}',
+                  l10n.paymentSuccessAmountPaid(_formatAmount(amount)),
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -79,8 +84,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text(
-                      'Back to Appointments',
+                    child: Text(
+                      l10n.paymentBackToAppointments,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),

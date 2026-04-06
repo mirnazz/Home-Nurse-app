@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_request_service_screen.dart';
 
@@ -102,6 +103,7 @@ class _PatientNurseProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final profile = widget.profile;
 
     final initials = profile.fullName
@@ -184,7 +186,7 @@ class _PatientNurseProfileScreenState
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${profile.experienceYears} years',
+                                    l10n.patientBrowseExperienceYears(profile.experienceYears),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
@@ -203,15 +205,15 @@ class _PatientNurseProfileScreenState
                     color: Colors.white,
                     child: Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: _ProfileTab(
-                            text: 'About',
+                            text: l10n.patientNurseProfileAboutTab,
                             selected: true,
                           ),
                         ),
                         Expanded(
                           child: _ProfileTab(
-                            text: 'Reviews (${profile.reviewsCount})',
+                            text: l10n.patientNurseProfileReviewsTab(profile.reviewsCount),
                             selected: false,
                           ),
                         ),
@@ -230,7 +232,7 @@ class _PatientNurseProfileScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SectionCard(
-                    title: 'Location',
+                    title: l10n.patientNurseProfileLocation,
                     child: Row(
                       children: [
                         Container(
@@ -261,7 +263,7 @@ class _PatientNurseProfileScreenState
                   ),
                   const SizedBox(height: 14),
                   _SectionCard(
-                    title: 'Availability',
+                    title: l10n.patientNurseProfileAvailability,
                     child: Row(
                       children: [
                         Container(
@@ -304,7 +306,7 @@ class _PatientNurseProfileScreenState
                   ),
                   const SizedBox(height: 14),
                   _SectionCard(
-                    title: 'Services Offered',
+                    title: l10n.patientNurseProfileServicesOffered,
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : hasServices
@@ -333,11 +335,11 @@ class _PatientNurseProfileScreenState
                                     ),
                                 ],
                               )
-                            : const Column(
+                            : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'This nurse has no available services yet.',
+                                    l10n.patientNurseProfileNoServicesTitle,
                                     style: TextStyle(
                                       color: Color(0xFF6B7280),
                                       fontSize: 13,
@@ -346,7 +348,7 @@ class _PatientNurseProfileScreenState
                                   ),
                                   SizedBox(height: 6),
                                   Text(
-                                    'You cannot book a service at the moment.',
+                                    l10n.patientNurseProfileNoServicesSubtitle,
                                     style: TextStyle(
                                       color: Color(0xFF9CA3AF),
                                       fontSize: 12.5,
@@ -358,9 +360,9 @@ class _PatientNurseProfileScreenState
                   ),
                   const SizedBox(height: 14),
                   _SectionCard(
-                    title: 'Reviews',
-                    child: const Text(
-                      'Reviews will appear after backend review endpoints are available.',
+                    title: l10n.patientNurseProfileReviews,
+                    child: Text(
+                      l10n.patientNurseProfileReviewsPlaceholder,
                       style: TextStyle(
                         color: Color(0xFF6B7280),
                         fontSize: 13,
@@ -390,7 +392,9 @@ class _PatientNurseProfileScreenState
                 color: hasServices ? Colors.white : Colors.white70,
               ),
               label: Text(
-                hasServices ? 'Book Service Request' : 'No Services Available',
+                hasServices
+                    ? l10n.patientNurseProfileBookServiceRequest
+                    : l10n.patientNurseProfileNoServicesAvailable,
                 style: TextStyle(
                   color: hasServices ? Colors.white : Colors.white70,
                   fontWeight: FontWeight.w800,

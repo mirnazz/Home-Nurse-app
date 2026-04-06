@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
@@ -9,14 +10,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 
 (Color bg, Color fg, IconData icon, String label, Color border)
-    _patientDetailsStatusStyle(AppointmentStatus status) {
+    _patientDetailsStatusStyle(AppLocalizations l10n, AppointmentStatus status) {
   switch (status) {
     case AppointmentStatus.pending:
       return (
         const Color(0xFFFFFBEB),
         const Color(0xFFD97706),
         Icons.access_time_rounded,
-        'Pending',
+        l10n.patientAppointmentStatusPending,
         const Color(0xFFF59E0B),
       );
     case AppointmentStatus.confirmed:
@@ -25,7 +26,7 @@ import 'package:url_launcher/url_launcher.dart';
         const Color(0xFFD1FAE5),
         const Color(0xFF047857),
         Icons.check_circle_outline_rounded,
-        'Confirmed',
+        l10n.patientAppointmentStatusConfirmed,
         const Color(0xFF6EE7B7),
       );
     case AppointmentStatus.paid:
@@ -33,7 +34,7 @@ import 'package:url_launcher/url_launcher.dart';
         const Color(0xFFD1FAE5),
         const Color(0xFF15803D),
         Icons.verified_outlined,
-        'Active/Paid',
+        l10n.patientAppointmentStatusActivePaid,
         const Color(0xFF6EE7B7),
       );
     case AppointmentStatus.completed:
@@ -41,7 +42,7 @@ import 'package:url_launcher/url_launcher.dart';
         const Color(0xFFD1FAE5),
         const Color(0xFF15803D),
         Icons.check_circle_outline_rounded,
-        'Completed',
+        l10n.patientAppointmentStatusCompleted,
         const Color(0xFF6EE7B7),
       );
     case AppointmentStatus.cancelled:
@@ -49,7 +50,7 @@ import 'package:url_launcher/url_launcher.dart';
         const Color(0xFFFEE2E2),
         const Color(0xFFB91C1C),
         Icons.cancel_outlined,
-        'Cancelled',
+        l10n.patientAppointmentStatusCancelled,
         const Color(0xFFF87171),
       );
     case AppointmentStatus.rejected:
@@ -57,7 +58,7 @@ import 'package:url_launcher/url_launcher.dart';
         const Color(0xFFFEE2E2),
         const Color(0xFFDC2626),
         Icons.block_rounded,
-        'Rejected',
+        l10n.patientAppointmentStatusRejected,
         const Color(0xFFF87171),
       );
   }
@@ -125,28 +126,48 @@ class _PatientAppointmentDetailsScreenState
     }
   }
 
-  static String _timeWithDuration(Appointment a) {
+  static String _timeWithDuration(AppLocalizations l10n, Appointment a) {
     final t = DateFormat.jm().format(a.dateTime);
     final m = a.durationMinutes;
     if (m == null) return t;
-    if (m % 60 == 0 && m ~/ 60 > 0) return '$t (${m ~/ 60}hr)';
-    return '$t (${m}min)';
+    if (m % 60 == 0 && m ~/ 60 > 0) {
+      return '$t (${l10n.patientAppointmentHours(m ~/ 60)})';
+    }
+    return '$t (${l10n.patientAppointmentMinutes(m)})';
   }
 
-  static ({String label, Color badgeBg}) _paymentBadge(AppointmentStatus s) {
+  static ({String label, Color badgeBg}) _paymentBadge(
+    AppLocalizations l10n,
+    AppointmentStatus s,
+  ) {
     switch (s) {
       case AppointmentStatus.pending:
-        return (label: 'AWAITING NURSE', badgeBg: const Color(0xFF4B5563));
+        return (
+          label: l10n.patientAppointmentPaymentAwaitingNurse,
+          badgeBg: const Color(0xFF4B5563),
+        );
       case AppointmentStatus.confirmed:
       case AppointmentStatus.waitingPayment:
-        return (label: 'UNPAID', badgeBg: const Color(0xFF374151));
+        return (
+          label: l10n.patientAppointmentPaymentUnpaid,
+          badgeBg: const Color(0xFF374151),
+        );
       case AppointmentStatus.paid:
       case AppointmentStatus.completed:
-        return (label: 'PAID', badgeBg: const Color(0xFF374151));
+        return (
+          label: l10n.patientAppointmentPaymentPaid,
+          badgeBg: const Color(0xFF374151),
+        );
       case AppointmentStatus.cancelled:
-        return (label: 'CANCELLED', badgeBg: const Color(0xFF4B5563));
+        return (
+          label: l10n.patientAppointmentPaymentCancelled,
+          badgeBg: const Color(0xFF4B5563),
+        );
       case AppointmentStatus.rejected:
-        return (label: 'REJECTED', badgeBg: const Color(0xFF4B5563));
+        return (
+          label: l10n.patientAppointmentPaymentRejected,
+          badgeBg: const Color(0xFF4B5563),
+        );
     }
   }
 
@@ -160,22 +181,24 @@ class _PatientAppointmentDetailsScreenState
       _appointment.status == AppointmentStatus.waitingPayment;
 
   Future<void> _makeCall() async {
+    final l10n = AppLocalizations.of(context)!;
     final phone = _appointment.nursePhone;
     if (phone == null || phone.trim().isEmpty) {
-      _showSnack('Phone number is not available.');
+      _showSnack(l10n.patientAppointmentPhoneUnavailable);
       return;
     }
 
     final uri = Uri.parse('tel:${phone.trim()}');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      _showSnack('Could not open dialer.');
+      _showSnack(l10n.patientAppointmentDialerOpenFailed);
     }
   }
 
   Future<void> _openWhatsApp() async {
+    final l10n = AppLocalizations.of(context)!;
     final phone = _appointment.nursePhone;
     if (phone == null || phone.trim().isEmpty) {
-      _showSnack('Phone number is not available.');
+      _showSnack(l10n.patientAppointmentPhoneUnavailable);
       return;
     }
 
@@ -183,7 +206,7 @@ class _PatientAppointmentDetailsScreenState
     final uri = Uri.parse('https://wa.me/$digits');
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      _showSnack('Could not open WhatsApp.');
+      _showSnack(l10n.patientAppointmentWhatsAppOpenFailed);
     }
   }
 
@@ -193,19 +216,18 @@ class _PatientAppointmentDetailsScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Cancel appointment'),
-          content: const Text(
-            'Are you sure you want to cancel this appointment?',
-          ),
+          title: Text(l10n.patientAppointmentCancelTitle),
+          content: Text(l10n.patientAppointmentCancelConfirm),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('No'),
+              child: Text(l10n.nurseDialogNo),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Yes, cancel'),
+              child: Text(l10n.patientAppointmentCancelConfirmAction),
             ),
           ],
         );
@@ -230,7 +252,7 @@ class _PatientAppointmentDetailsScreenState
         _isCancelling = false;
       });
 
-      _showSnack('Appointment cancelled successfully.');
+      _showSnack(AppLocalizations.of(context)!.patientAppointmentCancelledSuccess);
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -268,18 +290,19 @@ class _PatientAppointmentDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final teal = AppointmentUiColors.tealHeader;
-    final payment = _paymentBadge(_appointment.status);
-final String paymentLabel = payment.label;
-final Color badgeBg = payment.badgeBg;
+    final payment = _paymentBadge(l10n, _appointment.status);
+    final String paymentLabel = payment.label;
+    final Color badgeBg = payment.badgeBg;
 
     return Scaffold(
       backgroundColor: AppointmentUiColors.pageBackground,
       appBar: AppBar(
         backgroundColor: teal,
         elevation: 0,
-        title: const Text(
-          'Appointment Details',
+        title: Text(
+          l10n.patientAppointmentDetailsTitle,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         leading: IconButton(
@@ -309,8 +332,8 @@ final Color badgeBg = payment.badgeBg;
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Nurse Information',
+                              Text(
+                                l10n.patientAppointmentNurseInformation,
                                 style: _sectionTitleStyle,
                               ),
                               const SizedBox(height: 16),
@@ -386,7 +409,7 @@ if (_appointment.nursePhone != null &&
                                     child: OutlinedButton.icon(
                                       onPressed: _makeCall,
                                       icon: const Icon(Icons.call_outlined),
-                                      label: const Text('Call'),
+                                      label: Text(l10n.patientAppointmentCall),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor:
                                             const Color(0xFF6B7280),
@@ -408,7 +431,7 @@ if (_appointment.nursePhone != null &&
                                     child: OutlinedButton.icon(
                                       onPressed: _openWhatsApp,
                                       icon: const Icon(Icons.chat_outlined),
-                                      label: const Text('WhatsApp'),
+                                      label: Text(l10n.patientAppointmentWhatsApp),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor:
                                             const Color(0xFF22C55E),
@@ -435,14 +458,14 @@ if (_appointment.nursePhone != null &&
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Appointment Details',
+                              Text(
+                                l10n.patientAppointmentDetailsTitle,
                                 style: _sectionTitleStyle,
                               ),
                               const SizedBox(height: 14),
                               _DetailInfoTile(
                                 icon: Icons.calendar_month_outlined,
-                                label: 'Date',
+                                label: l10n.patientAppointmentDate,
                                 value: DateFormat(
                                   'yyyy-MM-dd',
                                 ).format(_appointment.dateTime),
@@ -450,13 +473,13 @@ if (_appointment.nursePhone != null &&
                               const SizedBox(height: 10),
                               _DetailInfoTile(
                                 icon: Icons.access_time_rounded,
-                                label: 'Time & Duration',
-                                value: _timeWithDuration(_appointment),
+                                label: l10n.patientAppointmentTimeDuration,
+                                value: _timeWithDuration(l10n, _appointment),
                               ),
                               const SizedBox(height: 10),
                               _DetailInfoTile(
                                 icon: Icons.location_on_outlined,
-                                label: 'Address',
+                                label: l10n.patientAppointmentAddress,
                                 value: _appointment.location,
                               ),
                             ],
@@ -480,7 +503,7 @@ if (_appointment.nursePhone != null &&
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Total Cost',
+                                      l10n.patientAppointmentTotalCost,
                                       style: TextStyle(
                                         color: Colors.white.withValues(
                                           alpha: 0.92,
@@ -506,7 +529,7 @@ if (_appointment.nursePhone != null &&
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    'Payment Status',
+                                    l10n.patientAppointmentPaymentStatus,
                                     style: TextStyle(
                                       color: Colors.white.withValues(
                                         alpha: 0.92,
@@ -550,6 +573,7 @@ if (_appointment.nursePhone != null &&
   }
 
   List<Widget> _payAndCancel(BuildContext context, Color teal) {
+    final l10n = AppLocalizations.of(context)!;
     return [
       SizedBox(
         width: double.infinity,
@@ -563,8 +587,8 @@ if (_appointment.nursePhone != null &&
               borderRadius: BorderRadius.circular(14),
             ),
           ),
-          child: const Text(
-            'Pay now',
+          child: Text(
+            l10n.patientAppointmentPayNow,
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
           ),
         ),
@@ -575,6 +599,7 @@ if (_appointment.nursePhone != null &&
   }
 
   List<Widget> _buildActionButtons(BuildContext context, Color teal) {
+    final l10n = AppLocalizations.of(context)!;
     switch (_appointment.status) {
       case AppointmentStatus.waitingPayment:
       case AppointmentStatus.confirmed:
@@ -591,7 +616,7 @@ if (_appointment.nursePhone != null &&
       case AppointmentStatus.rejected:
         return [
           Text(
-            'No actions available for this appointment.',
+            l10n.patientAppointmentNoActions,
             style: TextStyle(
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w600,
@@ -603,6 +628,7 @@ if (_appointment.nursePhone != null &&
   }
 
   Widget _cancelButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -614,7 +640,11 @@ if (_appointment.nursePhone != null &&
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.block_rounded),
-        label: Text(_isCancelling ? 'Cancelling...' : 'Cancel Appointment'),
+        label: Text(
+          _isCancelling
+              ? l10n.patientAppointmentCancelling
+              : l10n.patientAppointmentCancelButton,
+        ),
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFFDC2626),
           backgroundColor: Colors.white,
@@ -652,8 +682,8 @@ class _DetailsErrorState extends StatelessWidget {
               color: Colors.redAccent,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Failed to load appointment details',
+            Text(
+              AppLocalizations.of(context)!.patientAppointmentLoadFailed,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -672,7 +702,7 @@ class _DetailsErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(AppLocalizations.of(context)!.patientRetry),
             ),
           ],
         ),
@@ -759,6 +789,7 @@ class _PatientPayToContinueBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -775,8 +806,8 @@ class _PatientPayToContinueBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Pay to continue',
+                Text(
+                  l10n.patientAppointmentPayToContinueTitle,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -785,7 +816,7 @@ class _PatientPayToContinueBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.',
+                  l10n.patientAppointmentPayToContinueBody,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontWeight: FontWeight.w600,
@@ -809,12 +840,13 @@ class _PatientStatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, icon, label, border) = _patientDetailsStatusStyle(status);
+    final l10n = AppLocalizations.of(context)!;
+    final (bg, fg, icon, label, border) = _patientDetailsStatusStyle(l10n, status);
 
     return Row(
       children: [
-        const Text(
-          'Status',
+        Text(
+          l10n.patientAppointmentStatusLabel,
           style: TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 16,

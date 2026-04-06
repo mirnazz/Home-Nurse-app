@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
 /// Teal header + pill segmented control: "Upcoming (n)" / "Past (n)".
 class AppointmentSegmentHeader extends StatelessWidget {
-  final String title;
   final int upcomingCount;
   final int pastCount;
   final int selectedIndex;
@@ -11,7 +11,6 @@ class AppointmentSegmentHeader extends StatelessWidget {
 
   const AppointmentSegmentHeader({
     super.key,
-    this.title = 'My Appointments',
     required this.upcomingCount,
     required this.pastCount,
     required this.selectedIndex,
@@ -20,6 +19,7 @@ class AppointmentSegmentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -33,7 +33,7 @@ class AppointmentSegmentHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              l10n.patientAppointmentsTitle,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -46,7 +46,7 @@ class AppointmentSegmentHeader extends StatelessWidget {
               children: [
                 Expanded(
                   child: _SegmentPill(
-                    label: 'Upcoming ($upcomingCount)',
+                    label: l10n.patientAppointmentsUpcomingCount(upcomingCount),
                     selected: selectedIndex == 0,
                     onTap: () => onSelected(0),
                   ),
@@ -54,7 +54,7 @@ class AppointmentSegmentHeader extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _SegmentPill(
-                    label: 'Past ($pastCount)',
+                    label: l10n.patientAppointmentsPastCount(pastCount),
                     selected: selectedIndex == 1,
                     onTap: () => onSelected(1),
                   ),

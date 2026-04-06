@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 
@@ -47,5 +48,24 @@ import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
         '—',
         null,
       );
+  }
+}
+
+String nurseAppointmentStatusLabel(AppLocalizations l10n, AppointmentStatus status) {
+  switch (status) {
+    case AppointmentStatus.waitingPayment:
+      return l10n.nurseAppointmentStatusWaitingPayment;
+    case AppointmentStatus.paid:
+      return l10n.nurseAppointmentStatusActivePaid;
+    case AppointmentStatus.completed:
+      return l10n.nurseStatusCompleted;
+    case AppointmentStatus.cancelled:
+      return l10n.nurseStatusCancelled;
+    case AppointmentStatus.confirmed:
+      return l10n.nurseStatusAccepted;
+    case AppointmentStatus.rejected:
+      return l10n.nurseStatusRejected;
+    case AppointmentStatus.pending:
+      return l10n.nurseStatusPending;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
@@ -207,7 +208,7 @@ class _NurseScheduleCardBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Earning',
+                AppLocalizations.of(context)!.nurseAppointmentYourEarnings,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
@@ -353,7 +354,7 @@ class _PatientScheduleCardBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Total',
+                AppLocalizations.of(context)!.patientAppointmentTotal,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
@@ -412,6 +413,7 @@ class _PaymentBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -427,10 +429,10 @@ class _PaymentBanner extends StatelessWidget {
               children: [
                 Text(
                   isNurseView
-                      ? 'Waiting for Payment'
+                      ? l10n.nurseAppointmentStatusWaitingPayment
                       : (isConfirmedAwaitingPayment
-                          ? 'Pay to continue'
-                          : 'Payment required'),
+                          ? l10n.patientPayBannerTitlePayContinue
+                          : l10n.patientPayBannerTitlePaymentRequired),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -440,10 +442,10 @@ class _PaymentBanner extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   isNurseView
-                      ? "Patient hasn't paid yet — you can contact or cancel."
+                      ? l10n.nurseAppointmentPaymentPendingBannerBody
                       : (isConfirmedAwaitingPayment
-                          ? 'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.'
-                          : 'Complete payment to confirm your appointment.'),
+                          ? l10n.patientPayBannerBodyPayContinue
+                          : l10n.patientPayBannerBodyPaymentRequired),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontWeight: FontWeight.w600,
@@ -471,8 +473,12 @@ class _ListStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (Color bg, Color fg, IconData icon, String label, Color? border) =
+    final (Color bg, Color fg, IconData icon, String labelEn, Color? border) =
         nurseLabels ? nurseAppointmentChipStyle(status) : patientAppointmentChipStyle(status);
+    final l10n = AppLocalizations.of(context)!;
+    final label = nurseLabels
+        ? nurseAppointmentStatusLabel(l10n, status)
+        : patientAppointmentStatusLabel(l10n, status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

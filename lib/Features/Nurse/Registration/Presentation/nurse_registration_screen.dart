@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
@@ -120,20 +121,21 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
   }
 
   Future<void> _submitRegistration() async {
+    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
 
     if (selectedGovernorate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select governorate")),
+        SnackBar(content: Text(l10n.nurseRegSelectGovernorateError)),
       );
       return;
     }
 
     if (!agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please confirm the information")),
+        SnackBar(content: Text(l10n.nurseRegConfirmInfoError)),
       );
       return;
     }
@@ -141,30 +143,28 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
     final experienceYears = int.tryParse(experienceController.text.trim());
     if (experienceYears == null || experienceYears < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Experience years must be a valid number"),
-        ),
+        SnackBar(content: Text(l10n.nurseRegExperienceInvalid)),
       );
       return;
     }
 
     if (nationalIdImageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please upload national ID image")),
+        SnackBar(content: Text(l10n.nurseRegUploadNationalIdError)),
       );
       return;
     }
 
     if (licensePdfFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please upload nursing license PDF")),
+        SnackBar(content: Text(l10n.nurseRegUploadLicenseError)),
       );
       return;
     }
 
     if (profilePhotoFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please upload profile photo")),
+        SnackBar(content: Text(l10n.nurseRegUploadProfilePhotoError)),
       );
       return;
     }
@@ -189,7 +189,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registration submitted successfully")),
+        SnackBar(content: Text(l10n.nurseRegSubmittedSuccess)),
       );
 
       Navigator.pushReplacementNamed(context, "/NursePending");
@@ -212,13 +212,14 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
-        title: const Text(
-          "Nurse Registration",
+        title: Text(
+          l10n.nurseRegTitle,
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -233,30 +234,30 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
               const SizedBox(height: 10),
 
               _buildInput(
-                "Phone Number",
+                l10n.nurseRegPhoneLabel,
                 phoneController,
-                hint: "e.g. 079XXXXXXX",
+                hint: l10n.nurseRegPhoneHint,
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 16),
 
               _buildInput(
-                "National ID Number",
+                l10n.nurseRegNationalIdLabel,
                 nationalIdController,
-                hint: "Enter your national ID",
+                hint: l10n.nurseRegNationalIdHint,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
 
               _buildInput(
-                "License Number",
+                l10n.nurseRegLicenseLabel,
                 licenseNumberController,
-                hint: "Enter your nursing license number",
+                hint: l10n.nurseRegLicenseHint,
               ),
               const SizedBox(height: 16),
 
               Text(
-                "Governorate",
+                l10n.nurseRegGovernorateLabel,
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -266,7 +267,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
 
               DropdownButtonFormField<String>(
                 value: selectedGovernorate,
-                hint: const Text("Select governorate"),
+                hint: Text(l10n.nurseRegGovernorateSelect),
                 items: jordanGovernorates
                     .map(
                       (gov) =>
@@ -276,7 +277,8 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
                 onChanged: isLoading
                     ? null
                     : (value) => setState(() => selectedGovernorate = value),
-                validator: (value) => value == null ? "Required field" : null,
+                validator: (value) =>
+                    value == null ? l10n.nurseRegRequiredField : null,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -290,38 +292,38 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
               const SizedBox(height: 16),
 
               _buildInput(
-                "Area / Neighborhood",
+                l10n.nurseRegAreaLabel,
                 areaController,
-                hint: "e.g. Abdoun, Jabal Amman",
+                hint: l10n.nurseRegAreaHint,
               ),
               const SizedBox(height: 16),
 
               _buildInput(
-                "Specialization",
+                l10n.nurseRegSpecializationLabel,
                 specializationController,
-                hint: "e.g. ICU, Elderly Care",
+                hint: l10n.nurseRegSpecializationHint,
               ),
               const SizedBox(height: 16),
 
               _buildInput(
-                "Experience Years",
+                l10n.nurseRegExperienceLabel,
                 experienceController,
-                hint: "e.g. 5",
+                hint: l10n.nurseRegExperienceHint,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
 
               _buildInput(
-                "Bio",
+                l10n.nurseRegBioLabel,
                 bioController,
-                hint: "Write a short bio about your experience",
+                hint: l10n.nurseRegBioHint,
                 maxLines: 4,
               ),
               const SizedBox(height: 24),
 
               _uploadSection(
-                title: "Upload National ID Image",
-                subtitle: "JPG / JPEG / PNG",
+                title: l10n.nurseRegUploadNationalIdTitle,
+                subtitle: l10n.nurseRegUploadImageHint,
                 file: nationalIdImageFile,
                 onTap: () => _pickAndSetImage(
                   setFile: (f) => nationalIdImageFile = f,
@@ -330,8 +332,8 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
               const SizedBox(height: 12),
 
               _uploadSection(
-                title: "Upload Nursing License PDF",
-                subtitle: "PDF only",
+                title: l10n.nurseRegUploadLicenseTitle,
+                subtitle: l10n.nurseRegUploadPdfHint,
                 file: licensePdfFile,
                 onTap: () => _pickAndSetPdf(
                   setFile: (f) => licensePdfFile = f,
@@ -340,8 +342,8 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
               const SizedBox(height: 12),
 
               _uploadSection(
-                title: "Upload Profile Photo",
-                subtitle: "JPG / JPEG / PNG",
+                title: l10n.nurseRegUploadProfileTitle,
+                subtitle: l10n.nurseRegUploadImageHint,
                 file: profilePhotoFile,
                 onTap: () => _pickAndSetImage(
                   setFile: (f) => profilePhotoFile = f,
@@ -358,7 +360,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
                     : (value) =>
                         setState(() => agreeToTerms = value ?? false),
                 title: Text(
-                  "I confirm all information is accurate",
+                  l10n.nurseRegConfirmAccuracy,
                   style: TextStyle(color: AppColors.primary),
                 ),
                 controlAffinity: ListTileControlAffinity.trailing,
@@ -387,8 +389,8 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          "Submit Registration",
+                      : Text(
+                          l10n.nurseRegSubmit,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -411,6 +413,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -429,7 +432,7 @@ class _NurseRegistrationScreenState extends State<NurseRegistrationScreen> {
           maxLines: maxLines,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return "Required field";
+              return l10n.nurseRegRequiredField;
             }
             return null;
           },

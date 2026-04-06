@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/models/notification_model.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
@@ -29,8 +30,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String get _screenTitle =>
       widget.audience == NotificationAudience.nurse
-          ? 'Nurse Notifications'
-          : 'Notifications';
+          ? AppLocalizations.of(context)!.notificationsNurseTitle
+          : AppLocalizations.of(context)!.notificationsTitle;
 
   @override
   void initState() {
@@ -57,7 +58,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load notifications')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.notificationsLoadFailed),
+        ),
       );
     }
   }
@@ -91,7 +94,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to mark notification as read')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationsMarkOneFailed,
+          ),
+        ),
       );
     }
   }
@@ -124,7 +131,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to mark all notifications as read')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationsMarkAllFailed,
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -147,7 +158,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     if (target == null || target.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No screen linked to this notification')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationsNoLinkedScreen,
+          ),
+        ),
       );
       return;
     }
@@ -168,7 +183,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 case 'AppointmentDetails':
   if (notification.bookingId == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No booking linked')),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.notificationsNoBookingLinked),
+      ),
     );
     return;
   }
@@ -209,20 +226,29 @@ case 'AppointmentDetails':
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to open appointment details')),
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.notificationsOpenDetailsFailed,
+        ),
+      ),
     );
   }
   break;
 
       default:
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unhandled target screen: $target')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.notificationsUnhandledTarget(target),
+            ),
+          ),
         );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final unreadCount = _notifications.where((n) => !n.isRead).length;
 
     return Scaffold(
@@ -251,8 +277,8 @@ case 'AppointmentDetails':
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Read all',
+                  : Text(
+                      l10n.notificationsReadAll,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
@@ -269,8 +295,8 @@ case 'AppointmentDetails':
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
               child: Text(
                 unreadCount > 0
-                    ? '$unreadCount unread notification${unreadCount == 1 ? '' : 's'}'
-                    : 'All notifications are read',
+                    ? l10n.notificationsUnreadCount(unreadCount)
+                    : l10n.notificationsAllRead,
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -286,11 +312,11 @@ case 'AppointmentDetails':
                         onRefresh: _loadNotifications,
                         child: ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          children: const [
+                          children: [
                             SizedBox(height: 140),
                             Center(
                               child: Text(
-                                'No notifications yet.',
+                                l10n.notificationsEmpty,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -312,7 +338,7 @@ case 'AppointmentDetails':
                             return _NotificationCard(
                               title: item.title,
                               description: item.message,
-                              timeLabel: _timeAgo(item.createdAt),
+                              timeLabel: _timeAgo(item.createdAt, l10n),
                               icon: _iconForType(item.type),
                               accentColor: _colorForType(item.type),
                               unread: !item.isRead,
@@ -360,13 +386,13 @@ case 'AppointmentDetails':
     }
   }
 
-  String _timeAgo(DateTime date) {
+  String _timeAgo(DateTime date, AppLocalizations l10n) {
     final diff = DateTime.now().difference(date);
 
-    if (diff.inSeconds < 60) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} h ago';
-    if (diff.inDays < 7) return '${diff.inDays} d ago';
+    if (diff.inSeconds < 60) return l10n.notificationsJustNow;
+    if (diff.inMinutes < 60) return l10n.notificationsMinAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.notificationsHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.notificationsDaysAgo(diff.inDays);
     return '${date.day}/${date.month}/${date.year}';
   }
 }
@@ -394,6 +420,7 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -485,7 +512,7 @@ class _NotificationCard extends StatelessWidget {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: Text(
-                            'Mark as read',
+                            l10n.notificationsMarkAsRead,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,

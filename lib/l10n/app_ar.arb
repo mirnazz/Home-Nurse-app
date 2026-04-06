@@ -1,6 +1,919 @@
 {
-  "welcome": "أهلاً بعودتك",
+  "@@locale": "ar",
+  "welcomeBackTitle": "مرحباً بعودتك!",
+  "signInToContinue": "سجّل الدخول للمتابعة",
+  "emailAddressLabel": "البريد الإلكتروني",
+  "emailFieldHint": "بريدك@example.com",
+  "passwordLabel": "كلمة المرور",
+  "passwordFieldHint": "أدخل كلمة المرور",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "login": "تسجيل الدخول",
+  "dontHaveAccount": "ليس لديك حساب؟",
+  "createNewAccount": "إنشاء حساب جديد",
+  "errorValidEmail": "يرجى إدخال بريد إلكتروني صالح",
+  "errorEnterPassword": "يرجى إدخال كلمة المرور",
+  "errorUnknownNurseStatus": "حالة التحقق للممرض غير معروفة: {status}",
+  "@errorUnknownNurseStatus": {
+    "placeholders": {
+      "status": {"type": "String"}
+    }
+  },
+  "errorUnknownRole": "دور غير معروف: {role}",
+  "@errorUnknownRole": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "errorLoginFailed": "فشل تسجيل الدخول: {message}",
+  "@errorLoginFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "signupCreateNurseAccount": "إنشاء حساب ممرض",
+  "signupCreateAccount": "إنشاء حساب",
+  "signupNurseSubtitle": "أكمل تسجيلك كممرض في خطوتين",
+  "signupPatientSubtitle": "سجّل للبدء",
+  "signupStep1Of4": "الخطوة 1 من 4",
+  "signupIAmA": "أنا:",
+  "rolePatient": "مريض",
+  "roleNurse": "ممرض",
+  "fullNameLabel": "الاسم الكامل",
+  "fullNameHint": "أدخل اسمك الكامل",
+  "validationFullNameRequired": "الاسم الكامل مطلوب",
+  "signupEmailLabel": "البريد الإلكتروني",
+  "signupEmailHint": "أدخل بريدك الإلكتروني",
+  "validationEmailInvalid": "أدخل بريداً إلكترونياً صالحاً",
+  "phoneNumberLabel": "رقم الهاتف",
+  "phoneNumberHint": "مثال: 0790000000",
+  "validationPhoneRequired": "رقم الهاتف مطلوب",
+  "validationPhoneInvalid": "أدخل رقم هاتف صالحاً",
+  "signupPasswordLabel": "كلمة المرور",
+  "signupPasswordHint": "أنشئ كلمة مرور",
+  "validationPasswordMin": "6 أحرف على الأقل",
+  "confirmPasswordLabel": "تأكيد كلمة المرور",
+  "confirmPasswordHint": "أكد كلمة المرور",
+  "validationPasswordsMismatch": "كلمتا المرور غير متطابقتين",
+  "continueButton": "متابعة",
+  "signUp": "إنشاء حساب",
+  "signupFooterNurse": "ستكمل التحقق في الخطوة التالية.",
+  "signupFooterPatient": "أنشئ حسابك للمتابعة.",
+  "backToLogin": "العودة لتسجيل الدخول",
+  "signUpErrorFailed": "فشل إنشاء الحساب: {message}",
+  "@signUpErrorFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "patientNavHome": "الرئيسية",
+  "patientNavNurses": "الممرضين",
+  "patientNavAppointments": "المواعيد",
+  "patientNavPayments": "المدفوعات",
+  "patientNavMore": "المزيد",
+  "patientWelcomeBackLine": "مرحبًا بعودتك،",
+  "patientSearchNursesHint": "ابحث عن ممرض حسب الاسم أو نوع الخدمة...",
+  "patientQuickServices": "خدمات التمريض السريعة",
+  "patientUpcomingAppointments": "المواعيد القادمة",
+  "patientViewAll": "عرض الكل",
+  "patientTotalBookings": "عدد الحجوزات",
+  "patientActiveRequests": "الطلبات الحالية",
+  "patientAppointmentsPlaceholder": "لا توجد مواعيد حاليا",
+  "patientLogout": "تسجيل الخروج",
+  "patientServiceIvTherapy": "العلاج\nالوريدي",
+  "patientServiceWoundCare": "العناية\nبالجروح",
+  "patientServicePostSurgery": "رعاية ما بعد\nالجراحة",
+  "patientServiceMedication": "إدارة\nالأدوية",
+  "patientRateExperienceTitle": "قيّم تجربتك",
+  "patientRateExperienceSubtitle": "ساعد الآخرين بمشاركة ملاحظاتك\nحول {nurseName}",
+  "@patientRateExperienceSubtitle": {
+    "placeholders": {
+      "nurseName": {"type": "String"}
+    }
+  },
+  "patientWriteReview": "اكتب تقييماً",
+  "patientReviewSubmittedThanks": "شكراً! تم إرسال تقييمك.",
+  "patientLogoutFailed": "فشل تسجيل الخروج: {message}",
+  "@patientLogoutFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "user": "مستخدم",
+  "patientRetry": "إعادة المحاولة",
+  "patientBrowseTitle": "تصفح الممرضين",
+  "patientBrowseSearchHint": "ابحث عن ممرض حسب الاسم أو نوع الخدمة...",
+  "patientBrowseFilters": "عوامل التصفية",
+  "patientBrowseFilterSheetTitle": "تصفية الممرضين",
+  "patientBrowseReset": "إعادة تعيين",
+  "patientBrowseServiceType": "نوع الخدمة",
+  "patientBrowseChooseService": "اختر خدمة",
+  "patientBrowseAllServices": "كل الخدمات",
+  "patientBrowseGovernorate": "المحافظة",
+  "patientBrowseAllLocations": "كل المواقع",
+  "patientGovZarqa": "الزرقاء",
+  "patientGovIrbid": "إربد",
+  "patientGovAmman": "عمّان",
+  "patientGovTafilah": "الطفيلة",
+  "patientGovKarak": "الكرك",
+  "patientGovMadaba": "مادبا",
+  "patientGovBalqa": "البلقاء",
+  "patientGovAjloun": "عجلون",
+  "patientGovJerash": "جرش",
+  "patientGovAqaba": "العقبة",
+  "patientGovMaan": "معان",
+  "patientGovMafraq": "المفرق",
+  "patientBrowseApplyFilters": "عرض النتائج",
+  "patientBrowseClearAll": "مسح الكل",
+  "patientBrowseFoundNurses": "تم العثور على {count} ممرضاً",
+  "@patientBrowseFoundNurses": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientBrowsePageIndicator": "صفحة {current}/{total}",
+  "@patientBrowsePageIndicator": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "patientBrowseNoResults": "لا يوجد ممرضون مطابقون لعوامل التصفية.",
+  "patientBrowseViewProfile": "عرض الملف",
+  "patientBrowseExperienceYears": "{years} سنة",
+  "@patientBrowseExperienceYears": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "patientBrowseCatalog1": "العلاج الوريدي",
+  "patientBrowseCatalog2": "عناية الجروح والتضميد",
+  "patientBrowseCatalog3": "إعطاء الأدوية",
+  "patientBrowseCatalog4": "رعاية ما بعد الجراحة",
+  "patientBrowseCatalog5": "إدارة الأدوية",
+  "patientBrowseCatalog6": "مراقبة العلامات الحيوية",
+  "patientBrowseCatalog7": "سحب دم أو عينة مخبرية",
+  "patientBrowseCatalog8": "عناية القسطرة",
+  "patientBrowseCatalog9": "متابعة السكري وحقن الأنسولين",
+  "patientBrowseCatalog10": "زيارة رعاية منزلية لكبار السن",
+  "patientBrowseCatalog11": "تركيب أكسجين منزلي",
+  "patientBrowseCatalog12": "جلسة بخار",
+  "patientBrowseCatalog13": "إزالة الغرز",
+  "patientBrowseCatalog14": "عناية قرح الفراش",
+  "patientBrowseCatalog15": "زيارة تمريض منزلية",
+  "patientBrowseCatalog16": "فحص ضغط الدم",
+  "patientBrowseCatalog17": "رعاية قصيرة (4 ساعات)",
+  "patientBrowseCatalog18": "رعاية نصف يوم (6 ساعات)",
+  "patientBrowseCatalog19": "رعاية يوم كامل (12 ساعة)",
+  "patientAppointmentsTitle": "مواعيدي",
+  "patientAppointmentsUpcomingCount": "القادمة ({count})",
+  "@patientAppointmentsUpcomingCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientAppointmentsPastCount": "السابقة ({count})",
+  "@patientAppointmentsPastCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "patientAppointmentsNoUpcoming": "لا توجد مواعيد قادمة.",
+  "patientAppointmentsNoPast": "لا توجد مواعيد سابقة.",
+  "patientAppointmentsLoadFailed": "تعذّر تحميل المواعيد",
+  "patientAppointmentTotal": "الإجمالي",
+  "patientAppointmentStatusPending": "قيد الانتظار",
+  "patientAppointmentStatusConfirmed": "مؤكد",
+  "patientAppointmentStatusActivePaid": "نشط/مدفوع",
+  "patientAppointmentStatusCompleted": "مكتمل",
+  "patientAppointmentStatusCancelled": "ملغى",
+  "patientAppointmentStatusRejected": "مرفوض",
+  "patientPayBannerTitlePayContinue": "ادفع للمتابعة",
+  "patientPayBannerTitlePaymentRequired": "الدفع مطلوب",
+  "patientPayBannerBodyPayContinue": "أكد الممرض موعدك. أكمل الدفع لتفعيل الحجز والاحتفاظ به.",
+  "patientPayBannerBodyPaymentRequired": "أكمل الدفع لتأكيد موعدك.",
+  "patientPaymentTitle": "الدفع",
+  "patientPaymentBookingSummary": "ملخص الحجز",
+  "patientPaymentLabelNurse": "الممرض",
+  "patientPaymentLabelService": "الخدمة",
+  "patientPaymentLabelDate": "التاريخ",
+  "patientPaymentLabelTime": "الوقت",
+  "patientPaymentLabelAmount": "المبلغ",
+  "patientPaymentMethod": "طريقة الدفع",
+  "patientPaymentStripeDisabled": "دفع البطاقة (Stripe) معطّل في هذا الإصدار للتطوير المحلي.",
+  "patientPaymentConfirm": "تأكيد الدفع",
+  "patientPaymentStripeDisabledSnack": "Stripe معطّل في هذا الإصدار. أعد تفعيل flutter_stripe في pubspec واستعد دالة الدفع.",
+  "patientPaymentError": "خطأ في الدفع: {message}",
+  "@patientPaymentError": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "patientMoreProfileTitle": "الملف الشخصي",
+  "patientMoreProfileSubtitle": "عرض وتعديل معلوماتك",
+  "patientPaymentsTabEmpty": "ستظهر هنا سجل المدفوعات والإيصالات عند توفرها.",
+  "patientReviewSetRatingFirstSnack": "يرجى تحديد التقييم العام أولاً.",
+  "patientReviewOverallRating": "التقييم العام",
+  "patientReviewTapToRate": "اضغط للتقييم",
+  "patientReviewRateSpecificAreas": "قيّم الجوانب التفصيلية",
+  "patientReviewProfessionalism": "الاحترافية",
+  "patientReviewPunctuality": "الالتزام بالموعد",
+  "patientReviewCommunication": "التواصل",
+  "patientReviewServiceQuality": "جودة الخدمة",
+  "patientReviewTextOptional": "نص التقييم (اختياري)",
+  "patientReviewTextHint": "شارك تفاصيل عن تجربتك...",
+  "patientReviewLater": "لاحقاً",
+  "patientReviewSubmit": "إرسال التقييم",
+  "patientReviewServiceShort": "الخدمة",
+  "patientReviewServiceLine": "الخدمة: {name}",
+  "@patientReviewServiceLine": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "patientReviewNurseShort": "الممرض",
+  "patientReviewNurseLine": "الممرض: {name}",
+  "@patientReviewNurseLine": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "patientReviewCloseTooltip": "إغلاق",
+  "profileTitle": "الملف الشخصي",
+  "personalInfo": "المعلومات الشخصية",
+  "profileAddressSection": "العنوان",
+  "profileMedicalSection": "المعلومات الطبية",
+  "fullName": "الاسم الكامل",
   "email": "البريد الإلكتروني",
-  "password": "كلمة المرور",
-  "login": "تسجيل الدخول"
+  "phoneNumber": "رقم الهاتف",
+  "gender": "الجنس",
+  "dateOfBirth": "تاريخ الميلاد",
+  "bloodType": "فصيلة الدم",
+  "address": "العنوان",
+  "governorate": "المحافظة",
+  "area": "المنطقة",
+  "profileEditProfile": "تعديل الملف",
+  "profileCancel": "إلغاء",
+  "profileSave": "حفظ",
+  "profileSelectGender": "اختر الجنس",
+  "profileSelectBloodType": "اختر فصيلة الدم",
+  "profileSelectGovernorate": "اختر المحافظة",
+  "profileSelectDate": "اختر التاريخ",
+  "profileUpdatedSuccess": "تم تحديث الملف بنجاح.",
+  "profileConditions": "الحالات الصحية",
+  "profileAllergies": "الحساسية",
+  "profileNotes": "ملاحظات",
+  "profileNoneCombinationWarning": "لا يمكن الجمع بين «لا يوجد» وحالات أخرى.",
+  "profileOtherConditionOptional": "حالة أخرى (اختياري)",
+  "profileConditionHint": "مثال: سرطان، أمراض الكلى",
+  "profileOtherAllergiesOptional": "حساسيات أخرى (اختياري)",
+  "profileAllergiesHint": "مثال: مأكولات بحرية، أسبرين",
+  "profileConditionDiabetes": "السكري",
+  "profileConditionHypertension": "ضغط الدم",
+  "profileConditionAsthma": "الربو",
+  "profileConditionHeartDisease": "أمراض القلب",
+  "profileConditionArthritis": "التهاب المفاصل",
+  "profileConditionNone": "لا يوجد",
+  "profileGenderMale": "ذكر",
+  "profileGenderFemale": "أنثى",
+  "profileAllergyPenicillin": "البنسلين",
+  "profileAllergyDust": "الغبار",
+  "profileAllergyFood": "الطعام",
+  "profileAllergyLatex": "اللاتكس",
+  "profileAllergyPollen": "حبوب اللقاح",
+  "notLoggedIn": "يرجى تسجيل الدخول أولاً",
+  "patientMoreLanguage": "اللغة",
+  "patientMoreLanguageEnglish": "English",
+  "patientMoreLanguageArabic": "العربية",
+  "languageSelectorTitle": "اختر اللغة",
+  "languageSelectorSubtitle": "تغيير لغة التطبيق",
+  "nurseHomeWelcomeBack": "مرحبًا بعودتك،",
+  "nurseHomeDefaultName": "ممرض/ة",
+  "nurseHomeSummaryTodayAppointments": "مواعيد اليوم",
+  "nurseHomeSummaryPendingRequests": "طلبات بانتظار الموافقة",
+  "nurseHomeSummaryJodToday": "أرباح اليوم",
+  "nurseHomeWeekSummaryTitle": "ملخص هذا الأسبوع",
+  "nurseHomeWeekCompleted": "مكتملة",
+  "nurseHomeWeekCancelled": "ملغاة",
+  "nurseHomeWeekJodEarned": "إجمالي الأرباح",
+  "nurseHomeQuickActionsTitle": "إجراءات سريعة",
+  "nurseHomeActionManageAvailabilityTitle": "إدارة أوقات العمل",
+  "nurseHomeActionManageAvailabilitySubtitle": "حدد أوقات عملك",
+  "nurseHomeActionViewRequestsTitle": "طلبات المرضى",
+  "nurseHomeActionViewRequestsSubtitle": "عرض الطلبات المعلقة والمرفوضة",
+  "nurseHomeActionAppointmentsTitle": "مواعيدي",
+  "nurseHomeActionAppointmentsSubtitle": "عرض مواعيدك",
+  "nurseHomeTodayScheduleTitle": "جدول اليوم",
+  "nurseHomeViewAll": "عرض الكل",
+  "nurseStatusAccepted": "مقبول",
+  "nurseStatusActive": "نشط",
+  "nurseStatusCompleted": "مكتمل",
+  "nurseStatusCancelled": "ملغى",
+  "nurseStatusRejected": "مرفوض",
+  "nurseStatusPending": "قيد الانتظار",
+  "nurseHomePatientFallback": "مريض",
+  "nurseHomeEarningsJod": "{amount} د.أ",
+  "@nurseHomeEarningsJod": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseHomeNoAppointmentsToday": "لا توجد مواعيد اليوم",
+  "nurseHomeNoAppointmentsTodayHint": "ستظهر مواعيد اليوم هنا.",
+  "nurseHomeAvailableTitle": "أنت متاح",
+  "nurseHomeAvailableSubtitle": "يمكنك استقبال طلبات خدمة جديدة",
+  "nurseNavHome": "الرئيسية",
+  "nurseNavAvailability": "اوقات العمل",
+  "nurseNavAppointments": "المواعيد",
+  "nurseNavRequests": "الطلبات",
+  "nurseNavProfile": "الملف",
+  "nurseRequestsTitle": "طلبات المرضى",
+  "nurseRequestsPendingCountSubtitle": "{count} طلب قيد الانتظار",
+  "@nurseRequestsPendingCountSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsRejectedCountSubtitle": "{count} طلب مرفوض",
+  "@nurseRequestsRejectedCountSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsTabPending": "قيد الانتظار ({count})",
+  "@nurseRequestsTabPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsTabRejected": "مرفوضة ({count})",
+  "@nurseRequestsTabRejected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRequestsEmptyPendingTitle": "لا توجد طلبات حالياً",
+  "nurseRequestsEmptyPendingSubtitle": "ستظهر الطلبات الجديدة هنا عند توفرها.",
+  "nurseRequestsEmptyRejectedTitle": "لا توجد طلبات حالياً",
+  "nurseRequestsEmptyRejectedSubtitle": "ستظهر الطلبات هنا عند توفرها.",
+  "nurseRequestsLoadErrorTitle": "لم نتمكن من تحميل الطلبات",
+  "nurseRequestsLoadErrorSubtitle": "تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.",
+  "nurseRetry": "إعادة المحاولة",
+  "nurseRequestsRejectDialogTitle": "رفض الطلب",
+  "nurseRequestsRejectDialogMessage": "هل أنت متأكد أنك تريد رفض هذا الطلب؟",
+  "nurseDialogNo": "لا",
+  "nurseReject": "رفض",
+  "nurseAccept": "قبول",
+  "nurseRequestsAcceptedSuccess": "تم قبول الطلب بنجاح.",
+  "nurseRequestsRejectedSuccess": "تم رفض الطلب بنجاح.",
+  "nurseRequestsDurationMinutes": "{minutes} د",
+  "@nurseRequestsDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAvailEmbeddedTitle": "اوقات العمل",
+  "nurseAvailManageTitle": "إدارة أوقات العمل",
+  "nurseAvailTapDateHint": "اضغط على أي يوم لإدارته أو إيقافه",
+  "nurseAvailWeeklySchedule": "الجدول الأسبوعي",
+  "nurseAvailAddTimeSlot": "إضافة وقت عمل",
+  "nurseAvailNoScheduleYet": "لا يوجد جدول محدد حتى الآن",
+  "nurseAvailNoScheduleHint": "اضغط «إضافة وقت عمل» لتحديد ساعات عملك",
+  "nurseAvailSave": "حفظ أوقات العمل",
+  "nurseAvailSaveAutoMessage": "يتم حفظ التغييرات تلقائيًا بعد كل إجراء",
+  "nurseAvailTimeSlotAdded": "تمت إضافة الفترة بنجاح",
+  "nurseAvailDayBlocked": "تم إيقاف اليوم بنجاح",
+  "nurseAvailDayUnblocked": "تم إلغاء إيقاف اليوم بنجاح",
+  "nurseAvailOverrideSuccess": "تم تعديل ساعات العمل: {start} - {end}",
+  "@nurseAvailOverrideSuccess": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "nurseAvailSlotDeleted": "تم حذف الفترة بنجاح",
+  "nurseAvailSlotStatusUpdated": "تم تحديث حالة الفترة",
+  "nurseAvailManageDayTitle": "إدارة اليوم",
+  "nurseAvailWorkingHours": "ساعات العمل",
+  "nurseAvailNoHoursThisDay": "لا توجد ساعات عمل لهذا اليوم",
+  "nurseAvailFromWeeklySchedule": "حسب جدولك الأسبوعي",
+  "nurseAvailDayBlockedShort": "هذا اليوم موقوف",
+  "nurseAvailCustomOverrideApplied": "تم تطبيق ساعات مخصصة",
+  "nurseAvailOverrideHoursTitle": "تعديل ساعات هذا اليوم",
+  "nurseAvailOverrideHoursSubtitle": "تحديد ساعات مخصصة لهذا اليوم فقط",
+  "nurseAvailBlockDayTitle": "إيقاف هذا اليوم",
+  "nurseAvailUnblockDayTitle": "إلغاء إيقاف اليوم",
+  "nurseAvailUnblockDaySubtitle": "جعل هذا اليوم متاحًا مرة أخرى",
+  "nurseAvailBlockDaySubtitle": "تحديد هذا اليوم كغير متاح (إجازة مثلاً)",
+  "nurseAvailOverrideHoursForDate": "تحديد ساعات مخصصة لـ {date}",
+  "@nurseAvailOverrideHoursForDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "nurseAvailStartTime": "وقت البدء",
+  "nurseAvailEndTime": "وقت الانتهاء",
+  "nurseAvailCancel": "إلغاء",
+  "nurseAvailSaveOverride": "حفظ التعديل",
+  "nurseAvailBlockConfirmTitle": "هل تريد إيقاف هذا اليوم؟",
+  "nurseAvailBlockConfirmMessage": "لن يتمكن المرضى من حجز مواعيد في هذا اليوم.",
+  "nurseAvailBlockDay": "إيقاف اليوم",
+  "nurseAvailQuickSettingsTitle": "إعدادات سريعة",
+  "nurseAvailQuickCopyWeekdays": "تطبيق على جميع أيام الأسبوع",
+  "nurseAvailQuickCopyWeekdaysSubtitle": "تطبيق جدول يوم الإثنين على باقي الأيام",
+  "nurseAvailQuickWeekend": "تحديد توفر نهاية الأسبوع",
+  "nurseAvailQuickWeekendSubtitle": "تحديد ساعات العمل ليومي السبت والأحد",
+  "nurseAvailQuickBlockDays": "إيقاف أيام محددة",
+  "nurseAvailQuickBlockDaysSubtitle": "تحديد الأيام غير المتاحة",
+  "nurseAvailQuickPlaceholder": "الإعدادات السريعة للواجهة فقط حاليًا",
+  "nurseAvailQuickBlockHint": "استخدم التقويم لإيقاف أيام محددة",
+  "nurseAvailAddWorkingHoursTitle": "إضافة ساعات العمل",
+  "nurseAvailAddWorkingHoursSubtitle": "حدد جدول عملك الأسبوعي",
+  "nurseAvailSelectDay": "اختر اليوم",
+  "nurseAvailSummary": "الملخص",
+  "nurseAvailSummaryDay": "اليوم",
+  "nurseAvailSummaryHours": "الساعات",
+  "nurseAvailSummaryDuration": "المدة",
+  "nurseAvailBookingNote": "ملاحظة: سيتم إنشاء مواعيد الحجز تلقائيًا بناءً على ساعات عملك ومدة الخدمات.",
+  "nurseAvailAddButton": "إضافة ساعات العمل",
+  "nurseAvailInvalidTimeRange": "مدة غير صالحة",
+  "nurseAvailEndAfterStart": "وقت الانتهاء يجب أن يكون بعد وقت البدء",
+  "nurseAvailWeekdayMonday": "الإثنين",
+  "nurseAvailWeekdayTuesday": "الثلاثاء",
+  "nurseAvailWeekdayWednesday": "الأربعاء",
+  "nurseAvailWeekdayThursday": "الخميس",
+  "nurseAvailWeekdayFriday": "الجمعة",
+  "nurseAvailWeekdaySaturday": "السبت",
+  "nurseAvailWeekdaySunday": "الأحد",
+  "nurseAvailSlotCount": "{count, plural, zero{لا فترات} one{فترة واحدة} two{فترتان} few{{count} فترات} many{{count} فترة} other{{count} فترة}}",
+  "@nurseAvailSlotCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nurseAvailDeactivateSlot": "تعطيل الفترة",
+  "nurseAvailActivateSlot": "تفعيل الفترة",
+  "nurseAvailDelete": "حذف",
+  "nurseAppointmentsTitle": "مواعيدي",
+  "nurseAppointmentsTabToday": "اليوم ({count})",
+  "@nurseAppointmentsTabToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsTabUpcoming": "القادمة ({count})",
+  "@nurseAppointmentsTabUpcoming": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsTabPast": "السابقة ({count})",
+  "@nurseAppointmentsTabPast": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseAppointmentsEmpty": "لا توجد مواعيد حالياً",
+  "nurseAppointmentsErrorGeneric": "حدث خطأ ما.",
+  "nurseLoginRequiredShort": "يرجى تسجيل الدخول",
+  "nurseProfileTitle": "الملف الشخصي",
+  "nurseProfileSubtitle": "الحساب والإعدادات",
+  "nurseProfilePersonalInfoTitle": "المعلومات الشخصية",
+  "nurseProfilePersonalInfoSubtitle": "بياناتك وخدماتك المهنية",
+  "nurseProfileRatingsTitle": "التقييمات",
+  "nurseProfileRatingsSubtitle": "تقييمات المرضى",
+  "nurseProfileEarningsTitle": "الأرباح",
+  "nurseProfileEarningsSubtitle": "الأرباح وسجل المعاملات",
+  "nurseProfileLogoutTitle": "تسجيل الخروج",
+  "nurseProfileLogoutSubtitle": "تسجيل الخروج من هذا الجهاز",
+  "nurseProfileLogoutDialogTitle": "تسجيل الخروج؟",
+  "nurseProfileLogoutDialogMessage": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.",
+  "nurseProfileLogoutFailed": "تعذر تسجيل الخروج: {error}",
+  "@nurseProfileLogoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalLoadFailed": "تعذر تحميل الملف: {error}",
+  "@nursePersonalLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalExperienceInvalid": "سنوات الخبرة يجب أن تكون رقمًا صحيحًا",
+  "nursePersonalUpdatedSuccess": "تم تحديث الملف بنجاح",
+  "nursePersonalUpdateFailed": "تعذر تحديث الملف: {error}",
+  "@nursePersonalUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nursePersonalHeaderTitle": "المعلومات الشخصية",
+  "nursePersonalHeaderSubtitle": "إدارة بياناتك المهنية",
+  "nursePersonalSectionPersonal": "المعلومات الشخصية",
+  "nursePersonalSectionProfessional": "البيانات المهنية",
+  "nursePersonalSaveChanges": "حفظ التعديلات",
+  "nursePersonalFullName": "الاسم الكامل",
+  "nursePersonalEmail": "البريد الإلكتروني",
+  "nursePersonalPhone": "رقم الهاتف",
+  "nursePersonalLocation": "الموقع",
+  "nursePersonalAddress": "العنوان",
+  "nursePersonalNationalId": "الرقم الوطني",
+  "nursePersonalBio": "نبذة",
+  "nursePersonalLicenseNumber": "رقم الترخيص",
+  "nursePersonalSpecialization": "التخصص",
+  "nursePersonalExperience": "الخبرة",
+  "nursePersonalServicesOffered": "الخدمات المقدمة",
+  "nursePersonalNoServicesFound": "لا توجد خدمات حالياً.",
+  "nurseServiceAddTitle": "إضافة خدمة",
+  "nurseServiceAddSubtitle": "أضف خدمة تقدمها",
+  "nurseServiceEditTitle": "تعديل الخدمة",
+  "nurseServiceEditSubtitle": "تحديث سعر خدمتك",
+  "nurseServiceSelectRequired": "يرجى اختيار خدمة",
+  "nurseServicePriceInvalid": "يرجى إدخال سعر صحيح",
+  "nurseServiceAddedSuccess": "تمت إضافة الخدمة بنجاح",
+  "nurseServiceUpdatedSuccess": "تم تحديث الخدمة بنجاح",
+  "nurseServiceDeletedSuccess": "تم حذف الخدمة بنجاح",
+  "nurseServiceSelectLabel": "اختر الخدمة *",
+  "nurseServiceDurationLabel": "مدة الخدمة",
+  "nurseServicePriceLabel": "سعرك *",
+  "nurseServicePriceHint": "أدخل سعرك",
+  "nurseServicePriceHelp": "حدد سعرك لهذه الخدمة",
+  "nurseServiceChooseHint": "اختر خدمة...",
+  "nurseServiceSelectFirst": "اختر خدمة أولاً",
+  "nurseServiceFixedDuration": "(مدة ثابتة)",
+  "nurseServiceMinutes": "{count} دقيقة",
+  "@nurseServiceMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseServiceCurrencyJod": "د.أ",
+  "nurseServiceAddButton": "إضافة خدمة",
+  "nurseServiceUpdateButton": "تحديث الخدمة",
+  "nurseServiceDeleteTitle": "حذف الخدمة",
+  "nurseServiceDeleteConfirm": "هل أنت متأكد من حذف هذه الخدمة؟",
+  "nurseServiceNoteTitle": "ملاحظة:",
+  "nurseServiceAddNoteBody": "مدة الخدمة تأتي من كتالوج الخدمات في النظام. كل ما عليك اختيار الخدمة وإدخال السعر.",
+  "nurseServiceEditNoteBody": "مدة الخدمة تأتي من كتالوج الخدمات في النظام. يمكنك تعديل الخدمة المختارة والسعر فقط.",
+  "nurseServiceSummaryService": "الخدمة: {name}",
+  "@nurseServiceSummaryService": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseServiceSummaryDuration": "المدة: {value}",
+  "@nurseServiceSummaryDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseServiceSummaryPriceLabel": "سعرك:",
+  "nurseServiceSummaryPriceValue": "{price} د.أ",
+  "@nurseServiceSummaryPriceValue": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseRatingsBasedOn": "بناءً على {count} تقييم",
+  "@nurseRatingsBasedOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nurseRatingsRecentReviews": "أحدث التقييمات",
+  "nurseRatingsMockName1": "أحمد م.",
+  "nurseRatingsMockComment1": "ممرضة متميزة ومنتظمة في المواعيد. أنصح بها جدًا.",
+  "nurseRatingsMockName2": "رانيا ك.",
+  "nurseRatingsMockComment2": "تعامل ممتاز في العناية بالجروح وشرح واضح.",
+  "nurseRatingsMockName3": "سارة المصري",
+  "nurseRatingsMockComment3": "زيارة ممتازة وسأقوم بالحجز مرة أخرى.",
+  "nurseEarningsPlaceholderTitle": "الأرباح",
+  "nurseEarningsPlaceholderBody": "ستظهر تفاصيل الأرباح وسجل الدفعات هنا عند ربطها بالنظام."
+  ,
+  "nurseRegTitle": "تسجيل كممرض",
+  "nurseRegPhoneLabel": "رقم الهاتف",
+  "nurseRegPhoneHint": "مثال: 079XXXXXXX",
+  "nurseRegNationalIdLabel": "الرقم الوطني",
+  "nurseRegNationalIdHint": "أدخل الرقم الوطني",
+  "nurseRegLicenseLabel": "رقم مزاولة المهنة",
+  "nurseRegLicenseHint": "أدخل رقم مزاولة المهنة",
+  "nurseRegGovernorateLabel": "المحافظة",
+  "nurseRegGovernorateSelect": "اختر المحافظة",
+  "nurseRegAreaLabel": "المنطقة / الحي",
+  "nurseRegAreaHint": "مثال: عبدون، جبل عمان",
+  "nurseRegSpecializationLabel": "التخصص",
+  "nurseRegSpecializationHint": "مثال: عناية حثيثة، رعاية كبار السن",
+  "nurseRegExperienceLabel": "سنوات الخبرة",
+  "nurseRegExperienceHint": "مثال: 5",
+  "nurseRegBioLabel": "نبذة عنك",
+  "nurseRegBioHint": "اكتب نبذة قصيرة عن خبرتك",
+  "nurseRegUploadNationalIdTitle": "رفع صورة الهوية",
+  "nurseRegUploadLicenseTitle": "رفع شهادة مزاولة المهنة",
+  "nurseRegUploadProfileTitle": "رفع الصورة الشخصية",
+  "nurseRegUploadImageHint": "JPG / JPEG / PNG",
+  "nurseRegUploadPdfHint": "PDF فقط",
+  "nurseRegConfirmAccuracy": "أؤكد أن جميع المعلومات صحيحة",
+  "nurseRegSubmit": "إرسال الطلب",
+  "nurseRegRequiredField": "حقل مطلوب",
+  "nurseRegSelectGovernorateError": "يرجى اختيار المحافظة",
+  "nurseRegConfirmInfoError": "يرجى تأكيد صحة المعلومات",
+  "nurseRegExperienceInvalid": "سنوات الخبرة يجب أن تكون رقمًا صحيحًا",
+  "nurseRegUploadNationalIdError": "يرجى رفع صورة الهوية",
+  "nurseRegUploadLicenseError": "يرجى رفع شهادة مزاولة المهنة (PDF)",
+  "nurseRegUploadProfilePhotoError": "يرجى رفع الصورة الشخصية",
+  "nurseRegSubmittedSuccess": "تم إرسال الطلب بنجاح",
+  "notificationsTitle": "الإشعارات",
+  "notificationsNurseTitle": "إشعارات الممرض",
+  "notificationsLoadFailed": "تعذر تحميل الإشعارات",
+  "notificationsMarkOneFailed": "تعذر تعليم الإشعار كمقروء",
+  "notificationsMarkAllFailed": "تعذر تعليم كل الإشعارات كمقروءة",
+  "notificationsNoLinkedScreen": "لا توجد شاشة مرتبطة بهذا الإشعار",
+  "notificationsNoBookingLinked": "لا يوجد حجز مرتبط",
+  "notificationsOpenDetailsFailed": "تعذر فتح تفاصيل الموعد",
+  "notificationsUnhandledTarget": "شاشة غير مدعومة: {target}",
+  "@notificationsUnhandledTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsReadAll": "قراءة الكل",
+  "notificationsUnreadCount": "{count, plural, zero{لا توجد إشعارات غير مقروءة} one{إشعار غير مقروء واحد} two{إشعاران غير مقروءين} few{{count} إشعارات غير مقروءة} many{{count} إشعارًا غير مقروء} other{{count} إشعار غير مقروء}}",
+  "@notificationsUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsAllRead": "كل الإشعارات مقروءة",
+  "notificationsEmpty": "لا توجد إشعارات حتى الآن.",
+  "notificationsJustNow": "الآن",
+  "notificationsMinAgo": "منذ {count} دقيقة",
+  "@notificationsMinAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsHoursAgo": "منذ {count} ساعة",
+  "@notificationsHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsDaysAgo": "منذ {count} يوم",
+  "@notificationsDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsMarkAsRead": "تعليم كمقروء"
+  ,
+  "nurseAppointmentDetailsTitle": "تفاصيل الموعد",
+  "nurseAppointmentWaitingBanner": "بانتظار الدفع\nلقد قمت بقبول هذا الموعد. يجب على المريض إكمال الدفع لتفعيله.",
+  "nurseAppointmentStatusLabel": "الحالة",
+  "nurseAppointmentPatientInformation": "معلومات المريض",
+  "nurseAppointmentCallPatient": "اتصال بالمريض",
+  "nurseAppointmentWhatsAppPatient": "رسالة عبر واتساب",
+  "nurseAppointmentDetailsSectionTitle": "تفاصيل الموعد",
+  "nurseAppointmentDateLabel": "التاريخ",
+  "nurseAppointmentTimeDurationLabel": "الوقت والمدة",
+  "nurseAppointmentServiceLocationLabel": "موقع الخدمة",
+  "nurseAppointmentYourEarnings": "أرباحك",
+  "nurseAppointmentPaymentStatusLabel": "حالة الدفع",
+  "nurseAppointmentMarkCompleted": "تحديد كمكتمل",
+  "nurseAppointmentCancelTitle": "إلغاء الموعد",
+  "nurseAppointmentCancelConfirmMessage": "هل أنت متأكد أنك تريد إلغاء هذا الموعد؟",
+  "nurseAppointmentCompleteConfirmMessage": "هل أنت متأكد أنك تريد تحديد هذا الموعد كمكتمل؟",
+  "nurseAppointmentCancelledSuccess": "تم إلغاء الموعد بنجاح.",
+  "nurseAppointmentCompletedSuccess": "تم تحديد الموعد كمكتمل.",
+  "nurseAppointmentStatusWaitingPayment": "بانتظار الدفع",
+  "nurseAppointmentStatusActivePaid": "نشط / مدفوع",
+  "nurseAppointmentPaymentPaid": "مدفوع",
+  "nurseAppointmentPaymentUnpaid": "غير مدفوع",
+  "nurseAppointmentPaymentNotApplicable": "غير متاح",
+  "nurseAppointmentServiceFallback": "الخدمة",
+  "nurseAppointmentPaymentPendingBannerBody": "المريض لم يُكمل الدفع بعد — يمكنك التواصل معه أو إلغاء الموعد.",
+  "patientAppointmentDetailsTitle": "تفاصيل الموعد",
+  "patientAppointmentNurseInformation": "معلومات الممرضة",
+  "patientAppointmentCall": "اتصال",
+  "patientAppointmentWhatsApp": "واتساب",
+  "patientAppointmentDate": "التاريخ",
+  "patientAppointmentTimeDuration": "الوقت والمدة",
+  "patientAppointmentAddress": "العنوان",
+  "patientAppointmentTotalCost": "التكلفة الإجمالية",
+  "patientAppointmentPaymentStatus": "حالة الدفع",
+  "patientAppointmentPayNow": "ادفع الآن",
+  "patientAppointmentNoActions": "لا توجد إجراءات متاحة لهذا الموعد.",
+  "patientAppointmentCancelling": "جاري الإلغاء...",
+  "patientAppointmentCancelButton": "إلغاء الموعد",
+  "patientAppointmentLoadFailed": "تعذر تحميل تفاصيل الموعد",
+  "patientAppointmentPayToContinueTitle": "ادفع للمتابعة",
+  "patientAppointmentPayToContinueBody": "تم تأكيد موعدك من الممرضة. الرجاء إكمال الدفع لتفعيل الموعد والحفاظ على الحجز.",
+  "patientAppointmentStatusLabel": "الحالة",
+  "patientAppointmentPhoneUnavailable": "رقم الهاتف غير متوفر.",
+  "patientAppointmentDialerOpenFailed": "تعذر فتح تطبيق الاتصال.",
+  "patientAppointmentWhatsAppOpenFailed": "تعذر فتح واتساب.",
+  "patientAppointmentCancelTitle": "إلغاء الموعد",
+  "patientAppointmentCancelConfirm": "هل أنت متأكد أنك تريد إلغاء هذا الموعد؟",
+  "patientAppointmentCancelConfirmAction": "نعم، إلغاء",
+  "patientAppointmentCancelledSuccess": "تم إلغاء الموعد بنجاح.",
+  "patientAppointmentHours": "{count} ساعة",
+  "@patientAppointmentHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientAppointmentMinutes": "{count} دقيقة",
+  "@patientAppointmentMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientAppointmentPaymentAwaitingNurse": "بانتظار موافقة الممرضة",
+  "patientAppointmentPaymentUnpaid": "غير مدفوع",
+  "patientAppointmentPaymentPaid": "مدفوع",
+  "patientAppointmentPaymentCancelled": "ملغي",
+  "patientAppointmentPaymentRejected": "مرفوض",
+  "patientNurseProfileAboutTab": "حول",
+  "patientNurseProfileReviewsTab": "التقييمات ({count})",
+  "@patientNurseProfileReviewsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "patientNurseProfileLocation": "الموقع",
+  "patientNurseProfileAvailability": "التوفر",
+  "patientNurseProfileServicesOffered": "الخدمات المتاحة",
+  "patientNurseProfileNoServicesTitle": "لا توجد خدمات متاحة لهذه الممرضة حالياً.",
+  "patientNurseProfileNoServicesSubtitle": "لا يمكنك حجز خدمة في الوقت الحالي.",
+  "patientNurseProfileReviews": "التقييمات",
+  "patientNurseProfileReviewsPlaceholder": "ستظهر التقييمات بعد توفرها من الخادم.",
+  "patientNurseProfileBookServiceRequest": "حجز طلب خدمة",
+  "patientNurseProfileNoServicesAvailable": "لا توجد خدمات متاحة",
+  "patientRequestServiceTitle": "طلب خدمة",
+  "patientRequestStepServiceDetails": "تفاصيل الخدمة",
+  "patientRequestStepReviewConfirm": "المراجعة والتأكيد",
+  "patientRequestRequiredFields": "يرجى تعبئة جميع الحقول المطلوبة.",
+  "patientRequestSelectServiceType": "اختر نوع الخدمة",
+  "patientRequestNoServicesForNurse": "لا توجد خدمات متاحة لهذه الممرضة.",
+  "patientRequestSelectDate": "اختر التاريخ",
+  "patientRequestNoAvailableDates": "لا توجد تواريخ متاحة.",
+  "patientRequestSelectTimeSlot": "اختر وقتاً متاحاً",
+  "patientRequestSelectServiceDateFirst": "اختر الخدمة والتاريخ لعرض الأوقات المتاحة.",
+  "patientRequestNoAvailableTimeSlots": "لا توجد أوقات متاحة لهذا التاريخ.",
+  "patientRequestServiceAddress": "عنوان الخدمة",
+  "patientRequestAddressHint": "أدخل عنوانك الكامل",
+  "patientRequestAdditionalNotesOptional": "ملاحظات إضافية (اختياري)",
+  "patientRequestNotesHint": "أي تعليمات خاصة أو معلومات طبية...",
+  "patientRequestReviewAndConfirm": "مراجعة وتأكيد",
+  "patientRequestReviewYourRequest": "راجع طلبك",
+  "patientRequestServiceType": "نوع الخدمة",
+  "patientRequestDuration": "المدة",
+  "patientRequestTime": "الوقت",
+  "patientRequestNotes": "الملاحظات",
+  "patientRequestServiceCost": "تكلفة الخدمة",
+  "patientRequestService": "الخدمة",
+  "patientRequestTotalPrice": "السعر الإجمالي",
+  "patientRequestSubmitRequest": "إرسال الطلب",
+  "patientRequestSubmittedTitle": "تم إرسال الطلب!",
+  "patientRequestSubmittedBody": "تم إرسال طلب الخدمة إلى\n{name}. ستصلك إشعار فور رد الممرضة.",
+  "@patientRequestSubmittedBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "patientRequestSummary": "ملخص الطلب",
+  "patientRequestNurseLabel": "الممرضة:",
+  "patientRequestServiceLabel": "الخدمة:",
+  "patientRequestDurationLabel": "المدة:",
+  "patientRequestDateLabel": "التاريخ:",
+  "patientRequestTimeLabel": "الوقت:",
+  "patientRequestTotalPriceLabel": "السعر الإجمالي:",
+  "patientRequestBackToNurses": "العودة إلى الممرضات",
+  "statusBannerNursePending": "هذا الحجز بانتظار ردك.",
+  "statusBannerPatientPending": "طلبك بانتظار التأكيد.",
+  "statusBannerConfirmed": "تم تأكيد الموعد. نراك في الوقت المحدد.",
+  "statusBannerNurseWaitingPayment": "الدفع ما زال بانتظار المريض.",
+  "statusBannerPatientWaitingPayment": "يرجى إكمال الدفع لتأكيد هذا الموعد.",
+  "statusBannerPaid": "تم استلام الدفع. الموعد أصبح نشطًا.",
+  "statusBannerCompleted": "تم إكمال هذا الموعد.",
+  "statusBannerCancelled": "تم إلغاء هذا الموعد.",
+  "statusBannerRejected": "لم يتم قبول هذا الطلب.",
+  "paymentSuccessTitle": "تم الدفع بنجاح",
+  "paymentSuccessAmountPaid": "المبلغ المدفوع: {amount}",
+  "@paymentSuccessAmountPaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentBackToAppointments": "العودة إلى المواعيد",
+  "paymentFailedTitle": "فشل الدفع",
+  "paymentFailedBody": "تعذر إتمام عملية الدفع. يرجى المحاولة مرة أخرى.",
+  "paymentRetryButton": "إعادة المحاولة",
+  "forgotTitle": "نسيت كلمة المرور",
+  "forgotEnterEmail": "يرجى إدخال البريد الإلكتروني",
+  "forgotEnterValidEmail": "يرجى إدخال بريد إلكتروني صالح",
+  "forgotServerTimeoutMessage": "استغرقت استجابة الخادم وقتًا طويلًا. تحقق من الإعدادات وحاول مرة أخرى.",
+  "forgotResetPasswordTitle": "إعادة تعيين كلمة المرور",
+  "forgotResetPasswordSubtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.",
+  "forgotResetLinkHint": "سنرسل رابط إعادة التعيين إلى بريدك الإلكتروني.",
+  "forgotSendResetLink": "إرسال رابط إعادة التعيين",
+  "nurseResubmitTitle": "إعادة إرسال التحقق",
+  "nurseResubmitNoFileSelected": "لم يتم اختيار ملف",
+  "nurseResubmitExperienceInvalid": "سنوات الخبرة يجب أن تكون رقمًا صالحًا",
+  "nurseResubmitSubmittedSuccess": "تمت إعادة الإرسال بنجاح. بانتظار موافقة الإدارة.",
+  "nurseResubmitSubmitFailed": "فشل الإرسال: {error}",
+  "@nurseResubmitSubmitFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "nurseResubmitUpdateDetailsTitle": "تحديث بياناتك",
+  "nurseResubmitUpdateDetailsSubtitle": "عدّل العناصر المطلوبة ثم أعد إرسال معلوماتك.\nبعد الإرسال ستعود حالتك إلى قيد المراجعة.",
+  "nurseResubmitPhoneRequired": "رقم الهاتف مطلوب",
+  "nurseResubmitPhoneInvalid": "أدخل رقم هاتف صحيح",
+  "nurseResubmitAddressRequired": "العنوان مطلوب",
+  "nurseResubmitLocationHint": "المدينة / الموقع (مثال: عمّان)",
+  "nurseResubmitLocationRequired": "الموقع مطلوب",
+  "nurseResubmitNationalIdRequired": "الرقم الوطني مطلوب",
+  "nurseResubmitNationalIdInvalid": "أدخل رقمًا وطنيًا صحيحًا",
+  "nurseResubmitLicenseRequired": "رقم الترخيص مطلوب",
+  "nurseResubmitSpecializationRequired": "التخصص مطلوب",
+  "nurseResubmitExperienceRequired": "سنوات الخبرة مطلوبة",
+  "nurseResubmitEnterValidNumber": "أدخل رقمًا صحيحًا",
+  "nurseResubmitDocumentsTitle": "المستندات",
+  "nurseResubmitDocumentsSubtitle": "ارفع الملفات المحدثة المطلوبة.",
+  "nurseResubmitNationalIdTitle": "الهوية الوطنية",
+  "nurseResubmitNationalIdHint": "ارفع الهوية الوطنية (صورة/PDF)",
+  "nurseResubmitLicenseTitle": "ترخيص التمريض",
+  "nurseResubmitLicenseHint": "ارفع الترخيص (صورة/PDF)",
+  "nurseResubmitProfilePhotoTitle": "الصورة الشخصية",
+  "nurseResubmitProfilePhotoHint": "ارفع صورة شخصية",
+  "nurseResubmitChoose": "اختيار",
+  "nurseResubmitSubmitForReview": "إرسال للمراجعة",
+  "nurseAvailDurationHoursMinutes": "{hours}س {minutes}د",
+  "@nurseAvailDurationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

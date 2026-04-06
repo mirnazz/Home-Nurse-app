@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_request_submitted_screen.dart';
@@ -79,6 +80,7 @@ class _PatientReviewConfirmScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const primary = Color(0xFF2F7F8D);
 
     final draft = widget.draft;
@@ -91,8 +93,8 @@ class _PatientReviewConfirmScreenState
         elevation: 0,
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Service Request',
+        title: Text(
+          l10n.patientRequestServiceTitle,
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w800,
@@ -104,20 +106,20 @@ class _PatientReviewConfirmScreenState
         children: [
           Container(
             color: primary,
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Row(
                 children: [
                   Expanded(
                     child: _StepTab(
-                      title: 'Service Details',
+                      title: l10n.patientRequestStepServiceDetails,
                       selected: false,
                     ),
                   ),
                   SizedBox(width: 10),
                   Expanded(
                     child: _StepTab(
-                      title: 'Review & Confirm',
+                      title: l10n.patientRequestStepReviewConfirm,
                       selected: true,
                     ),
                   ),
@@ -137,41 +139,41 @@ class _PatientReviewConfirmScreenState
                   ),
                   const SizedBox(height: 12),
                   _BlockCard(
-                    title: 'Review Your Request',
+                    title: l10n.patientRequestReviewYourRequest,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _InfoRow(
-                          label: 'Service Type',
+                          label: l10n.patientRequestServiceType,
                           value: draft.service.title,
                         ),
                         _InfoRow(
-                          label: 'Duration',
+                          label: l10n.patientRequestDuration,
                           value: draft.service.durationLabel,
                         ),
                         Row(
                           children: [
                             Expanded(
                               child: _InfoRow(
-                                label: 'Date',
+                                label: l10n.patientAppointmentDate,
                                 value: formattedDate,
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _InfoRow(
-                                label: 'Time',
+                                label: l10n.patientRequestTime,
                                 value: draft.timeSlot,
                               ),
                             ),
                           ],
                         ),
                         _InfoRow(
-                          label: 'Address',
+                          label: l10n.patientAppointmentAddress,
                           value: draft.address,
                         ),
                         _InfoRow(
-                          label: 'Notes',
+                          label: l10n.patientRequestNotes,
                           value: draft.notes.trim().isEmpty ? '-' : draft.notes,
                         ),
                       ],
@@ -179,22 +181,22 @@ class _PatientReviewConfirmScreenState
                   ),
                   const SizedBox(height: 12),
                   _BlockCard(
-                    title: 'Service Cost',
+                    title: l10n.patientRequestServiceCost,
                     child: Column(
                       children: [
                         _CostLine(
-                          label: 'Service',
+                          label: l10n.patientRequestService,
                           value: draft.service.title,
                         ),
                         _CostLine(
-                          label: 'Duration',
+                          label: l10n.patientRequestDuration,
                           value: draft.service.durationLabel,
                         ),
                         const SizedBox(height: 10),
                         const Divider(height: 1),
                         const SizedBox(height: 10),
                         _CostLine(
-                          label: 'Total Price',
+                          label: l10n.patientRequestTotalPrice,
                           value: '${draft.service.priceJod.toStringAsFixed(1)} JOD',
                           highlighted: true,
                         ),
@@ -239,7 +241,7 @@ class _PatientReviewConfirmScreenState
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Submit Request'),
+                    : Text(l10n.patientRequestSubmitRequest),
               ),
             ),
           ),

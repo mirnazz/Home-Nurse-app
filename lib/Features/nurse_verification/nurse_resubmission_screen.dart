@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_pending_screen.dart';
@@ -122,11 +123,12 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
   }
 
   String _fileName(File? f) {
-    if (f == null) return "No file selected";
+    if (f == null) return AppLocalizations.of(context)!.nurseResubmitNoFileSelected;
     return f.path.split(Platform.pathSeparator).last;
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
     final ok = _formKey.currentState?.validate() ?? false;
@@ -135,9 +137,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     final experienceYears = int.tryParse(experienceYearsController.text.trim());
     if (experienceYears == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Experience years must be a valid number"),
-        ),
+        SnackBar(content: Text(l10n.nurseResubmitExperienceInvalid)),
       );
       return;
     }
@@ -165,9 +165,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Resubmitted successfully. Waiting for admin approval."),
-        ),
+        SnackBar(content: Text(l10n.nurseResubmitSubmittedSuccess)),
       );
 
       Navigator.pushReplacement(
@@ -177,7 +175,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Submit failed: $e")),
+        SnackBar(content: Text(l10n.nurseResubmitSubmitFailed(e.toString()))),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -258,8 +256,8 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
           const SizedBox(width: 10),
           TextButton(
             onPressed: isLoading ? null : onPick,
-            child: const Text(
-              "Choose",
+            child: Text(
+              AppLocalizations.of(context)!.nurseResubmitChoose,
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w900,
@@ -273,6 +271,7 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -310,9 +309,9 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            "Resubmit Verification",
+                            l10n.nurseResubmitTitle,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
@@ -346,8 +345,8 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _sectionTitle(
-                                  "Update your details",
-                                  "Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.",
+                                  l10n.nurseResubmitUpdateDetailsTitle,
+                                  l10n.nurseResubmitUpdateDetailsSubtitle,
                                 ),
                                 const SizedBox(height: 14),
                                 Form(
@@ -358,14 +357,14 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                         controller: phoneController,
                                         keyboardType: TextInputType.phone,
                                         decoration: _dec(
-                                          hint: "Phone number",
+                                          hint: l10n.nurseRegPhoneLabel,
                                           icon: Icons.phone_outlined,
                                         ),
                                         validator: (v) {
                                           final s = (v ?? "").trim();
-                                          if (s.isEmpty) return "Phone is required";
+                                          if (s.isEmpty) return l10n.nurseResubmitPhoneRequired;
                                           if (s.length < 9) {
-                                            return "Enter a valid phone number";
+                                            return l10n.nurseResubmitPhoneInvalid;
                                           }
                                           return null;
                                         },
@@ -374,12 +373,12 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                       TextFormField(
                                         controller: addressController,
                                         decoration: _dec(
-                                          hint: "Address",
+                                          hint: l10n.nursePersonalAddress,
                                           icon: Icons.location_on_outlined,
                                         ),
                                         validator: (v) {
                                           if ((v ?? "").trim().isEmpty) {
-                                            return "Address is required";
+                                            return l10n.nurseResubmitAddressRequired;
                                           }
                                           return null;
                                         },
@@ -388,12 +387,12 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                       TextFormField(
                                         controller: locationController,
                                         decoration: _dec(
-                                          hint: "City / Location (e.g., Amman)",
+                                          hint: l10n.nurseResubmitLocationHint,
                                           icon: Icons.map_outlined,
                                         ),
                                         validator: (v) {
                                           if ((v ?? "").trim().isEmpty) {
-                                            return "Location is required";
+                                            return l10n.nurseResubmitLocationRequired;
                                           }
                                           return null;
                                         },
@@ -403,16 +402,16 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                         controller: nationalIdController,
                                         keyboardType: TextInputType.number,
                                         decoration: _dec(
-                                          hint: "National ID number",
+                                          hint: l10n.nurseRegNationalIdLabel,
                                           icon: Icons.badge_outlined,
                                         ),
                                         validator: (v) {
                                           final s = (v ?? "").trim();
                                           if (s.isEmpty) {
-                                            return "National ID is required";
+                                            return l10n.nurseResubmitNationalIdRequired;
                                           }
                                           if (s.length < 8) {
-                                            return "Enter a valid National ID";
+                                            return l10n.nurseResubmitNationalIdInvalid;
                                           }
                                           return null;
                                         },
@@ -421,13 +420,13 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                       TextFormField(
                                         controller: licenseNumberController,
                                         decoration: _dec(
-                                          hint: "License number",
+                                          hint: l10n.nurseRegLicenseLabel,
                                           icon: Icons.assignment_ind_outlined,
                                         ),
                                         validator: (v) {
                                           final s = (v ?? "").trim();
                                           if (s.isEmpty) {
-                                            return "License number is required";
+                                            return l10n.nurseResubmitLicenseRequired;
                                           }
                                           return null;
                                         },
@@ -436,12 +435,12 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                       TextFormField(
                                         controller: specializationController,
                                         decoration: _dec(
-                                          hint: "Specialization (e.g., ICU)",
+                                          hint: l10n.nurseRegSpecializationLabel,
                                           icon: Icons.medical_services_outlined,
                                         ),
                                         validator: (v) {
                                           if ((v ?? "").trim().isEmpty) {
-                                            return "Specialization is required";
+                                            return l10n.nurseResubmitSpecializationRequired;
                                           }
                                           return null;
                                         },
@@ -451,17 +450,17 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                         controller: experienceYearsController,
                                         keyboardType: TextInputType.number,
                                         decoration: _dec(
-                                          hint: "Experience years",
+                                          hint: l10n.nurseRegExperienceLabel,
                                           icon: Icons.timeline_outlined,
                                         ),
                                         validator: (v) {
                                           final s = (v ?? "").trim();
                                           if (s.isEmpty) {
-                                            return "Experience years is required";
+                                            return l10n.nurseResubmitExperienceRequired;
                                           }
                                           final n = int.tryParse(s);
                                           if (n == null || n < 0 || n > 60) {
-                                            return "Enter a valid number";
+                                            return l10n.nurseResubmitEnterValidNumber;
                                           }
                                           return null;
                                         },
@@ -491,13 +490,13 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _sectionTitle(
-                                  "Documents",
-                                  "Upload the requested updated files.",
+                                  l10n.nurseResubmitDocumentsTitle,
+                                  l10n.nurseResubmitDocumentsSubtitle,
                                 ),
                                 const SizedBox(height: 14),
                                 _fileCard(
-                                  title: "National ID",
-                                  hint: "Upload your National ID (image/PDF)",
+                                  title: l10n.nurseResubmitNationalIdTitle,
+                                  hint: l10n.nurseResubmitNationalIdHint,
                                   file: nationalIdFile,
                                   icon: Icons.perm_identity_outlined,
                                   onPick: () async {
@@ -511,8 +510,8 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 _fileCard(
-                                  title: "Nursing License",
-                                  hint: "Upload your license (image/PDF)",
+                                  title: l10n.nurseResubmitLicenseTitle,
+                                  hint: l10n.nurseResubmitLicenseHint,
                                   file: licenseFile,
                                   icon: Icons.assignment_outlined,
                                   onPick: () async {
@@ -526,8 +525,8 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 _fileCard(
-                                  title: "Profile Photo",
-                                  hint: "Upload a profile photo (image)",
+                                  title: l10n.nurseResubmitProfilePhotoTitle,
+                                  hint: l10n.nurseResubmitProfilePhotoHint,
                                   file: profilePhotoFile,
                                   icon: Icons.photo_camera_outlined,
                                   onPick: () async {
@@ -564,8 +563,8 @@ class _NurseResubmissionScreenState extends State<NurseResubmissionScreen> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Text(
-                                      "Submit for Review",
+                                  : Text(
+                                      l10n.nurseResubmitSubmitForReview,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w900,

@@ -1,7 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_constants.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_styled_dropdown.dart';
+
+String _profileErrorUserMessage(BuildContext context, Object e) {
+  final raw = e.toString().replaceFirst('Exception: ', '').trim();
+  final lower = raw.toLowerCase();
+  if (lower.contains('not logged in')) {
+    return AppLocalizations.of(context)!.notLoggedIn;
+  }
+  return raw;
+}
+
+String _profileGovernorateLabel(AppLocalizations l10n, String apiValue) {
+  switch (apiValue) {
+    case 'Zarqa':
+      return l10n.patientGovZarqa;
+    case 'Irbid':
+      return l10n.patientGovIrbid;
+    case 'Amman':
+      return l10n.patientGovAmman;
+    case 'Tafilah':
+      return l10n.patientGovTafilah;
+    case 'Karak':
+      return l10n.patientGovKarak;
+    case 'Madaba':
+      return l10n.patientGovMadaba;
+    case 'Balqa':
+      return l10n.patientGovBalqa;
+    case 'Ajloun':
+      return l10n.patientGovAjloun;
+    case 'Jerash':
+      return l10n.patientGovJerash;
+    case 'Aqaba':
+      return l10n.patientGovAqaba;
+    case "Ma'an":
+      return l10n.patientGovMaan;
+    case 'Mafraq':
+      return l10n.patientGovMafraq;
+    default:
+      return apiValue;
+  }
+}
+
+String _profileConditionLabel(AppLocalizations l10n, String key) {
+  switch (key) {
+    case 'diabetes':
+      return l10n.profileConditionDiabetes;
+    case 'hypertension':
+      return l10n.profileConditionHypertension;
+    case 'asthma':
+      return l10n.profileConditionAsthma;
+    case 'heart_disease':
+      return l10n.profileConditionHeartDisease;
+    case 'arthritis':
+      return l10n.profileConditionArthritis;
+    case 'none':
+      return l10n.profileConditionNone;
+    default:
+      return key;
+  }
+}
+
+String _profileGenderDisplay(AppLocalizations l10n, String? g) {
+  if (g == null || g.isEmpty) return '';
+  if (g == 'Male') return l10n.profileGenderMale;
+  if (g == 'Female') return l10n.profileGenderFemale;
+  return g;
+}
+
+String _profileAllergyChipLabel(AppLocalizations l10n, String en) {
+  switch (en) {
+    case 'Penicillin':
+      return l10n.profileAllergyPenicillin;
+    case 'Dust':
+      return l10n.profileAllergyDust;
+    case 'Food':
+      return l10n.profileAllergyFood;
+    case 'Latex':
+      return l10n.profileAllergyLatex;
+    case 'Pollen':
+      return l10n.profileAllergyPollen;
+    default:
+      return en;
+  }
+}
 
 class PatientProfileLocalModel {
   PatientProfileLocalModel();
@@ -76,13 +160,13 @@ class PatientProfileScreen extends StatefulWidget {
     'none': 'None',
   };
 
-  static const List<(String, String)> conditionEntries = [
-    ('diabetes', 'Diabetes'),
-    ('hypertension', 'Hypertension'),
-    ('asthma', 'Asthma'),
-    ('heart_disease', 'Heart Disease'),
-    ('arthritis', 'Arthritis'),
-    ('none', 'None'),
+  static const List<String> profileConditionKeyOrder = [
+    'diabetes',
+    'hypertension',
+    'asthma',
+    'heart_disease',
+    'arthritis',
+    'none',
   ];
 
   static const List<String> allergyChips = [
@@ -187,7 +271,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
+            _profileErrorUserMessage(context, e),
           ),
         ),
       );
@@ -402,7 +486,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess),
+        ),
       );
     } catch (e) {
       if (_editBaseline != null) {
@@ -414,7 +500,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
+            _profileErrorUserMessage(context, e),
           ),
         ),
       );
@@ -498,36 +584,40 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
-  List<String> _conditionDisplayLines() {
+  List<String> _conditionDisplayLines(AppLocalizations l10n) {
     final custom = _model.otherConditionsText
         .split(RegExp(r'[,;\n]'))
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
     if (_model.conditionKeys.contains('none')) {
-      return ['None', ...custom];
+      return [l10n.profileConditionNone, ...custom];
     }
     final labels = <String>[
       for (final k in _model.conditionKeys)
         if (PatientProfileScreen.conditionKeyLabels.containsKey(k))
-          PatientProfileScreen.conditionKeyLabels[k]!,
+          _profileConditionLabel(l10n, k),
       ...custom,
     ];
     return labels;
   }
 
-  List<String> _allergyDisplayLines() {
+  List<String> _allergyDisplayLines(AppLocalizations l10n) {
     final custom = _model.otherAllergiesText
         .split(RegExp(r'[,;\n]'))
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    return [..._model.selectedAllergyChips, ...custom];
+    final chips = _model.selectedAllergyChips
+        .map((c) => _profileAllergyChipLabel(l10n, c))
+        .toList();
+    return [...chips, ...custom];
   }
 
   @override
   Widget build(BuildContext context) {
     const p = PatientProfileScreen.primary;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: PatientProfileScreen.pageBg,
@@ -535,9 +625,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         backgroundColor: p,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.w800),
+        title: Text(
+          l10n.profileTitle,
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: _isInitialLoading
@@ -560,10 +650,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('Personal info'),
+                              _buildSectionTitle(l10n.personalInfo),
                               _isEditing
-                                  ? _buildPersonalEdit(p)
-                                  : _buildPersonalView(),
+                                  ? _buildPersonalEdit(p, l10n)
+                                  : _buildPersonalView(l10n),
                             ],
                           ),
                         ),
@@ -572,10 +662,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('Address'),
+                              _buildSectionTitle(l10n.profileAddressSection),
                               _isEditing
-                                  ? _buildAddressEdit(p)
-                                  : _buildAddressView(),
+                                  ? _buildAddressEdit(p, l10n)
+                                  : _buildAddressView(l10n),
                             ],
                           ),
                         ),
@@ -584,10 +674,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('Medical info'),
+                              _buildSectionTitle(l10n.profileMedicalSection),
                               _isEditing
-                                  ? _buildMedicalEdit(p)
-                                  : _buildMedicalView(),
+                                  ? _buildMedicalEdit(p, l10n)
+                                  : _buildMedicalView(l10n),
                             ],
                           ),
                         ),
@@ -606,9 +696,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              child: const Text(
-                                'Edit profile',
-                                style: TextStyle(
+                              child: Text(
+                                l10n.profileEditProfile,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -633,9 +723,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'Cancel',
-                                    style: TextStyle(fontWeight: FontWeight.w800),
+                                  child: Text(
+                                    l10n.profileCancel,
+                                    style: const TextStyle(fontWeight: FontWeight.w800),
                                   ),
                                 ),
                               ),
@@ -663,9 +753,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                                               color: Colors.white,
                                             ),
                                           )
-                                        : const Text(
-                                            'Save',
-                                            style: TextStyle(
+                                        : Text(
+                                            l10n.profileSave,
+                                            style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w800,
                                             ),
@@ -735,53 +825,57 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
-  Widget _buildPersonalView() {
+  Widget _buildPersonalView(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _viewRow('Full name', _model.fullName),
-        _viewRow('Email', _model.email),
-        _viewRow('Phone number', _model.phone),
-        _viewRow('Gender', _model.gender ?? ''),
-        _viewRow('Date of birth', _formatDob(_model.dateOfBirth)),
-        _viewRow('Blood type', _model.bloodType ?? ''),
+        _viewRow(l10n.fullName, _model.fullName),
+        _viewRow(l10n.email, _model.email),
+        _viewRow(l10n.phoneNumber, _model.phone),
+        _viewRow(
+          l10n.gender,
+          _profileGenderDisplay(l10n, _model.gender),
+        ),
+        _viewRow(l10n.dateOfBirth, _formatDob(_model.dateOfBirth)),
+        _viewRow(l10n.bloodType, _model.bloodType ?? ''),
       ],
     );
   }
 
-  Widget _buildPersonalEdit(Color p) {
+  Widget _buildPersonalEdit(Color p, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _textField(
           p,
-          label: 'Full name',
+          label: l10n.fullName,
           controller: _fullNameCtrl,
           readOnly: true,
         ),
         _textField(
           p,
-          label: 'Email',
+          label: l10n.email,
           controller: _emailCtrl,
           keyboard: TextInputType.emailAddress,
           readOnly: true,
         ),
         _textField(
           p,
-          label: 'Phone number',
+          label: l10n.phoneNumber,
           controller: _phoneCtrl,
           keyboard: TextInputType.phone,
           readOnly: true,
         ),
         _dropdown<String>(
           p,
-          label: 'Gender',
+          label: l10n.gender,
           value: _gender,
-          hint: 'Select gender',
+          hint: l10n.profileSelectGender,
           items: PatientProfileScreen.genders,
           onChanged: (v) => setState(() => _gender = v),
+          itemLabel: (g) => _profileGenderDisplay(l10n, g),
         ),
-        _label('Date of birth'),
+        _label(l10n.dateOfBirth),
         const SizedBox(height: 8),
         InkWell(
           onTap: _pickDob,
@@ -798,7 +892,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _dob == null ? 'Select date' : _formatDob(_dob),
+                    _dob == null
+                        ? l10n.profileSelectDate
+                        : _formatDob(_dob),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -815,9 +911,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         const SizedBox(height: 14),
         _dropdown<String>(
           p,
-          label: 'Blood type',
+          label: l10n.bloodType,
           value: _bloodType,
-          hint: 'Select blood type',
+          hint: l10n.profileSelectBloodType,
           items: PatientProfileScreen.bloodTypes,
           onChanged: (v) => setState(() => _bloodType = v),
         ),
@@ -825,33 +921,37 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
-  Widget _buildAddressView() {
+  Widget _buildAddressView(AppLocalizations l10n) {
+    final gov = (_model.governorate ?? '').trim();
+    final govDisplay =
+        gov.isEmpty ? '' : _profileGovernorateLabel(l10n, gov);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _viewRow('Governorate', _model.governorate ?? ''),
-        _viewRow('Area', _model.area),
-        _viewRow('Address', _model.addressLine),
+        _viewRow(l10n.governorate, govDisplay),
+        _viewRow(l10n.area, _model.area),
+        _viewRow(l10n.address, _model.addressLine),
       ],
     );
   }
 
-  Widget _buildAddressEdit(Color p) {
+  Widget _buildAddressEdit(Color p, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _dropdown<String>(
           p,
-          label: 'Governorate',
+          label: l10n.governorate,
           value: _governorate,
-          hint: 'Select governorate',
+          hint: l10n.profileSelectGovernorate,
           items: PatientProfileScreen.governorates,
           onChanged: (v) => setState(() => _governorate = v),
+          itemLabel: (g) => _profileGovernorateLabel(l10n, g),
         ),
-        _textField(p, label: 'Area', controller: _areaCtrl),
+        _textField(p, label: l10n.area, controller: _areaCtrl),
         _textField(
           p,
-          label: 'Address',
+          label: l10n.address,
           controller: _addressCtrl,
           maxLines: 2,
         ),
@@ -859,15 +959,15 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
-  Widget _buildMedicalView() {
-    final condLines = _conditionDisplayLines();
-    final allergyLines = _allergyDisplayLines();
+  Widget _buildMedicalView(AppLocalizations l10n) {
+    final condLines = _conditionDisplayLines(l10n);
+    final allergyLines = _allergyDisplayLines(l10n);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Conditions',
-          style: TextStyle(
+        Text(
+          l10n.profileConditions,
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -898,9 +998,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             ),
           ),
         const SizedBox(height: 14),
-        const Text(
-          'Allergies',
-          style: TextStyle(
+        Text(
+          l10n.profileAllergies,
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -918,9 +1018,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Notes',
-          style: TextStyle(
+        Text(
+          l10n.profileNotes,
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -942,13 +1042,13 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
-  Widget _buildMedicalEdit(Color p) {
+  Widget _buildMedicalEdit(Color p, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Conditions',
-          style: TextStyle(
+        Text(
+          l10n.profileConditions,
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -956,7 +1056,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'None cannot be combined with other conditions.',
+          l10n.profileNoneCombinationWarning,
           style: TextStyle(
             fontSize: 12.5,
             color: PatientProfileScreen.muted,
@@ -964,9 +1064,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        ...PatientProfileScreen.conditionEntries.map((e) {
-          final key = e.$1;
-          final label = e.$2;
+        ...PatientProfileScreen.profileConditionKeyOrder.map((key) {
+          final label = _profileConditionLabel(l10n, key);
           final checked = _model.conditionKeys.contains(key);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -1016,9 +1115,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           );
         }),
         const SizedBox(height: 8),
-        const Text(
-          'Other condition (optional)',
-          style: TextStyle(
+        Text(
+          l10n.profileOtherConditionOptional,
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -1029,13 +1128,13 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           controller: _otherCondCtrl,
           decoration: patientOnboardingOutlineDecoration(
             p,
-            hint: 'e.g. Cancer, Kidney disease',
+            hint: l10n.profileConditionHint,
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Allergies',
-          style: TextStyle(
+        Text(
+          l10n.profileAllergies,
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -1048,7 +1147,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           children: PatientProfileScreen.allergyChips.map((label) {
             final sel = _model.selectedAllergyChips.contains(label);
             return FilterChip(
-              label: Text(label),
+              label: Text(_profileAllergyChipLabel(l10n, label)),
               selected: sel,
               onSelected: (v) => _onAllergyToggle(label, v),
               selectedColor: p.withOpacity(0.18),
@@ -1064,9 +1163,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           }).toList(),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Other allergies (optional)',
-          style: TextStyle(
+        Text(
+          l10n.profileOtherAllergiesOptional,
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 14,
             color: PatientProfileScreen.text,
@@ -1077,13 +1176,13 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           controller: _otherAllergiesCtrl,
           decoration: patientOnboardingOutlineDecoration(
             p,
-            hint: 'e.g. Seafood, Aspirin',
+            hint: l10n.profileAllergiesHint,
           ),
         ),
         const SizedBox(height: 16),
         _textField(
           p,
-          label: 'Notes',
+          label: l10n.profileNotes,
           controller: _notesCtrl,
           maxLines: 4,
         ),
@@ -1147,32 +1246,34 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
- Widget _dropdown<T extends Object>(
-  Color primary, {
-  required String label,
-  required T? value,
-  required String hint,
-  required List<T> items,
-  required ValueChanged<T?> onChanged,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label(label),
-        const SizedBox(height: 8),
-        PatientOnboardingStyledDropdown<T>(
-          primary: primary,
-          value: value,
-          hint: hint,
-          items: items,
-          onChanged: onChanged,
-        ),
-      ],
-    ),
-  );
-}
+  Widget _dropdown<T extends Object>(
+    Color primary, {
+    required String label,
+    required T? value,
+    required String hint,
+    required List<T> items,
+    required ValueChanged<T?> onChanged,
+    String Function(T item)? itemLabel,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label(label),
+          const SizedBox(height: 8),
+          PatientOnboardingStyledDropdown<T>(
+            primary: primary,
+            value: value,
+            hint: hint,
+            items: items,
+            onChanged: onChanged,
+            itemLabel: itemLabel,
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _label(String text) {
     return Text(

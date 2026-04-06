@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 
 class PatientRequestSubmittedScreen extends StatelessWidget {
@@ -11,6 +12,7 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const primary = Color(0xFF2F7F8D);
 
     final summary =
@@ -46,8 +48,8 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Request Submitted!',
+              Text(
+                l10n.patientRequestSubmittedTitle,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
@@ -56,7 +58,7 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Your service request has been sent to\n$nurseName. You will receive a\nnotification once the nurse responds.',
+                l10n.patientRequestSubmittedBody(nurseName),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
@@ -77,29 +79,31 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Request Summary',
+                    Text(
+                      l10n.patientRequestSummary,
                       style: TextStyle(
                         color: Color(0xFF1F2937),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _SummaryLine(label: 'Nurse:', value: nurseName),
-                    _SummaryLine(label: 'Service:', value: serviceName),
+                    _SummaryLine(label: l10n.patientRequestNurseLabel, value: nurseName),
+                    _SummaryLine(label: l10n.patientRequestServiceLabel, value: serviceName),
                     _SummaryLine(
-                      label: 'Duration:',
-                      value: '$durationInMinutes min',
+                      label: l10n.patientRequestDurationLabel,
+                      value: l10n.patientAppointmentMinutes(
+                        int.tryParse(durationInMinutes) ?? 0,
+                      ),
                     ),
-                    _SummaryLine(label: 'Date:', value: date),
-                    _SummaryLine(label: 'Time:', value: time),
+                    _SummaryLine(label: l10n.patientRequestDateLabel, value: date),
+                    _SummaryLine(label: l10n.patientRequestTimeLabel, value: time),
                     if (status.isNotEmpty)
-                      _SummaryLine(label: 'Status:', value: status),
+                      _SummaryLine(label: l10n.patientAppointmentStatusLabel, value: status),
                     const SizedBox(height: 10),
                     const Divider(height: 1),
                     const SizedBox(height: 10),
                     _SummaryLine(
-                      label: 'Total Price:',
+                      label: l10n.patientRequestTotalPriceLabel,
                       value: '$totalPrice JOD',
                       highlighted: true,
                     ),
@@ -124,7 +128,7 @@ class PatientRequestSubmittedScreen extends StatelessWidget {
                       fontSize: 15,
                     ),
                   ),
-                  child: const Text('Back to Nurses'),
+                  child: Text(l10n.patientRequestBackToNurses),
                 ),
               ),
               const SizedBox(height: 10),

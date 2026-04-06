@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'nurse_service_model.dart';
@@ -77,9 +78,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Future<void> _updateService() async {
+    final l10n = AppLocalizations.of(context)!;
     if (selectedService == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a service")),
+        SnackBar(content: Text(l10n.nurseServiceSelectRequired)),
       );
       return;
     }
@@ -88,7 +90,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
 
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid price")),
+        SnackBar(content: Text(l10n.nurseServicePriceInvalid)),
       );
       return;
     }
@@ -105,7 +107,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Service updated successfully")),
+        SnackBar(content: Text(l10n.nurseServiceUpdatedSuccess)),
       );
 
       Navigator.pop(context, true);
@@ -127,6 +129,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Future<void> _deleteService() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => isLoading = true);
 
     try {
@@ -135,7 +138,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Service deleted successfully")),
+        SnackBar(content: Text(l10n.nurseServiceDeletedSuccess)),
       );
 
       Navigator.pop(context, true);
@@ -157,21 +160,22 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Future<void> _confirmDelete() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text("Delete Service"),
-          content: const Text("Are you sure you want to delete this service?"),
+          title: Text(l10n.nurseServiceDeleteTitle),
+          content: Text(l10n.nurseServiceDeleteConfirm),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel"),
+              child: Text(l10n.nurseAvailCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                "Delete",
+              child: Text(
+                l10n.nurseAvailDelete,
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -187,6 +191,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -199,11 +204,11 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           ),
           onPressed: isLoading ? null : () => Navigator.pop(context),
         ),
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Edit Service",
+              l10n.nurseServiceEditTitle,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
@@ -211,7 +216,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
               ),
             ),
             Text(
-              "Update your service pricing",
+              l10n.nurseServiceEditSubtitle,
               style: TextStyle(
                 color: Colors.white70,
                 fontWeight: FontWeight.w500,
@@ -234,20 +239,20 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLabel("Select Service *"),
+                  _buildLabel(l10n.nurseServiceSelectLabel),
                   const SizedBox(height: 8),
                   _buildServiceDropdown(),
                   const SizedBox(height: 20),
-                  _buildLabel("Service Duration"),
+                  _buildLabel(l10n.nurseServiceDurationLabel),
                   const SizedBox(height: 8),
                   _buildDurationField(),
                   const SizedBox(height: 20),
-                  _buildLabel("Your Price *"),
+                  _buildLabel(l10n.nurseServicePriceLabel),
                   const SizedBox(height: 8),
                   _buildPriceField(),
                   const SizedBox(height: 8),
                   Text(
-                    "Set your price for this service",
+                    l10n.nurseServicePriceHelp,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -255,9 +260,9 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildServiceSummaryCard(),
+                  _buildServiceSummaryCard(l10n),
                   const SizedBox(height: 20),
-                  _buildNoteCard(),
+                  _buildNoteCard(l10n),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
@@ -279,8 +284,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              "Update Service",
+                          : Text(
+                              l10n.nurseServiceUpdateButton,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -307,6 +312,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Widget _buildServiceDropdown() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
@@ -317,7 +323,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<ServiceCatalogItem>(
           value: selectedService,
-          hint: const Text("Choose a service..."),
+          hint: Text(l10n.nurseServiceChooseHint),
           isExpanded: true,
           items: serviceCatalog.map((service) {
             return DropdownMenuItem<ServiceCatalogItem>(
@@ -336,6 +342,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Widget _buildDurationField() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
@@ -353,8 +360,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           const SizedBox(width: 12),
           Text(
             selectedService != null
-                ? "${selectedService!.defaultDurationInMinutes} minutes"
-                : "Select a service first",
+                ? l10n.nurseServiceMinutes(selectedService!.defaultDurationInMinutes)
+                : l10n.nurseServiceSelectFirst,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: Color(0xFF1D2433),
@@ -362,7 +369,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            "(Fixed duration)",
+            l10n.nurseServiceFixedDuration,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -375,6 +382,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }
 
   Widget _buildPriceField() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
@@ -391,15 +399,15 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
               controller: _priceController,
               enabled: !isLoading,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: "Enter your price",
+              decoration: InputDecoration(
+                hintText: l10n.nurseServicePriceHint,
                 border: InputBorder.none,
               ),
               onChanged: (_) => setState(() {}),
             ),
           ),
-          const Text(
-            "JOD",
+          Text(
+            l10n.nurseServiceCurrencyJod,
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: Color(0xFF6B7280),
@@ -410,7 +418,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     );
   }
 
-  Widget _buildServiceSummaryCard() {
+  Widget _buildServiceSummaryCard(AppLocalizations l10n) {
     final price = _priceController.text;
 
     return Container(
@@ -424,23 +432,30 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Service: ${selectedService?.name ?? widget.service.serviceName}",
+            l10n.nurseServiceSummaryService(
+              selectedService?.name ?? widget.service.serviceName,
+            ),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Text(
-            "Duration: ${selectedService?.defaultDurationInMinutes ?? widget.service.durationInMinutes} min",
+            l10n.nurseServiceSummaryDuration(
+              l10n.nurseServiceMinutes(
+                selectedService?.defaultDurationInMinutes ??
+                    widget.service.durationInMinutes,
+              ),
+            ),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Text(
-                "Your Price: ",
+              Text(
+                "${l10n.nurseServiceSummaryPriceLabel} ",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               Text(
-                "${price.isEmpty ? "0" : price} JOD",
+                l10n.nurseServiceSummaryPriceValue(price.isEmpty ? "0" : price),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   color: AppColors.primary,
@@ -453,7 +468,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     );
   }
 
-  Widget _buildNoteCard() {
+  Widget _buildNoteCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -461,11 +476,11 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFB8DCE8)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Note: ",
+            "${l10n.nurseServiceNoteTitle} ",
             style: TextStyle(
               fontWeight: FontWeight.w900,
               color: Color(0xFF1D2433),
@@ -474,7 +489,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           ),
           Expanded(
             child: Text(
-              "Service duration comes from the backend catalog. You can update the selected service and price only.",
+              l10n.nurseServiceEditNoteBody,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,

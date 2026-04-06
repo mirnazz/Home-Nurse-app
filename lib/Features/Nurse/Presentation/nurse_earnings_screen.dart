@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 
 /// Earnings / transactions area (UI placeholder; wire to API later).
@@ -7,11 +8,12 @@ class NurseEarningsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Earnings',
+        title: Text(
+          l10n.nurseProfileEarningsTitle,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         backgroundColor: AppColors.primary,
@@ -31,7 +33,7 @@ class NurseEarningsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Earnings',
+                l10n.nurseEarningsPlaceholderTitle,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -40,7 +42,7 @@ class NurseEarningsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Detailed earnings and payout history will appear here once connected to your backend.',
+                l10n.nurseEarningsPlaceholderBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,

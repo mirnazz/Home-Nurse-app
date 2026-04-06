@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
+
+String _nurseAvailDayLabel(AppLocalizations l10n, String apiDay) {
+  switch (apiDay) {
+    case 'Monday':
+      return l10n.nurseAvailWeekdayMonday;
+    case 'Tuesday':
+      return l10n.nurseAvailWeekdayTuesday;
+    case 'Wednesday':
+      return l10n.nurseAvailWeekdayWednesday;
+    case 'Thursday':
+      return l10n.nurseAvailWeekdayThursday;
+    case 'Friday':
+      return l10n.nurseAvailWeekdayFriday;
+    case 'Saturday':
+      return l10n.nurseAvailWeekdaySaturday;
+    case 'Sunday':
+      return l10n.nurseAvailWeekdaySunday;
+    default:
+      return apiDay;
+  }
+}
 
 class NurseAvailabilityScreen extends StatefulWidget {
   /// When true, omits outer [Scaffold] so the screen can live inside a parent
@@ -72,10 +95,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 
   Future<void> _saveAvailability() async {
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Changes are saved automatically after each action'),
-      ),
+      SnackBar(content: Text(l10n.nurseAvailSaveAutoMessage)),
     );
   }
 
@@ -98,8 +120,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       );
       await _loadAvailability();
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Time slot added successfully')),
+        SnackBar(content: Text(l10n.nurseAvailTimeSlotAdded)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -171,6 +194,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
     // Capture navigator and messenger BEFORE sheet opens (safe after async)
     final nav = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     await showModalBottomSheet(
       context: context,
@@ -189,7 +213,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
             if (!mounted) return;
             setState(() => _blockedDates.add(dateKey));
             messenger.showSnackBar(
-              const SnackBar(content: Text('Day blocked successfully')),
+              SnackBar(content: Text(l10n.nurseAvailDayBlocked)),
             );
           } catch (e) {
             nav.pop();
@@ -207,7 +231,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
             if (!mounted) return;
             setState(() => _blockedDates.remove(dateKey));
             messenger.showSnackBar(
-              const SnackBar(content: Text('Day unblocked successfully')),
+              SnackBar(content: Text(l10n.nurseAvailDayUnblocked)),
             );
           } catch (e) {
             nav.pop();
@@ -228,7 +252,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
             nav.pop();
             messenger.showSnackBar(
               SnackBar(
-                content: Text('Working hours overridden: $start - $end'),
+                content: Text(l10n.nurseAvailOverrideSuccess(start, end)),
               ),
             );
           } catch (e) {
@@ -252,8 +276,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       await ApiService.deleteWeeklyAvailability(slot.id!);
       await _loadAvailability();
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Slot deleted successfully')),
+        SnackBar(content: Text(l10n.nurseAvailSlotDeleted)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -271,8 +296,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       await ApiService.toggleWeeklyAvailability(slot.id!);
       await _loadAvailability();
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Slot status updated')),
+        SnackBar(content: Text(l10n.nurseAvailSlotStatusUpdated)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -295,6 +321,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final daysWithSlots = _weeklySlots.keys.toList();
 
     final scrollPadding = widget.embedded
@@ -314,9 +341,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.embedded) ...[
-                      const Text(
-                        'Availability',
-                        style: TextStyle(
+                      Text(
+                        l10n.nurseAvailEmbeddedTitle,
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1D2433),
@@ -324,7 +351,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tap any date to manage or block it',
+                        l10n.nurseAvailTapDateHint,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -332,18 +359,18 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                         ),
                       ),
                     ] else ...[
-                      const Text(
-                        'Manage Availability',
-                        style: TextStyle(
+                      Text(
+                        l10n.nurseAvailManageTitle,
+                        style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1D2433),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Tap any date to manage or block it',
-                        style: TextStyle(
+                      Text(
+                        l10n.nurseAvailTapDateHint,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF6B7280),
@@ -365,10 +392,10 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                       decoration: AppointmentUiColors.scheduleCardDecoration(),
                       child: Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Weekly Schedule',
-                              style: TextStyle(
+                              l10n.nurseAvailWeeklySchedule,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
                                 color: Color(0xFF1D2433),
@@ -393,7 +420,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.add, size: 18),
-                            label: const Text('Add Time Slot'),
+                            label: Text(l10n.nurseAvailAddTimeSlot),
                           ),
                         ],
                       ),
@@ -412,7 +439,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'No schedule set yet',
+                                l10n.nurseAvailNoScheduleYet,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -421,7 +448,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Tap "Add Time Slot" to set your working hours',
+                                l10n.nurseAvailNoScheduleHint,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade400,
@@ -441,6 +468,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                             bottom: AppointmentUiColors.scheduleListVerticalGap,
                           ),
                           child: _DayScheduleCard(
+                            l10n: l10n,
                             day: day,
                             slots: daySlots,
                             onDisable: (index) => _disableSlot(day, index),
@@ -450,23 +478,26 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                       }),
                     const SizedBox(height: 6),
                     _QuickSettingsCard(
+                      l10n: l10n,
                       onCopyWeekdays: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Quick settings are UI-only for now')),
+                          SnackBar(
+                            content: Text(l10n.nurseAvailQuickPlaceholder),
+                          ),
                         );
                       },
                       onSetWeekend: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Quick settings are UI-only for now')),
+                          SnackBar(
+                            content: Text(l10n.nurseAvailQuickPlaceholder),
+                          ),
                         );
                       },
                       onBlockDays: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Use the calendar to block specific days')),
+                          SnackBar(
+                            content: Text(l10n.nurseAvailQuickBlockHint),
+                          ),
                         );
                       },
                     ),
@@ -487,9 +518,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                 borderRadius: BorderRadius.circular(14)),
           ),
           icon: const Icon(Icons.save_outlined, color: Colors.white),
-          label: const Text(
-            'Save Availability',
-            style: TextStyle(
+          label: Text(
+            l10n.nurseAvailSave,
+            style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
                 fontSize: 16),
@@ -566,6 +597,7 @@ class _CalendarCardState extends State<_CalendarCard> {
 
   @override
   Widget build(BuildContext context) {
+    final localeTag = Localizations.localeOf(context).toString();
     final year = _displayMonth.year;
     final month = _displayMonth.month;
     final daysInMonth = DateUtils.getDaysInMonth(year, month);
@@ -634,7 +666,7 @@ class _CalendarCardState extends State<_CalendarCard> {
           Row(
             children: [
               Text(
-                '${_monthName(month)} $year',
+                DateFormat.yMMMM(localeTag).format(DateTime(year, month, 1)),
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,
@@ -648,12 +680,12 @@ class _CalendarCardState extends State<_CalendarCard> {
             ],
           ),
           const SizedBox(height: 14),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _WeekLabel('S'), _WeekLabel('M'), _WeekLabel('T'),
-              _WeekLabel('W'), _WeekLabel('T'), _WeekLabel('F'), _WeekLabel('S'),
-            ],
+            children: List.generate(7, (i) {
+              final d = DateTime(2023, 1, 1 + i);
+              return _WeekLabel(DateFormat.E(localeTag).format(d));
+            }),
           ),
           const SizedBox(height: 6),
           GridView.count(
@@ -666,14 +698,6 @@ class _CalendarCardState extends State<_CalendarCard> {
         ],
       ),
     );
-  }
-
-  String _monthName(int m) {
-    const months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return months[m];
   }
 }
 
@@ -753,12 +777,6 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
   TimeOfDay _overrideStart = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _overrideEnd = const TimeOfDay(hour: 16, minute: 0);
 
-  static String _formatDate(DateTime d) {
-    const weekdays = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return '${weekdays[d.weekday]}, ${months[d.month]} ${d.day}, ${d.year}';
-  }
-
   String _time24(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
@@ -774,6 +792,8 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeTag = Localizations.localeOf(context).toString();
     final fallbackHours = widget.slots.isNotEmpty
         ? '${widget.slots.first.start} - ${widget.slots.first.end}'
         : null;
@@ -781,7 +801,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
         ? widget.apiDaySlots.map((e) => '${e['startTime']} - ${e['endTime']}').join('\n')
         : null;
     final defaultHours = apiHours ?? fallbackHours;
-    final dateStr = _formatDate(widget.date);
+    final dateStr = DateFormat.yMMMMEEEEd(localeTag).format(widget.date);
 
     return Container(
       decoration: const BoxDecoration(
@@ -818,8 +838,8 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Manage Day',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1D2433))),
+                      Text(l10n.nurseAvailManageDayTitle,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1D2433))),
                       Text(dateStr,
                           style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600, fontSize: 13)),
                     ],
@@ -844,14 +864,14 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: const [
-                    Icon(Icons.access_time_outlined, color: AppColors.primary, size: 15),
-                    SizedBox(width: 6),
-                    Text('Working Hours', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
+                  Row(children: [
+                    const Icon(Icons.access_time_outlined, color: AppColors.primary, size: 15),
+                    const SizedBox(width: 6),
+                    Text(l10n.nurseAvailWorkingHours, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
                   ]),
                   const SizedBox(height: 6),
                   Text(
-                    defaultHours ?? 'No scheduled hours for this day',
+                    defaultHours ?? l10n.nurseAvailNoHoursThisDay,
                     style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: defaultHours != null ? 20 : 14,
@@ -860,10 +880,10 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                   const SizedBox(height: 2),
                   Text(
                     widget.isBlocked
-                        ? '🔴 This day is blocked'
+                        ? l10n.nurseAvailDayBlockedShort
                         : widget.hasOverride
-                            ? 'Custom override applied'
-                            : 'From your weekly schedule',
+                            ? l10n.nurseAvailCustomOverrideApplied
+                            : l10n.nurseAvailFromWeeklySchedule,
                     style: TextStyle(
                         color: widget.isBlocked
                             ? const Color(0xFFDC2626)
@@ -882,18 +902,18 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               _ActionTile(
                 icon: Icons.edit_outlined,
                 iconColor: AppColors.primary,
-                label: 'Override Working Hours',
-                subtitle: 'Set custom hours for this date only',
+                label: l10n.nurseAvailOverrideHoursTitle,
+                subtitle: l10n.nurseAvailOverrideHoursSubtitle,
                 onTap: () => setState(() => _mode = _SheetMode.override),
               ),
               const SizedBox(height: 8),
               _ActionTile(
                 icon: widget.isBlocked ? Icons.check_circle_outline : Icons.block,
                 iconColor: widget.isBlocked ? const Color(0xFF059669) : const Color(0xFFDC2626),
-                label: widget.isBlocked ? 'Unblock This Day' : 'Block This Day',
+                label: widget.isBlocked ? l10n.nurseAvailUnblockDayTitle : l10n.nurseAvailBlockDayTitle,
                 subtitle: widget.isBlocked
-                    ? 'Make this day available again'
-                    : 'Mark as unavailable (vacation, day off)',
+                    ? l10n.nurseAvailUnblockDaySubtitle
+                    : l10n.nurseAvailBlockDaySubtitle,
                 onTap: widget.isBlocked
                     ? widget.onUnblock
                     : () => setState(() => _mode = _SheetMode.block),
@@ -911,14 +931,14 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Set custom hours for $dateStr',
+                    Text(l10n.nurseAvailOverrideHoursForDate(dateStr),
                         style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 14),
-                    const Text('Start Time', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(l10n.nurseAvailStartTime, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 6),
                     _TimePickerField(value: _overrideStart.format(context), onTap: _pickStart),
                     const SizedBox(height: 12),
-                    const Text('End Time', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(l10n.nurseAvailEndTime, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 6),
                     _TimePickerField(value: _overrideEnd.format(context), onTap: _pickEnd),
                   ],
@@ -933,7 +953,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
+                    child: Text(l10n.nurseAvailCancel, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -944,7 +964,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                         backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('Save Override', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                    child: Text(l10n.nurseAvailSaveOverride, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                   ),
                 ),
               ]),
@@ -961,12 +981,12 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Block $dateStr?',
+                    Text(l10n.nurseAvailBlockConfirmTitle,
                         style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 15)),
                     const SizedBox(height: 6),
-                    const Text(
-                        'This day will be marked as unavailable. Patients will not be able to book appointments.',
-                        style: TextStyle(color: Color(0xFF991B1B), fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text(
+                        l10n.nurseAvailBlockConfirmMessage,
+                        style: const TextStyle(color: Color(0xFF991B1B), fontSize: 13, fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
@@ -979,7 +999,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
+                    child: Text(l10n.nurseAvailCancel, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -990,7 +1010,7 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                         backgroundColor: const Color(0xFFDC2626),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: const Text('Block Day', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                    child: Text(l10n.nurseAvailBlockDay, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                   ),
                 ),
               ]),
@@ -1069,14 +1089,18 @@ class _ActionTile extends StatelessWidget {
 }
 
 class _DayScheduleCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final String day;
   final List<_TimeSlot> slots;
   final ValueChanged<int> onDisable;
   final ValueChanged<int> onToggle;
 
   const _DayScheduleCard({
-    required this.day, required this.slots,
-    required this.onDisable, required this.onToggle,
+    required this.l10n,
+    required this.day,
+    required this.slots,
+    required this.onDisable,
+    required this.onToggle,
   });
 
   @override
@@ -1089,12 +1113,12 @@ class _DayScheduleCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text(day, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
+            Text(_nurseAvailDayLabel(l10n, day), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(99)),
-              child: Text('${slots.length} slot${slots.length == 1 ? '' : 's'}',
+              child: Text(l10n.nurseAvailSlotCount(slots.length),
                   style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.w800, fontSize: 11.5)),
             ),
           ]),
@@ -1120,7 +1144,7 @@ class _DayScheduleCard extends StatelessWidget {
                           decoration: slot.isActive ? TextDecoration.none : TextDecoration.lineThrough)),
                   const Spacer(),
                   Tooltip(
-                    message: slot.isActive ? 'Deactivate slot' : 'Activate slot',
+                    message: slot.isActive ? l10n.nurseAvailDeactivateSlot : l10n.nurseAvailActivateSlot,
                     child: IconButton(
                       onPressed: () => onToggle(index),
                       icon: Icon(slot.isActive ? Icons.visibility : Icons.visibility_off,
@@ -1130,7 +1154,7 @@ class _DayScheduleCard extends StatelessWidget {
                   TextButton.icon(
                     onPressed: () => onDisable(index),
                     icon: const Icon(Icons.delete_outline, size: 15),
-                    label: const Text('Delete'),
+                    label: Text(l10n.nurseAvailDelete),
                     style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFFDC2626),
                         visualDensity: VisualDensity.compact),
@@ -1146,12 +1170,16 @@ class _DayScheduleCard extends StatelessWidget {
 }
 
 class _QuickSettingsCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final VoidCallback onCopyWeekdays;
   final VoidCallback onSetWeekend;
   final VoidCallback onBlockDays;
 
   const _QuickSettingsCard({
-    required this.onCopyWeekdays, required this.onSetWeekend, required this.onBlockDays,
+    required this.l10n,
+    required this.onCopyWeekdays,
+    required this.onSetWeekend,
+    required this.onBlockDays,
   });
 
   @override
@@ -1167,20 +1195,20 @@ class _QuickSettingsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Quick Settings',
-            style: TextStyle(
+          Text(
+            l10n.nurseAvailQuickSettingsTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
               fontSize: 15,
             ),
           ),
           const SizedBox(height: 10),
-          _QuickSettingButton(label: 'Copy to All Weekdays', subtitle: 'Apply Monday schedule to Tue-Fri', onTap: onCopyWeekdays),
+          _QuickSettingButton(label: l10n.nurseAvailQuickCopyWeekdays, subtitle: l10n.nurseAvailQuickCopyWeekdaysSubtitle, onTap: onCopyWeekdays),
           const SizedBox(height: 8),
-          _QuickSettingButton(label: 'Set Weekend Availability', subtitle: 'Configure Saturday & Sunday hours', onTap: onSetWeekend),
+          _QuickSettingButton(label: l10n.nurseAvailQuickWeekend, subtitle: l10n.nurseAvailQuickWeekendSubtitle, onTap: onSetWeekend),
           const SizedBox(height: 8),
-          _QuickSettingButton(label: 'Block Specific Days', subtitle: "Mark days when you're unavailable", onTap: onBlockDays),
+          _QuickSettingButton(label: l10n.nurseAvailQuickBlockDays, subtitle: l10n.nurseAvailQuickBlockDaysSubtitle, onTap: onBlockDays),
         ],
       ),
     );
@@ -1240,10 +1268,16 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     final durationMinutes = (endTime.hour * 60 + endTime.minute) - (startTime.hour * 60 + startTime.minute);
     final validDuration = durationMinutes > 0;
-    final summaryDuration = validDuration ? '${durationMinutes ~/ 60}h ${durationMinutes % 60}m' : 'Invalid range';
+    final summaryDuration = validDuration
+        ? l10n.nurseAvailDurationHoursMinutes(
+            durationMinutes ~/ 60,
+            durationMinutes % 60,
+          )
+        : l10n.nurseAvailInvalidTimeRange;
 
     return Container(
       decoration: const BoxDecoration(
@@ -1259,21 +1293,21 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
             Row(children: [
               const Icon(Icons.access_time_rounded, color: AppColors.primary),
               const SizedBox(width: 10),
-              const Expanded(child: Text('Add Working Hours',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1F2937)))),
+              Expanded(child: Text(l10n.nurseAvailAddWorkingHoursTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1F2937)))),
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
             ]),
-            const Text('Set your weekly schedule',
-                style: TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
+            Text(l10n.nurseAvailAddWorkingHoursSubtitle,
+                style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
             const SizedBox(height: 18),
-            const Text('Select Day *', style: TextStyle(fontWeight: FontWeight.w800)),
+            Text('${l10n.nurseAvailSelectDay} *', style: const TextStyle(fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8, runSpacing: 8,
               children: days.map((day) {
                 final isSelected = selectedDay == day;
                 return ChoiceChip(
-                  label: Text(day), selected: isSelected,
+                  label: Text(_nurseAvailDayLabel(l10n, day)), selected: isSelected,
                   onSelected: (_) => setState(() => selectedDay = day),
                   selectedColor: AppColors.primary,
                   labelStyle: TextStyle(
@@ -1285,24 +1319,24 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            _TimeField(label: 'Start Time *', value: startTime.format(context), onTap: _pickStartTime),
+            _TimeField(label: '${l10n.nurseAvailStartTime} *', value: startTime.format(context), onTap: _pickStartTime),
             const SizedBox(height: 12),
-            _TimeField(label: 'End Time *', value: endTime.format(context), onTap: _pickEndTime),
+            _TimeField(label: '${l10n.nurseAvailEndTime} *', value: endTime.format(context), onTap: _pickEndTime),
             const SizedBox(height: 14),
             Container(
               width: double.infinity, padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFFE6F4F7), borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFBFE5EA))),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Row(children: [
-                  Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 16),
-                  SizedBox(width: 6),
-                  Text('Summary', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F2937))),
+                Row(children: [
+                  const Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 16),
+                  const SizedBox(width: 6),
+                  Text(l10n.nurseAvailSummary, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F2937))),
                 ]),
                 const SizedBox(height: 8),
-                _SummaryRow(label: 'Day:', value: selectedDay),
-                _SummaryRow(label: 'Hours:', value: '${startTime.format(context)} - ${endTime.format(context)}'),
-                _SummaryRow(label: 'Duration:', value: summaryDuration),
+                _SummaryRow(label: '${l10n.nurseAvailSummaryDay}:', value: _nurseAvailDayLabel(l10n, selectedDay)),
+                _SummaryRow(label: '${l10n.nurseAvailSummaryHours}:', value: '${startTime.format(context)} - ${endTime.format(context)}'),
+                _SummaryRow(label: '${l10n.nurseAvailSummaryDuration}:', value: summaryDuration),
               ]),
             ),
             const SizedBox(height: 12),
@@ -1310,9 +1344,9 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: const Color(0xFFFDE68A))),
-              child: const Text(
-                'Note: The system will automatically generate available booking slots based on your working hours and service durations.',
-                style: TextStyle(color: Color(0xFF92400E), fontSize: 12, fontWeight: FontWeight.w500),
+              child: Text(
+                l10n.nurseAvailBookingNote,
+                style: const TextStyle(color: Color(0xFF92400E), fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
             const SizedBox(height: 16),
@@ -1324,13 +1358,13 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
                 onPressed: () {
                   if (!validDuration) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('End time must be after start time')));
+                        SnackBar(content: Text(l10n.nurseAvailEndAfterStart)));
                     return;
                   }
                   Navigator.pop(context, _AddSlotResult(day: selectedDay, start: _time24(startTime), end: _time24(endTime)));
                 },
-                child: const Text('Add Working Hours',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+                child: Text(l10n.nurseAvailAddButton,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
               ),
             ),
           ],

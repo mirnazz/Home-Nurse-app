@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/browse_nurses_screen.dart';
@@ -7,7 +8,9 @@ import 'package:nurse_app/Features/Patients/Presentation/patient_appointments_sc
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_dialog.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_more_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_payments_screen.dart';
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
+import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
@@ -51,9 +54,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
         : <PatientPendingReviewItem>[];
 
-    _loadUserData();
-    _loadDashboardSummary();
-    _fetchPendingReviews();
+    //_loadUserData();
+    //_loadDashboardSummary();
+    //_fetchPendingReviews();
   }
 
   Future<void> _loadUserData() async {
@@ -63,7 +66,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       if (!mounted) return;
 
       setState(() {
-        _userName = (me['fullName'] ?? me['userName'] ?? 'User').toString();
+        _userName = (me['fullName'] ?? me['userName'] ?? '').toString();
       });
     } catch (e) {
       debugPrint('Error loading user data: $e');
@@ -233,7 +236,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Thanks! Your review was submitted.')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.patientReviewSubmittedThanks,
+              ),
+            ),
           );
         } catch (e) {
           if (!mounted) return;
@@ -260,7 +267,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logout failed: $e')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.patientLogoutFailed(e.toString()),
+          ),
+        ),
       );
     }
   }
@@ -314,7 +325,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     const bg = Color(0xFFF6F7F9);
-
     final pages = [
       PatientHomeContent(
         name: _userName,
@@ -339,7 +349,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         initialLocation: _browseLocation,
       ),
       const PatientAppointmentsScreen(),
-      const _PlaceholderTab(title: 'Payments'),
+      const PatientPaymentsScreen(),
       const PatientMoreScreen(),
     ];
 
@@ -389,6 +399,8 @@ class PatientHomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -428,7 +440,7 @@ class PatientHomeContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                   ],
-                  const _SectionTitle(title: "Quick Services"),
+                  _SectionTitle(title: l10n.patientQuickServices),
                   const SizedBox(height: 12),
                   _QuickServicesRow(
                     onServiceTap: onQuickServiceTap,
@@ -441,8 +453,8 @@ class PatientHomeContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   _SectionTitleWithAction(
-                    title: "Upcoming Appointments",
-                    action: "View All",
+                    title: l10n.patientUpcomingAppointments,
+                    action: l10n.patientViewAll,
                     onActionTap: onUpcomingViewAllTap,
                   ),
                   const SizedBox(height: 12),
@@ -452,26 +464,6 @@ class PatientHomeContent extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderTab({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: Color(0xFF374151),
         ),
       ),
     );
@@ -492,6 +484,7 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -510,9 +503,9 @@ class _HomeHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Welcome back,",
-                      style: TextStyle(
+                    Text(
+                      l10n.patientWelcomeBackLine,
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -520,7 +513,7 @@ class _HomeHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      name,
+                      name.isEmpty ? l10n.user : name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -568,6 +561,26 @@ class _HomeHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => showLanguageSelectorSheet(context),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.language_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'logout') {
@@ -586,14 +599,14 @@ class _HomeHeader extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                itemBuilder: (context) => const [
+                itemBuilder: (context) => [
                   PopupMenuItem<String>(
                     value: 'logout',
                     child: Row(
                       children: [
-                        Icon(Icons.logout, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Logout'),
+                        const Icon(Icons.logout, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(AppLocalizations.of(context)!.patientLogout),
                       ],
                     ),
                   ),
@@ -615,6 +628,8 @@ class _SearchEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
@@ -632,20 +647,20 @@ class _SearchEntryCard extends StatelessWidget {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.search, color: Color(0xFF6B7280)),
-            SizedBox(width: 10),
+            const Icon(Icons.search, color: Color(0xFF6B7280)),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
-                "Search nurses by name or specialty...",
-                style: TextStyle(
+                l10n.patientSearchNursesHint,
+                style: const TextStyle(
                   color: Color(0xFF9CA3AF),
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
               color: Color(0xFF9CA3AF),
@@ -744,6 +759,8 @@ class _RateExperienceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -767,16 +784,16 @@ class _RateExperienceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Rate Your Experience",
-                  style: TextStyle(
+                Text(
+                  l10n.patientRateExperienceTitle,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF8A4B00),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Help others by sharing your feedback\nabout ${request.nurseName}",
+                  l10n.patientRateExperienceSubtitle(request.nurseName),
                   style: const TextStyle(
                     fontSize: 12.5,
                     height: 1.25,
@@ -800,9 +817,9 @@ class _RateExperienceCard extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
-              child: const Text(
-                "Write Review",
-                style: TextStyle(
+              child: Text(
+                l10n.patientWriteReview,
+                style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   fontSize: 12.5,
@@ -825,12 +842,14 @@ class _QuickServicesRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Row(
       children: [
         Expanded(
           child: _ServiceTile(
             icon: Icons.water_drop_outlined,
-            label: "IV\nTherapy",
+            label: l10n.patientServiceIvTherapy,
             onTap: () => onServiceTap(1),
           ),
         ),
@@ -838,7 +857,7 @@ class _QuickServicesRow extends StatelessWidget {
         Expanded(
           child: _ServiceTile(
             icon: Icons.favorite_border,
-            label: "Wound\nCare",
+            label: l10n.patientServiceWoundCare,
             onTap: () => onServiceTap(2),
           ),
         ),
@@ -846,7 +865,7 @@ class _QuickServicesRow extends StatelessWidget {
         Expanded(
           child: _ServiceTile(
             icon: Icons.medical_services_outlined,
-            label: "Post-\nSurgery",
+            label: l10n.patientServicePostSurgery,
             onTap: () => onServiceTap(4),
           ),
         ),
@@ -854,7 +873,7 @@ class _QuickServicesRow extends StatelessWidget {
         Expanded(
           child: _ServiceTile(
             icon: Icons.medication_outlined,
-            label: "Medication",
+            label: l10n.patientServiceMedication,
             onTap: () => onServiceTap(5),
           ),
         ),
@@ -937,6 +956,7 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final totalText = isLoading ? '...' : totalBookings.toString();
     final activeText = isLoading ? '...' : activeRequests.toString();
 
@@ -947,7 +967,7 @@ class _StatsRow extends StatelessWidget {
             filled: true,
             icon: Icons.show_chart_rounded,
             number: totalText,
-            label: "Total Bookings",
+            label: l10n.patientTotalBookings,
           ),
         ),
         const SizedBox(width: 12),
@@ -956,7 +976,7 @@ class _StatsRow extends StatelessWidget {
             filled: false,
             icon: Icons.medical_services_outlined,
             number: activeText,
-            label: "Active Requests",
+            label: l10n.patientActiveRequests,
           ),
         ),
       ],
@@ -1036,6 +1056,8 @@ class _UpcomingAppointments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(16),
       width: double.infinity,
@@ -1044,9 +1066,9 @@ class _UpcomingAppointments extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE8ECF2)),
       ),
-      child: const Text(
-        'Appointments section stays as-is.',
-        style: TextStyle(
+      child: Text(
+        l10n.patientAppointmentsPlaceholder,
+        style: const TextStyle(
           color: Color(0xFF6B7280),
           fontWeight: FontWeight.w600,
         ),

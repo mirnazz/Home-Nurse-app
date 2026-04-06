@@ -1,7 +1,85 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_nurse_profile_screen.dart';
+
+String _browseCatalogLabel(AppLocalizations l10n, int id) {
+  switch (id) {
+    case 1:
+      return l10n.patientBrowseCatalog1;
+    case 2:
+      return l10n.patientBrowseCatalog2;
+    case 3:
+      return l10n.patientBrowseCatalog3;
+    case 4:
+      return l10n.patientBrowseCatalog4;
+    case 5:
+      return l10n.patientBrowseCatalog5;
+    case 6:
+      return l10n.patientBrowseCatalog6;
+    case 7:
+      return l10n.patientBrowseCatalog7;
+    case 8:
+      return l10n.patientBrowseCatalog8;
+    case 9:
+      return l10n.patientBrowseCatalog9;
+    case 10:
+      return l10n.patientBrowseCatalog10;
+    case 11:
+      return l10n.patientBrowseCatalog11;
+    case 12:
+      return l10n.patientBrowseCatalog12;
+    case 13:
+      return l10n.patientBrowseCatalog13;
+    case 14:
+      return l10n.patientBrowseCatalog14;
+    case 15:
+      return l10n.patientBrowseCatalog15;
+    case 16:
+      return l10n.patientBrowseCatalog16;
+    case 17:
+      return l10n.patientBrowseCatalog17;
+    case 18:
+      return l10n.patientBrowseCatalog18;
+    case 19:
+      return l10n.patientBrowseCatalog19;
+    default:
+      return '';
+  }
+}
+
+/// [apiValue] is the English governorate string sent to the API.
+String _governorateLabel(AppLocalizations l10n, String apiValue) {
+  switch (apiValue) {
+    case 'Zarqa':
+      return l10n.patientGovZarqa;
+    case 'Irbid':
+      return l10n.patientGovIrbid;
+    case 'Amman':
+      return l10n.patientGovAmman;
+    case 'Tafilah':
+      return l10n.patientGovTafilah;
+    case 'Karak':
+      return l10n.patientGovKarak;
+    case 'Madaba':
+      return l10n.patientGovMadaba;
+    case 'Balqa':
+      return l10n.patientGovBalqa;
+    case 'Ajloun':
+      return l10n.patientGovAjloun;
+    case 'Jerash':
+      return l10n.patientGovJerash;
+    case 'Aqaba':
+      return l10n.patientGovAqaba;
+    case "Ma'an":
+      return l10n.patientGovMaan;
+    case 'Mafraq':
+      return l10n.patientGovMafraq;
+    default:
+      return apiValue;
+  }
+}
 
 class BrowseNursesScreen extends StatefulWidget {
   final String? initialSearch;
@@ -28,40 +106,23 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
 
   Timer? _debounce;
 
-  static const List<_ServiceOption> _serviceOptions = [
-    _ServiceOption(id: 1, label: 'IV Therapy'),
-    _ServiceOption(id: 2, label: 'Wound Care and Dressing'),
-    _ServiceOption(id: 3, label: 'Injection or Medication Administration'),
-    _ServiceOption(id: 4, label: 'Post-Surgery Care'),
-    _ServiceOption(id: 5, label: 'Medication Management'),
-    _ServiceOption(id: 6, label: 'Vital Signs Monitoring'),
-    _ServiceOption(id: 7, label: 'Blood Draw or Lab Sample Collection'),
-    _ServiceOption(id: 8, label: 'Catheter Care'),
-    _ServiceOption(id: 9, label: 'Diabetes Monitoring and Insulin Injection'),
-    _ServiceOption(id: 10, label: 'Elderly Home Care Visit'),
-    _ServiceOption(id: 11, label: 'Oxygen Therapy Setup'),
-    _ServiceOption(id: 12, label: 'Nebulizer Therapy Session'),
-    _ServiceOption(id: 13, label: 'Stitches Removal'),
-    _ServiceOption(id: 14, label: 'Pressure Ulcer Care'),
-    _ServiceOption(id: 15, label: 'General Nursing Home Visit'),
-    _ServiceOption(id: 16, label: 'Blood Pressure Check'),
-    _ServiceOption(id: 17, label: 'Short Care Shift (4 hours)'),
-    _ServiceOption(id: 18, label: 'Half-Day Home Care (6 hours)'),
-    _ServiceOption(id: 19, label: 'Full-Day Home Care (12 hours)'),
+  static const List<int> _serviceCatalogIds = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
   ];
 
+  /// API values (English). Display labels come from ARB via [_governorateLabel].
   static const List<String> _allLocations = [
-    'Amman',
-    'Irbid',
     'Zarqa',
-    'Balqa',
-    'Madaba',
-    'Karak',
+    'Irbid',
+    'Amman',
     'Tafilah',
-    "Ma'an",
-    'Aqaba',
-    'Jerash',
+    'Karak',
+    'Madaba',
+    'Balqa',
     'Ajloun',
+    'Jerash',
+    'Aqaba',
+    "Ma'an",
     'Mafraq',
   ];
 
@@ -177,15 +238,10 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
     }
   }
 
-  String? get _selectedServiceLabel {
-    final match = _serviceOptions.where((s) => s.id == _selectedServiceCatalogId);
-    if (match.isEmpty) return null;
-    return match.first.label;
-  }
-
-  List<String> _serviceNamesForIds(List<int> serviceIds) {
-    final map = {for (final s in _serviceOptions) s.id: s.label};
-    return serviceIds.map((id) => map[id]).whereType<String>().toList();
+  String? _selectedServiceLabel(BuildContext context) {
+    final id = _selectedServiceCatalogId;
+    if (id == null) return null;
+    return _browseCatalogLabel(AppLocalizations.of(context)!, id);
   }
 
   void _openNurseProfile(_NurseBrowseItem nurse) {
@@ -226,14 +282,13 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final selectedServiceLabel = _serviceOptions
-                .where((s) => s.id == tempService)
-                .map((e) => e.label)
-                .cast<String?>()
-                .firstOrNull;
+            final l10n = AppLocalizations.of(sheetContext)!;
+            final selectedServiceLabel = tempService != null
+                ? _browseCatalogLabel(l10n, tempService!)
+                : null;
 
             return DraggableScrollableSheet(
               initialChildSize: 0.68,
@@ -275,10 +330,10 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'Filter Nurses',
-                                  style: TextStyle(
+                                  l10n.patientBrowseFilterSheetTitle,
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w900,
                                     color: Color(0xFF1F2937),
@@ -290,9 +345,9 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                   tempService = null;
                                   tempLocation = null;
                                 }),
-                                child: const Text(
-                                  'Reset',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.patientBrowseReset,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     color: Color(0xFF6B7280),
                                   ),
@@ -309,9 +364,9 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                         controller: scrollController,
                         padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
                         children: [
-                          const _FilterSectionHeader(
+                          _FilterSectionHeader(
                             icon: Icons.medical_services_outlined,
-                            label: 'Service Type',
+                            label: l10n.patientBrowseServiceType,
                           ),
                           const SizedBox(height: 10),
                           Container(
@@ -328,23 +383,23 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 dropdownColor: Colors.white,
                                 icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                                hint: const Text(
-                                  'Choose a service',
-                                  style: TextStyle(
+                                hint: Text(
+                                  l10n.patientBrowseChooseService,
+                                  style: const TextStyle(
                                     color: Color(0xFF9CA3AF),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 items: [
-                                  const DropdownMenuItem<int?>(
+                                  DropdownMenuItem<int?>(
                                     value: null,
-                                    child: Text('All Services'),
+                                    child: Text(l10n.patientBrowseAllServices),
                                   ),
-                                  ..._serviceOptions.map(
-                                    (service) => DropdownMenuItem<int?>(
-                                      value: service.id,
+                                  ..._serviceCatalogIds.map(
+                                    (id) => DropdownMenuItem<int?>(
+                                      value: id,
                                       child: Text(
-                                        service.label,
+                                        _browseCatalogLabel(l10n, id),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -368,9 +423,9 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                             ),
                           ],
                           const SizedBox(height: 28),
-                          const _FilterSectionHeader(
+                          _FilterSectionHeader(
                             icon: Icons.location_on_outlined,
-                            label: 'Governorate',
+                            label: l10n.patientBrowseGovernorate,
                           ),
                           const SizedBox(height: 12),
                           Wrap(
@@ -378,13 +433,13 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                             runSpacing: 8,
                             children: [
                               _FilterChip(
-                                label: 'All Locations',
+                                label: l10n.patientBrowseAllLocations,
                                 selected: tempLocation == null,
                                 onTap: () => setModalState(() => tempLocation = null),
                               ),
                               ..._locations.map(
                                 (loc) => _FilterChip(
-                                  label: loc,
+                                  label: _governorateLabel(l10n, loc),
                                   selected: tempLocation == loc,
                                   onTap: () => setModalState(
                                     () => tempLocation =
@@ -434,7 +489,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                               fontSize: 15,
                             ),
                           ),
-                          child: const Text('Apply Filters'),
+                          child: Text(l10n.patientBrowseApplyFilters),
                         ),
                       ),
                     ),
@@ -454,6 +509,8 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final String? selectedServiceFilterLabel = _selectedServiceLabel(context);
     final hasActiveFilters = _selectedServiceCatalogId != null ||
         _selectedLocation != null ||
         _searchController.text.trim().isNotEmpty;
@@ -465,13 +522,13 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
         child: Column(
           children: [
             const SizedBox(height: 18),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Browse Nurses',
-                  style: TextStyle(
+                  l10n.patientBrowseTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 21,
                     fontWeight: FontWeight.w900,
@@ -488,7 +545,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                     child: TextField(
                       controller: _searchController,
                       decoration: _inputDecoration(
-                        'Search by name or specialty...',
+                        l10n.patientBrowseSearchHint,
                       ).copyWith(
                         prefixIcon: const Icon(Icons.search),
                       ),
@@ -506,7 +563,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                       ),
                     ),
                     icon: const Icon(Icons.filter_alt_outlined),
-                    label: const Text('Filters'),
+                    label: Text(l10n.patientBrowseFilters),
                   ),
                 ],
               ),
@@ -528,11 +585,12 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                           },
                         ),
                       if (_searchController.text.trim().isNotEmpty &&
-                          (_selectedServiceLabel != null || _selectedLocation != null))
+                          (selectedServiceFilterLabel != null ||
+                              _selectedLocation != null))
                         const SizedBox(width: 8),
-                      if (_selectedServiceLabel != null)
+                      if (selectedServiceFilterLabel != null)
                         _TopFilterChip(
-                          label: _selectedServiceLabel!,
+                          label: selectedServiceFilterLabel,
                           onRemove: () {
                             setState(() {
                               _selectedServiceCatalogId = null;
@@ -540,11 +598,12 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                             _fetchNurses(reset: true);
                           },
                         ),
-                      if (_selectedServiceLabel != null && _selectedLocation != null)
+                      if (selectedServiceFilterLabel != null &&
+                          _selectedLocation != null)
                         const SizedBox(width: 8),
                       if (_selectedLocation != null)
                         _TopFilterChip(
-                          label: _selectedLocation!,
+                          label: _governorateLabel(l10n, _selectedLocation!),
                           onRemove: () {
                             setState(() {
                               _selectedLocation = null;
@@ -555,9 +614,9 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: _clearAllFilters,
-                        child: const Text(
-                          'Clear all',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.patientBrowseClearAll,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                           ),
@@ -582,7 +641,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                       child: Row(
                         children: [
                           Text(
-                            'Found $_totalCount nurses',
+                            l10n.patientBrowseFoundNurses(_totalCount),
                             style: const TextStyle(
                               color: Color(0xFF374151),
                               fontWeight: FontWeight.w700,
@@ -590,9 +649,10 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                           ),
                           const Spacer(),
                           Text(
-                            _totalPages == 0
-                                ? 'Page 0/0'
-                                : 'Page $_pageNumber/$_totalPages',
+                            l10n.patientBrowsePageIndicator(
+                              _totalPages == 0 ? 0 : _pageNumber,
+                              _totalPages == 0 ? 0 : _totalPages,
+                            ),
                             style: const TextStyle(
                               color: Color(0xFF6B7280),
                               fontWeight: FontWeight.w700,
@@ -636,17 +696,17 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                         const SizedBox(height: 14),
                                         ElevatedButton(
                                           onPressed: () => _fetchNurses(reset: true),
-                                          child: const Text('Retry'),
+                                          child: Text(l10n.patientRetry),
                                         ),
                                       ],
                                     ),
                                   ),
                                 )
                               : _visibleItems.isEmpty
-                                  ? const Center(
+                                  ? Center(
                                       child: Text(
-                                        'No nurses match your filters.',
-                                        style: TextStyle(
+                                        l10n.patientBrowseNoResults,
+                                        style: const TextStyle(
                                           color: Color(0xFF6B7280),
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -679,6 +739,7 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
                                           }
 
                                           return _NurseCard(
+                                            l10n: l10n,
                                             item: _visibleItems[index],
                                             onViewProfile: () =>
                                                 _openNurseProfile(_visibleItems[index]),
@@ -699,10 +760,12 @@ class _BrowseNursesScreenState extends State<BrowseNursesScreen> {
 }
 
 class _NurseCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final _NurseBrowseItem item;
   final VoidCallback onViewProfile;
 
   const _NurseCard({
+    required this.l10n,
     required this.item,
     required this.onViewProfile,
   });
@@ -792,7 +855,7 @@ class _NurseCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      '${item.experienceYears} years',
+                      l10n.patientBrowseExperienceYears(item.experienceYears),
                       style: const TextStyle(
                         color: Color(0xFF6B7280),
                         fontWeight: FontWeight.w600,
@@ -877,7 +940,7 @@ class _NurseCard extends StatelessWidget {
                           fontSize: 12.5,
                         ),
                       ),
-                      child: const Text('View Profile'),
+                      child: Text(l10n.patientBrowseViewProfile),
                     ),
                   ],
                 ),
@@ -1058,16 +1121,6 @@ InputDecoration _inputDecoration(String hint) {
   );
 }
 
-class _ServiceOption {
-  final int id;
-  final String label;
-
-  const _ServiceOption({
-    required this.id,
-    required this.label,
-  });
-}
-
 class _NurseBrowseItem {
   final String nurseId;
   final String fullName;
@@ -1118,8 +1171,4 @@ class _NurseBrowseItem {
         .toList(),
   );
 }
-}
-
-extension _FirstOrNullExtension<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
 }

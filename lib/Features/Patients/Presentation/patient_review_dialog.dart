@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_models.dart';
 
@@ -46,7 +47,11 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
   void _submit() {
     if (_overallRating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please set your overall rating first.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.patientReviewSetRatingFirstSnack,
+          ),
+        ),
       );
       return;
     }
@@ -75,6 +80,7 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final primary = AppColors.primary;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
@@ -109,7 +115,7 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildHeader(primary),
+                      _buildHeader(primary, l10n),
                       Flexible(
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
@@ -117,10 +123,10 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               const SizedBox(height: 4),
-                              const Text(
-                                'Overall Rating',
+                              Text(
+                                l10n.patientReviewOverallRating,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: _text,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 15,
@@ -136,10 +142,10 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Center(
+                              Center(
                                 child: Text(
-                                  'Tap to rate',
-                                  style: TextStyle(
+                                  l10n.patientReviewTapToRate,
+                                  style: const TextStyle(
                                     color: _muted,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12,
@@ -147,9 +153,9 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              const Text(
-                                'Rate Specific Areas',
-                                style: TextStyle(
+                              Text(
+                                l10n.patientReviewRateSpecificAreas,
+                                style: const TextStyle(
                                   color: _text,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 15,
@@ -157,34 +163,34 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                               ),
                               const SizedBox(height: 10),
                               _RatingLine(
-                                label: 'Professionalism',
+                                label: l10n.patientReviewProfessionalism,
                                 value: _professionalismRating,
                                 onChanged: (v) => setState(
                                   () => _professionalismRating = v,
                                 ),
                               ),
                               _RatingLine(
-                                label: 'Punctuality',
+                                label: l10n.patientReviewPunctuality,
                                 value: _punctualityRating,
                                 onChanged: (v) =>
                                     setState(() => _punctualityRating = v),
                               ),
                               _RatingLine(
-                                label: 'Communication',
+                                label: l10n.patientReviewCommunication,
                                 value: _communicationRating,
                                 onChanged: (v) =>
                                     setState(() => _communicationRating = v),
                               ),
                               _RatingLine(
-                                label: 'Service Quality',
+                                label: l10n.patientReviewServiceQuality,
                                 value: _serviceQualityRating,
                                 onChanged: (v) =>
                                     setState(() => _serviceQualityRating = v),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Review Text (Optional)',
-                                style: TextStyle(
+                              Text(
+                                l10n.patientReviewTextOptional,
+                                style: const TextStyle(
                                   color: _text,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 15,
@@ -215,8 +221,7 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                                   );
                                 },
                                 decoration: InputDecoration(
-                                  hintText:
-                                      'Share details about your experience...',
+                                  hintText: l10n.patientReviewTextHint,
                                   hintStyle: const TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontWeight: FontWeight.w600,
@@ -261,9 +266,9 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                                               BorderRadius.circular(14),
                                         ),
                                       ),
-                                      child: const Text(
-                                        'Later',
-                                        style: TextStyle(
+                                      child: Text(
+                                        l10n.patientReviewLater,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
@@ -286,9 +291,9 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                                               BorderRadius.circular(14),
                                         ),
                                       ),
-                                      child: const Text(
-                                        'Submit Review',
-                                        style: TextStyle(
+                                      child: Text(
+                                        l10n.patientReviewSubmit,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.w900,
                                           fontSize: 15,
                                         ),
@@ -312,7 +317,10 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
     );
   }
 
-  Widget _buildHeader(Color primary) {
+  Widget _buildHeader(
+    Color primary,
+    AppLocalizations l10n,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 16, 8, 16),
@@ -327,9 +335,9 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Rate Your Experience',
-                  style: TextStyle(
+                Text(
+                  l10n.patientRateExperienceTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
@@ -339,8 +347,10 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                 const SizedBox(height: 10),
                 Text(
                   widget.request.serviceName.isEmpty
-                      ? 'Service'
-                      : 'Service: ${widget.request.serviceName}',
+                      ? l10n.patientReviewServiceShort
+                      : l10n.patientReviewServiceLine(
+                          widget.request.serviceName,
+                        ),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -350,8 +360,8 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
                 const SizedBox(height: 4),
                 Text(
                   widget.request.nurseName.isEmpty
-                      ? 'Nurse'
-                      : 'Nurse: ${widget.request.nurseName}',
+                      ? l10n.patientReviewNurseShort
+                      : l10n.patientReviewNurseLine(widget.request.nurseName),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -369,7 +379,7 @@ class _PatientReviewDialogState extends State<PatientReviewDialog> {
               hoverColor: Colors.white24,
             ),
             icon: const Icon(Icons.close_rounded, size: 24),
-            tooltip: 'Close',
+            tooltip: l10n.patientReviewCloseTooltip,
           ),
         ],
       ),

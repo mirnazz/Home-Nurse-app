@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PatientBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -13,6 +14,7 @@ class PatientBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF2F7F8D);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: const BoxDecoration(
@@ -35,26 +37,26 @@ class PatientBottomNavBar extends StatelessWidget {
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
         elevation: 0,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
+            icon: const Icon(Icons.home_rounded),
+            label: l10n.patientNavHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.group_outlined),
-            label: 'Nurses',
+            icon: const Icon(Icons.group_outlined),
+            label: l10n.patientNavNurses,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: 'Appointments',
+            icon: const Icon(Icons.calendar_month_outlined),
+            label: l10n.patientNavAppointments,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.payments_outlined),
-            label: 'Payments',
+            icon: const Icon(Icons.payments_outlined),
+            label: l10n.patientNavPayments,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_rounded),
-            label: 'More',
+            icon: const Icon(Icons.menu_rounded),
+            label: l10n.patientNavMore,
           ),
         ],
       ),

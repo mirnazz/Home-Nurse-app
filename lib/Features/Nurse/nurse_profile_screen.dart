@@ -1,34 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/nurse_personal_info_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_earnings_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_ratings_screen.dart';
+import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 
 /// Settings-style hub: deep links to sub-screens (no API changes here).
 class NurseProfileScreen extends StatelessWidget {
   const NurseProfileScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(
-          'Log out?',
+        title: Text(
+          l10n.nurseProfileLogoutDialogTitle,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
-        content: const Text(
-          'You will need to sign in again to access your account.',
+        content: Text(
+          l10n.nurseProfileLogoutDialogMessage,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.nurseAvailCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Log out',
+            child: Text(
+              l10n.nurseProfileLogoutTitle,
               style: TextStyle(
                 color: Color(0xFFDC2626),
                 fontWeight: FontWeight.w800,
@@ -48,21 +51,22 @@ class NurseProfileScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logout failed: $e')),
+        SnackBar(content: Text(l10n.nurseProfileLogoutFailed('$e'))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
-            const Text(
-              'Profile',
+            Text(
+              l10n.nurseProfileTitle,
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w900,
@@ -71,7 +75,7 @@ class NurseProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Account & preferences',
+              l10n.nurseProfileSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -81,8 +85,8 @@ class NurseProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _ProfileSettingsTile(
               icon: Icons.person_outline_rounded,
-              title: 'Personal Info',
-              subtitle: 'Profile, services & professional details',
+              title: l10n.nurseProfilePersonalInfoTitle,
+              subtitle: l10n.nurseProfilePersonalInfoSubtitle,
               onTap: () {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
@@ -94,8 +98,8 @@ class NurseProfileScreen extends StatelessWidget {
             const SizedBox(height: 10),
             _ProfileSettingsTile(
               icon: Icons.star_outline_rounded,
-              title: 'Ratings',
-              subtitle: 'Reviews from patients',
+              title: l10n.nurseProfileRatingsTitle,
+              subtitle: l10n.nurseProfileRatingsSubtitle,
               onTap: () {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
@@ -107,8 +111,8 @@ class NurseProfileScreen extends StatelessWidget {
             const SizedBox(height: 10),
             _ProfileSettingsTile(
               icon: Icons.account_balance_wallet_outlined,
-              title: 'Earnings',
-              subtitle: 'Payouts and transaction history',
+              title: l10n.nurseProfileEarningsTitle,
+              subtitle: l10n.nurseProfileEarningsSubtitle,
               onTap: () {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
@@ -119,9 +123,16 @@ class NurseProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _ProfileSettingsTile(
+              icon: Icons.language_rounded,
+              title: l10n.patientMoreLanguage,
+              subtitle: l10n.languageSelectorSubtitle,
+              onTap: () => showLanguageSelectorSheet(context),
+            ),
+            const SizedBox(height: 10),
+            _ProfileSettingsTile(
               icon: Icons.logout_rounded,
-              title: 'Logout',
-              subtitle: 'Sign out of this device',
+              title: l10n.nurseProfileLogoutTitle,
+              subtitle: l10n.nurseProfileLogoutSubtitle,
               iconColor: const Color(0xFFDC2626),
               titleColor: const Color(0xFFDC2626),
               onTap: () => _logout(context),

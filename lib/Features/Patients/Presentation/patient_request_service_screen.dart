@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_confirm_screen.dart';
@@ -64,6 +65,7 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   }
 
   Future<void> _loadInitialData() async {
+  final l10n = AppLocalizations.of(context)!;
   setState(() {
     _isLoading = true;
     _errorMessage = null;
@@ -89,7 +91,7 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
       return PatientServiceOption(
         id: serviceId.toString(),
         title: serviceName,
-        durationLabel: 'Duration: $duration min',
+        durationLabel: l10n.patientAppointmentMinutes(duration),
         priceJod: price,
       );
     }).toList();
@@ -200,12 +202,13 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   }
 
   void _goToReview() {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedService == null ||
         _selectedDate == null ||
         _selectedTimeSlot == null ||
         _addressController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
+        SnackBar(content: Text(l10n.patientRequestRequiredFields)),
       );
       return;
     }
@@ -241,6 +244,7 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
       appBar: AppBar(
@@ -248,8 +252,8 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
         elevation: 0,
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Service Request',
+        title: Text(
+          l10n.patientRequestServiceTitle,
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w800,
@@ -261,13 +265,23 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
         children: [
           Container(
             color: _primary,
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Row(
                 children: [
-                  Expanded(child: _StepTab(title: 'Service Details', selected: true)),
+                  Expanded(
+                    child: _StepTab(
+                      title: l10n.patientRequestStepServiceDetails,
+                      selected: true,
+                    ),
+                  ),
                   SizedBox(width: 10),
-                  Expanded(child: _StepTab(title: 'Review & Confirm', selected: false)),
+                  Expanded(
+                    child: _StepTab(
+                      title: l10n.patientRequestStepReviewConfirm,
+                      selected: false,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -293,7 +307,7 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
                               const SizedBox(height: 12),
                               ElevatedButton(
                                 onPressed: _loadInitialData,
-                                child: const Text('Retry'),
+                                child: Text(l10n.patientRetry),
                               ),
                             ],
                           ),
@@ -311,10 +325,12 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
                             ),
                             const SizedBox(height: 16),
 
-                            const _InputLabel('Select Service Type *'),
+                            _InputLabel('${l10n.patientRequestSelectServiceType} *'),
                             const SizedBox(height: 8),
                             if (_serviceOptions.isEmpty)
-                              const _EmptyState(text: 'No services available for this nurse.')
+                              _EmptyState(
+                                text: l10n.patientRequestNoServicesForNurse,
+                              )
                             else
                               ..._serviceOptions.map(
                                 (service) => Padding(
@@ -329,10 +345,12 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 
                             const SizedBox(height: 8),
 
-                            const _InputLabel('Select Date *'),
+                            _InputLabel('${l10n.patientRequestSelectDate} *'),
                             const SizedBox(height: 8),
                             if (_availableDates.isEmpty)
-                              const _EmptyState(text: 'No available dates found.')
+                              _EmptyState(
+                                text: l10n.patientRequestNoAvailableDates,
+                              )
                             else
                               Wrap(
                                 spacing: 8,
@@ -350,11 +368,11 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 
                             const SizedBox(height: 14),
 
-                            const _InputLabel('Select Available Time Slot *'),
+                            _InputLabel('${l10n.patientRequestSelectTimeSlot} *'),
                             const SizedBox(height: 8),
                             if (_selectedService == null || _selectedDate == null)
-                              const _EmptyState(
-                                text: 'Select a service and date to view available time slots.',
+                              _EmptyState(
+                                text: l10n.patientRequestSelectServiceDateFirst,
                               )
                             else if (_isLoadingSlots)
                               const Padding(
@@ -362,7 +380,9 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
                                 child: Center(child: CircularProgressIndicator()),
                               )
                             else if (_availableTimeSlots.isEmpty)
-                              const _EmptyState(text: 'No available time slots for this date.')
+                              _EmptyState(
+                                text: l10n.patientRequestNoAvailableTimeSlots,
+                              )
                             else
                               Wrap(
                                 spacing: 8,
@@ -380,11 +400,13 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 
                             const SizedBox(height: 14),
 
-                            const _InputLabel('Service Address *'),
+                            _InputLabel('${l10n.patientRequestServiceAddress} *'),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _addressController,
-                              decoration: _inputDecoration('Enter your complete address')
+                              decoration: _inputDecoration(
+                                l10n.patientRequestAddressHint,
+                              )
                                   .copyWith(
                                 prefixIcon: const Icon(Icons.location_on_outlined),
                               ),
@@ -392,13 +414,13 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
 
                             const SizedBox(height: 14),
 
-                            const _InputLabel('Additional Notes (Optional)'),
+                            _InputLabel(l10n.patientRequestAdditionalNotesOptional),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _notesController,
                               maxLines: 4,
                               decoration: _inputDecoration(
-                                'Any special instructions or medical information...',
+                                l10n.patientRequestNotesHint,
                               ).copyWith(
                                 prefixIcon: const Icon(Icons.note_alt_outlined),
                               ),
@@ -442,7 +464,7 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
                     fontSize: 15,
                   ),
                 ),
-                child: const Text('Review and Confirm'),
+                child: Text(l10n.patientRequestReviewAndConfirm),
               ),
             ),
           ),

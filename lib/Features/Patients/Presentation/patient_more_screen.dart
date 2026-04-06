@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nurse_app/Core/localization/app_language_prefs.dart';
+import 'package:nurse_app/app_locale_scope.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_profile_screen.dart';
 
-/// More tab hub: opens Profile and future settings links.
+/// More tab: profile, language, and future settings.
 class PatientMoreScreen extends StatelessWidget {
   const PatientMoreScreen({super.key});
 
   static const Color _primary = Color(0xFF2F7F8D);
   static const Color _bg = Color(0xFFF6F7F9);
+  static const Color _border = Color(0xFFE8ECF2);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final effectiveCode = Localizations.localeOf(context).languageCode;
+
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: _primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'More',
-          style: TextStyle(fontWeight: FontWeight.w800),
+        title: Text(
+          l10n.patientNavMore,
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: ListView(
@@ -26,8 +33,8 @@ class PatientMoreScreen extends StatelessWidget {
         children: [
           _MoreTileCard(
             icon: Icons.person_outline_rounded,
-            title: 'Profile',
-            subtitle: 'View and edit your information',
+            title: l10n.patientMoreProfileTitle,
+            subtitle: l10n.patientMoreProfileSubtitle,
             onTap: () {
               Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
@@ -36,8 +43,182 @@ class PatientMoreScreen extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(height: 20),
+          _LanguageSettingsGroup(
+            primary: _primary,
+            border: _border,
+            sectionTitle: l10n.patientMoreLanguage,
+            isArabicUi: Localizations.localeOf(context).languageCode == 'ar',
+            englishSelected: effectiveCode == 'en',
+            arabicSelected: effectiveCode == 'ar',
+            englishTitle: l10n.patientMoreLanguageEnglish,
+            arabicTitle: l10n.patientMoreLanguageArabic,
+            onSelectEnglish: () async {
+              await AppLanguagePrefs.saveLanguage('en');
+              if (!context.mounted) return;
+              AppLocaleScope.of(context).setLocale(const Locale('en'));
+            },
+            onSelectArabic: () async {
+              await AppLanguagePrefs.saveLanguage('ar');
+              if (!context.mounted) return;
+              AppLocaleScope.of(context).setLocale(const Locale('ar'));
+            },
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Grouped settings-style language list (system Settings–like).
+class _LanguageSettingsGroup extends StatelessWidget {
+  const _LanguageSettingsGroup({
+    required this.primary,
+    required this.border,
+    required this.sectionTitle,
+    required this.isArabicUi,
+    required this.englishSelected,
+    required this.arabicSelected,
+    required this.englishTitle,
+    required this.arabicTitle,
+    required this.onSelectEnglish,
+    required this.onSelectArabic,
+  });
+
+  static const Color _sectionLabelColor = Color(0xFF6B7280);
+
+  final Color primary;
+  final Color border;
+  final String sectionTitle;
+  final bool isArabicUi;
+  final bool englishSelected;
+  final bool arabicSelected;
+  final String englishTitle;
+  final String arabicTitle;
+  final VoidCallback onSelectEnglish;
+  final VoidCallback onSelectArabic;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(start: 4, bottom: 8),
+          child: Text(
+            sectionTitle,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: isArabicUi ? 0 : 0.35,
+              color: _sectionLabelColor,
+            ),
+          ),
+        ),
+        Material(
+          color: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LanguageListTile(
+                primary: primary,
+                dividerColor: border,
+                title: englishTitle,
+                selected: englishSelected,
+                onTap: onSelectEnglish,
+                showDividerBelow: true,
+              ),
+              _LanguageListTile(
+                primary: primary,
+                dividerColor: border,
+                title: arabicTitle,
+                selected: arabicSelected,
+                onTap: onSelectArabic,
+                showDividerBelow: false,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguageListTile extends StatelessWidget {
+  const _LanguageListTile({
+    required this.primary,
+    required this.dividerColor,
+    required this.title,
+    required this.selected,
+    required this.onTap,
+    required this.showDividerBelow,
+  });
+
+  static const Color _titleColor = Color(0xFF1D2433);
+
+  final Color primary;
+  final Color dividerColor;
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool showDividerBelow;
+
+  @override
+  Widget build(BuildContext context) {
+    const titleStyle = TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 16,
+      height: 1.2,
+      color: _titleColor,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: selected ? primary.withValues(alpha: 0.07) : Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: ListTile(
+              contentPadding: const EdgeInsetsDirectional.only(
+                start: 16,
+                end: 12,
+                top: 12,
+                bottom: 12,
+              ),
+              minVerticalPadding: 0,
+              title: Text(
+                title,
+                style: titleStyle.copyWith(
+                  color: selected ? primary : _titleColor,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                ),
+              ),
+              trailing: SizedBox(
+                width: 28,
+                child: selected
+                    ? Icon(Icons.check_rounded, color: primary, size: 26)
+                    : const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ),
+        if (showDividerBelow)
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 16,
+            endIndent: 16,
+            color: dividerColor,
+          ),
+      ],
     );
   }
 }

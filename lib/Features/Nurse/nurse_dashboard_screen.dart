@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_appointments_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart';
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
@@ -82,14 +84,16 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        nurseName = data["fullName"] ?? "Nurse";
+        nurseName = data["fullName"] ?? l10n.nurseHomeDefaultName;
       });
     } catch (_) {
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        nurseName = "Nurse";
+        nurseName = l10n.nurseHomeDefaultName;
       });
     }
   }
@@ -167,6 +171,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
         currentIndex: currentTab,
         pendingCount: pendingRequestsCount,
         onChanged: (i) => _navigate(i),
+        l10n: AppLocalizations.of(context)!,
       ),
     );
   }
@@ -194,6 +199,7 @@ class NurseHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return RefreshIndicator(
       onRefresh: onRefreshDashboard,
       child: SingleChildScrollView(
@@ -212,21 +218,24 @@ class NurseHomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SummaryCardsRow(
+                    l10n: l10n,
                     pendingCount: pendingCount,
                     todayAppointmentsCount: todayAppointments.length,
                     todayEarnings: todayEarnings,
                   ),
                   const SizedBox(height: 18),
-                  const _ThisWeekSummaryCard(),
+                  _ThisWeekSummaryCard(l10n: l10n),
                   const SizedBox(height: 24),
-                  const _QuickActionsTitle(),
+                  _QuickActionsTitle(l10n: l10n),
                   const SizedBox(height: 12),
                   _QuickActionsList(
+                    l10n: l10n,
                     onNavigate: onNavigate,
                     pendingCount: pendingCount,
                   ),
                   const SizedBox(height: 24),
                   _TodayScheduleSection(
+                    l10n: l10n,
                     appointments: todayAppointments,
                     onViewAll: () => onNavigate(2),
                   ),
@@ -256,9 +265,10 @@ class _NurseHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    final dateStr =
-        '${_weekday(now.weekday)}, ${_month(now.month)} ${now.day}, ${now.year}';
+    final localeTag = Localizations.localeOf(context).toString();
+    final dateStr = DateFormat.yMMMEd(localeTag).format(now);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
@@ -276,9 +286,9 @@ class _NurseHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Welcome back,",
-                      style: TextStyle(
+                    Text(
+                      l10n.nurseHomeWelcomeBack,
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
@@ -305,6 +315,18 @@ class _NurseHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              Tooltip(
+                message: l10n.patientMoreLanguage,
+                child: IconButton(
+                  onPressed: () => showLanguageSelectorSheet(context),
+                  icon: Icon(
+                    Icons.language_outlined,
+                    color: Colors.white.withValues(alpha: 0.95),
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -350,47 +372,16 @@ class _NurseHeader extends StatelessWidget {
       ),
     );
   }
-
-  String _weekday(int w) {
-    const days = [
-      '',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-    return days[w];
-  }
-
-  String _month(int m) {
-    const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return months[m];
-  }
 }
 
 class _SummaryCardsRow extends StatelessWidget {
+  final AppLocalizations l10n;
   final int pendingCount;
   final int todayAppointmentsCount;
   final double todayEarnings;
 
   const _SummaryCardsRow({
+    required this.l10n,
     required this.pendingCount,
     required this.todayAppointmentsCount,
     required this.todayEarnings,
@@ -410,7 +401,7 @@ class _SummaryCardsRow extends StatelessWidget {
           child: _SummaryCard(
             icon: Icons.calendar_today_outlined,
             value: todayAppointmentsCount.toString(),
-            label: "Today's Appointments",
+            label: l10n.nurseHomeSummaryTodayAppointments,
           ),
         ),
         const SizedBox(width: 12),
@@ -418,7 +409,7 @@ class _SummaryCardsRow extends StatelessWidget {
           child: _SummaryCard(
             icon: Icons.access_time_outlined,
             value: pendingCount.toString(),
-            label: "Pending Requests",
+            label: l10n.nurseHomeSummaryPendingRequests,
           ),
         ),
         const SizedBox(width: 12),
@@ -426,7 +417,7 @@ class _SummaryCardsRow extends StatelessWidget {
           child: _SummaryCard(
             icon: Icons.attach_money,
             value: _formatMoney(todayEarnings),
-            label: "JOD Today",
+            label: l10n.nurseHomeSummaryJodToday,
           ),
         ),
       ],
@@ -489,7 +480,9 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _ThisWeekSummaryCard extends StatelessWidget {
-  const _ThisWeekSummaryCard();
+  const _ThisWeekSummaryCard({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -510,9 +503,9 @@ class _ThisWeekSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "This Week Summary",
-            style: TextStyle(
+          Text(
+            l10n.nurseHomeWeekSummaryTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w800,
               fontSize: 16,
@@ -521,10 +514,10 @@ class _ThisWeekSummaryCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _WeekStat(value: "18", label: "Completed"),
-              _WeekStat(value: "2", label: "Cancelled"),
-              _WeekStat(value: "580", label: "JOD Earned"),
+            children: [
+              _WeekStat(value: "18", label: l10n.nurseHomeWeekCompleted),
+              _WeekStat(value: "2", label: l10n.nurseHomeWeekCancelled),
+              _WeekStat(value: "580", label: l10n.nurseHomeWeekJodEarned),
             ],
           ),
         ],
@@ -566,13 +559,15 @@ class _WeekStat extends StatelessWidget {
 }
 
 class _QuickActionsTitle extends StatelessWidget {
-  const _QuickActionsTitle();
+  const _QuickActionsTitle({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      "Quick Actions",
-      style: TextStyle(
+    return Text(
+      l10n.nurseHomeQuickActionsTitle,
+      style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w900,
         color: Color(0xFF1D2433),
@@ -582,10 +577,12 @@ class _QuickActionsTitle extends StatelessWidget {
 }
 
 class _QuickActionsList extends StatelessWidget {
+  final AppLocalizations l10n;
   final NurseDashboardNavigate onNavigate;
   final int pendingCount;
 
   const _QuickActionsList({
+    required this.l10n,
     required this.onNavigate,
     required this.pendingCount,
   });
@@ -597,8 +594,8 @@ class _QuickActionsList extends StatelessWidget {
         _QuickActionTile(
           onTap: () => onNavigate(1),
           icon: Icons.calendar_month_outlined,
-          title: "Manage Availability",
-          subtitle: "Set your working hours",
+          title: l10n.nurseHomeActionManageAvailabilityTitle,
+          subtitle: l10n.nurseHomeActionManageAvailabilitySubtitle,
           trailing: const Icon(
             Icons.arrow_forward_ios,
             size: 14,
@@ -609,8 +606,8 @@ class _QuickActionsList extends StatelessWidget {
         _QuickActionTile(
           onTap: () => onNavigate(3),
           icon: Icons.description_outlined,
-          title: "View Requests",
-          subtitle: "Pending and rejected requests",
+          title: l10n.nurseHomeActionViewRequestsTitle,
+          subtitle: l10n.nurseHomeActionViewRequestsSubtitle,
           trailing: pendingCount > 0
               ? Container(
                   padding:
@@ -638,8 +635,8 @@ class _QuickActionsList extends StatelessWidget {
         _QuickActionTile(
           onTap: () => onNavigate(2),
           icon: Icons.calendar_today_outlined,
-          title: "Appointments",
-          subtitle: "View your appointments",
+          title: l10n.nurseHomeActionAppointmentsTitle,
+          subtitle: l10n.nurseHomeActionAppointmentsSubtitle,
           trailing: const Icon(
             Icons.arrow_forward_ios,
             size: 14,
@@ -732,25 +729,28 @@ class _QuickActionTile extends StatelessWidget {
 }
 
 class _TodayScheduleSection extends StatelessWidget {
+  final AppLocalizations l10n;
   final List<Appointment> appointments;
   final VoidCallback onViewAll;
 
   const _TodayScheduleSection({
+    required this.l10n,
     required this.appointments,
     required this.onViewAll,
   });
 
   @override
   Widget build(BuildContext context) {
+    final localeTag = Localizations.localeOf(context).toString();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Today's Schedule",
-              style: TextStyle(
+            Text(
+              l10n.nurseHomeTodayScheduleTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF1D2433),
@@ -758,9 +758,9 @@ class _TodayScheduleSection extends StatelessWidget {
             ),
             TextButton(
               onPressed: onViewAll,
-              child: const Text(
-                "View All",
-                style: TextStyle(
+              child: Text(
+                l10n.nurseHomeViewAll,
+                style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   color: AppColors.primary,
                 ),
@@ -770,21 +770,23 @@ class _TodayScheduleSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (appointments.isEmpty)
-          const _EmptyTodayScheduleCard()
+          _EmptyTodayScheduleCard(l10n: l10n)
         else
           ...appointments.take(3).map(
                 (appointment) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _ScheduleAppointmentCard(
                     patientName: appointment.patientName.isEmpty
-                        ? 'Patient'
+                        ? l10n.nurseHomePatientFallback
                         : appointment.patientName,
                     service: appointment.serviceName,
-                    status: _statusLabel(appointment),
+                    status: _statusLabel(l10n, appointment),
                     statusColor: _statusColor(appointment),
                     statusBg: _statusBackground(appointment),
-                    time: DateFormat.jm().format(appointment.dateTime),
-                    earnings: _formatMoney(appointment.price),
+                    time: DateFormat.jm(localeTag).format(appointment.dateTime),
+                    earningsDisplay: l10n.nurseHomeEarningsJod(
+                      _formatMoney(appointment.price),
+                    ),
                   ),
                 ),
               ),
@@ -798,21 +800,21 @@ class _TodayScheduleSection extends StatelessWidget {
         : value.toStringAsFixed(2);
   }
 
-  static String _statusLabel(Appointment appointment) {
+  static String _statusLabel(AppLocalizations l10n, Appointment appointment) {
     switch (appointment.status.name) {
       case 'confirmed':
-        return 'Accepted';
+        return l10n.nurseStatusAccepted;
       case 'paid':
-        return 'Active';
+        return l10n.nurseStatusActive;
       case 'completed':
-        return 'Completed';
+        return l10n.nurseStatusCompleted;
       case 'cancelled':
-        return 'Cancelled';
+        return l10n.nurseStatusCancelled;
       case 'rejected':
-        return 'Rejected';
+        return l10n.nurseStatusRejected;
       case 'pending':
       default:
-        return 'Pending';
+        return l10n.nurseStatusPending;
     }
   }
 
@@ -858,7 +860,7 @@ class _ScheduleAppointmentCard extends StatelessWidget {
   final Color statusColor;
   final Color statusBg;
   final String time;
-  final String earnings;
+  final String earningsDisplay;
 
   const _ScheduleAppointmentCard({
     required this.patientName,
@@ -867,7 +869,7 @@ class _ScheduleAppointmentCard extends StatelessWidget {
     required this.statusColor,
     required this.statusBg,
     required this.time,
-    required this.earnings,
+    required this.earningsDisplay,
   });
 
   @override
@@ -949,7 +951,7 @@ class _ScheduleAppointmentCard extends StatelessWidget {
               const Icon(Icons.attach_money, size: 16, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
-                "$earnings JOD",
+                earningsDisplay,
                 style: const TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w900,
@@ -965,7 +967,9 @@ class _ScheduleAppointmentCard extends StatelessWidget {
 }
 
 class _EmptyTodayScheduleCard extends StatelessWidget {
-  const _EmptyTodayScheduleCard();
+  const _EmptyTodayScheduleCard({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -977,27 +981,27 @@ class _EmptyTodayScheduleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE8ECF2)),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.event_busy_outlined,
             color: Color(0xFF9CA3AF),
             size: 32,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            'No appointments for today',
-            style: TextStyle(
+            l10n.nurseHomeNoAppointmentsToday,
+            style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 14,
               color: Color(0xFF374151),
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            'Today appointments will appear here.',
+            l10n.nurseHomeNoAppointmentsTodayHint,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 12.5,
               color: Color(0xFF6B7280),
@@ -1016,6 +1020,7 @@ class _AvailabilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: const Color(0xFFE8F5E9),
       borderRadius: BorderRadius.circular(18),
@@ -1043,9 +1048,9 @@ class _AvailabilityCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "You're Available",
-                      style: TextStyle(
+                    Text(
+                      l10n.nurseHomeAvailableTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 15,
                         color: Color(0xFF2E7D32),
@@ -1053,7 +1058,7 @@ class _AvailabilityCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "You can receive new service requests",
+                      l10n.nurseHomeAvailableSubtitle,
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
@@ -1075,11 +1080,13 @@ class _NurseBottomNav extends StatelessWidget {
   final int currentIndex;
   final int pendingCount;
   final ValueChanged<int> onChanged;
+  final AppLocalizations l10n;
 
   const _NurseBottomNav({
     required this.currentIndex,
     required this.pendingCount,
     required this.onChanged,
+    required this.l10n,
   });
 
   @override
@@ -1109,17 +1116,17 @@ class _NurseBottomNav extends StatelessWidget {
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: l10n.nurseNavHome,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Availability',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.calendar_today),
+            label: l10n.nurseNavAvailability,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.event_available_outlined),
-            label: 'Appointments',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.event_available_outlined),
+            label: l10n.nurseNavAppointments,
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -1153,11 +1160,11 @@ class _NurseBottomNav extends StatelessWidget {
                   ),
               ],
             ),
-            label: 'Requests',
+            label: l10n.nurseNavRequests,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: l10n.nurseNavProfile,
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> handleForgotPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
     final email = emailController.text.trim();
@@ -26,13 +28,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (email.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Please enter your email")));
+      ).showSnackBar(SnackBar(content: Text(l10n.forgotEnterEmail)));
       return;
     }
 
     if (!email.contains("@") || !email.contains(".")) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid email")),
+        SnackBar(content: Text(l10n.forgotEnterValidEmail)),
       );
       return;
     }
@@ -60,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           errorText.contains("Connection timed out") ||
           errorText.contains("timed out")) {
         displayMessage =
-            "The server took too long to respond. Check backend/email settings and try again.";
+            l10n.forgotServerTimeoutMessage;
       }
 
       ScaffoldMessenger.of(
@@ -77,12 +79,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const bg = Color(0xFFF6F7F9);
     const primary = Color(0xFF2F7F8D);
 
     InputDecoration deco() {
       return InputDecoration(
-        hintText: "your.email@example.com",
+        hintText: l10n.emailFieldHint,
         prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9CA3AF)),
         filled: true,
         fillColor: Colors.white,
@@ -113,8 +116,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Forgot Password",
+        title: Text(
+          l10n.forgotTitle,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
         ),
       ),
@@ -125,8 +128,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              const Text(
-                "Reset your password",
+              Text(
+                l10n.forgotResetPasswordTitle,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
@@ -134,8 +137,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                "Enter your email and we’ll send you a link to reset your password.",
+              Text(
+                l10n.forgotResetPasswordSubtitle,
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -144,8 +147,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 26),
-              const Text(
-                "Email Address",
+              Text(
+                l10n.emailAddressLabel,
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w800,
@@ -159,8 +162,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 decoration: deco(),
               ),
               const SizedBox(height: 18),
-              const Text(
-                "We’ll send a reset link to your email.",
+              Text(
+                l10n.forgotResetLinkHint,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -190,8 +193,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               color: Colors.white,
                             ),
                           )
-                          : const Text(
-                            "Send Reset Link",
+                          : Text(
+                            l10n.forgotSendResetLink,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,

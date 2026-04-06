@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'nurse_service_model.dart';
@@ -99,7 +100,9 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Failed to load profile: ${e.toString().replaceFirst('Exception: ', '')}",
+            AppLocalizations.of(context)!.nursePersonalLoadFailed(
+              e.toString().replaceFirst('Exception: ', ''),
+            ),
           ),
         ),
       );
@@ -115,7 +118,11 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
 
     if (experienceYears == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Experience must be a valid number")),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.nursePersonalExperienceInvalid,
+          ),
+        ),
       );
       return;
     }
@@ -140,7 +147,9 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated successfully")),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.nursePersonalUpdatedSuccess),
+        ),
       );
 
       await _loadProfileData();
@@ -150,7 +159,9 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Failed to update profile: ${e.toString().replaceFirst('Exception: ', '')}",
+            AppLocalizations.of(context)!.nursePersonalUpdateFailed(
+              e.toString().replaceFirst('Exception: ', ''),
+            ),
           ),
         ),
       );
@@ -189,6 +200,7 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: isLoading
@@ -198,7 +210,7 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
-                    child: const _ProfileHeader(showBack: true),
+                    child: _ProfileHeader(showBack: true, l10n: l10n),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -206,6 +218,7 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
                       delegate: SliverChildListDelegate([
                         const SizedBox(height: 20),
                         _PersonalInformationSection(
+                          l10n: l10n,
                           fullNameController: _fullNameController,
                           emailController: _emailController,
                           phoneController: _phoneController,
@@ -216,6 +229,7 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
                         ),
                         const SizedBox(height: 24),
                         _ProfessionalDetailsSection(
+                          l10n: l10n,
                           licenseNumberController: _licenseNumberController,
                           specializationController: _specializationController,
                           experienceController: _experienceController,
@@ -242,8 +256,8 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text(
-                                    "Save Changes",
+                                : Text(
+                                    l10n.nursePersonalSaveChanges,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,
@@ -253,6 +267,7 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
                         ),
                         const SizedBox(height: 24),
                         _ServicesOfferedSection(
+                          l10n: l10n,
                           services: services,
                           onAddService: _openAddService,
                           onEditService: _openEditService,
@@ -270,8 +285,9 @@ class _NursePersonalInfoScreenState extends State<NursePersonalInfoScreen> {
 
 class _ProfileHeader extends StatelessWidget {
   final bool showBack;
+  final AppLocalizations l10n;
 
-  const _ProfileHeader({this.showBack = false});
+  const _ProfileHeader({this.showBack = false, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -308,12 +324,12 @@ class _ProfileHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Personal Info",
+                      l10n.nursePersonalHeaderTitle,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -322,7 +338,7 @@ class _ProfileHeader extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      "Manage your professional information",
+                      l10n.nursePersonalHeaderSubtitle,
                       style: TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w600,
@@ -341,6 +357,7 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _PersonalInformationSection extends StatelessWidget {
+  final AppLocalizations l10n;
   final TextEditingController fullNameController;
   final TextEditingController emailController;
   final TextEditingController phoneController;
@@ -350,6 +367,7 @@ class _PersonalInformationSection extends StatelessWidget {
   final TextEditingController nationalIdController;
 
   const _PersonalInformationSection({
+    required this.l10n,
     required this.fullNameController,
     required this.emailController,
     required this.phoneController,
@@ -362,20 +380,20 @@ class _PersonalInformationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionCard(
-      title: "Personal Information",
+      title: l10n.nursePersonalSectionPersonal,
       showEditIcon: true,
       child: Column(
         children: [
           _InfoField(
             icon: Icons.person_outline,
-            label: "Full Name",
+            label: l10n.nursePersonalFullName,
             controller: fullNameController,
             enabled: false,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.email_outlined,
-            label: "Email",
+            label: l10n.nursePersonalEmail,
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             enabled: false,
@@ -383,33 +401,33 @@ class _PersonalInformationSection extends StatelessWidget {
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.phone_outlined,
-            label: "Phone Number",
+            label: l10n.nursePersonalPhone,
             controller: phoneController,
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.location_on_outlined,
-            label: "Location",
+            label: l10n.nursePersonalLocation,
             controller: locationController,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.home_outlined,
-            label: "Address",
+            label: l10n.nursePersonalAddress,
             controller: addressController,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.badge_outlined,
-            label: "National ID",
+            label: l10n.nursePersonalNationalId,
             controller: nationalIdController,
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.description_outlined,
-            label: "Bio",
+            label: l10n.nursePersonalBio,
             controller: bioController,
             maxLines: 4,
           ),
@@ -420,11 +438,13 @@ class _PersonalInformationSection extends StatelessWidget {
 }
 
 class _ProfessionalDetailsSection extends StatelessWidget {
+  final AppLocalizations l10n;
   final TextEditingController licenseNumberController;
   final TextEditingController specializationController;
   final TextEditingController experienceController;
 
   const _ProfessionalDetailsSection({
+    required this.l10n,
     required this.licenseNumberController,
     required this.specializationController,
     required this.experienceController,
@@ -433,25 +453,25 @@ class _ProfessionalDetailsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionCard(
-      title: "Professional Details",
+      title: l10n.nursePersonalSectionProfessional,
       showEditIcon: true,
       child: Column(
         children: [
           _InfoField(
             icon: Icons.badge_outlined,
-            label: "License Number",
+            label: l10n.nursePersonalLicenseNumber,
             controller: licenseNumberController,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.medical_services_outlined,
-            label: "Specialization",
+            label: l10n.nursePersonalSpecialization,
             controller: specializationController,
           ),
           const SizedBox(height: 16),
           _InfoField(
             icon: Icons.calendar_today_outlined,
-            label: "Experience",
+            label: l10n.nursePersonalExperience,
             controller: experienceController,
             keyboardType: TextInputType.number,
           ),
@@ -594,11 +614,13 @@ class _InfoField extends StatelessWidget {
 }
 
 class _ServicesOfferedSection extends StatelessWidget {
+  final AppLocalizations l10n;
   final List<NurseServiceItem> services;
   final VoidCallback onAddService;
   final ValueChanged<NurseServiceItem> onEditService;
 
   const _ServicesOfferedSection({
+    required this.l10n,
     required this.services,
     required this.onAddService,
     required this.onEditService,
@@ -625,8 +647,8 @@ class _ServicesOfferedSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Services Offered",
+              Text(
+                l10n.nursePersonalServicesOffered,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -636,7 +658,7 @@ class _ServicesOfferedSection extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onAddService,
                 icon: const Icon(Icons.add, size: 18, color: Colors.white),
-                label: const Text("Add Service"),
+                label: Text(l10n.nurseServiceAddButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -653,8 +675,8 @@ class _ServicesOfferedSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           if (services.isEmpty)
-            const Text(
-              "No services found.",
+            Text(
+              l10n.nursePersonalNoServicesFound,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -666,6 +688,7 @@ class _ServicesOfferedSection extends StatelessWidget {
               (s) => _ServiceCard(
                 service: s,
                 onEdit: () => onEditService(s),
+                l10n: l10n,
               ),
             ),
         ],
@@ -675,12 +698,14 @@ class _ServicesOfferedSection extends StatelessWidget {
 }
 
 class _ServiceCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final NurseServiceItem service;
   final VoidCallback onEdit;
 
   const _ServiceCard({
     required this.service,
     required this.onEdit,
+    required this.l10n,
   });
 
   @override
@@ -709,7 +734,7 @@ class _ServiceCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${service.durationInMinutes} min • ${service.price} JOD",
+                  "${l10n.nurseServiceMinutes(service.durationInMinutes)} • ${l10n.nurseServiceSummaryPriceValue(service.price.toString())}",
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
