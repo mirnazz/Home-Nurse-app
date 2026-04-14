@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'patient_onboarding_address_step.dart';
 import 'patient_onboarding_constants.dart';
 import 'patient_onboarding_data.dart';
@@ -15,10 +17,23 @@ const Map<String, String> _kMedicalConditionLabels = {
 };
 
 /// Steps 2–4 after account creation (step 1 is [SignUpScreen]).
+///
+/// [initialPageIndex]: `0` = step 2 (personal), `1` = step 3 (address),
+/// `2` = step 4 (medical). Use for dev/testing when skipping signup.
 class PatientOnboardingScreen extends StatefulWidget {
-  const PatientOnboardingScreen({super.key, required this.data});
+  const PatientOnboardingScreen({
+    super.key,
+    required this.data,
+    this.initialPageIndex = 0,
+  }) : assert(
+          initialPageIndex >= 0 && initialPageIndex <= 2,
+          'initialPageIndex must be 0, 1, or 2',
+        );
 
   final PatientOnboardingData data;
+
+  /// First onboarding page shown: 0 personal, 1 address, 2 medical.
+  final int initialPageIndex;
 
   @override
   State<PatientOnboardingScreen> createState() =>
@@ -51,7 +66,9 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    final start = widget.initialPageIndex.clamp(0, 2);
+    _pageIndex = start;
+    _pageController = PageController(initialPage: start);
   }
 
   @override
@@ -176,6 +193,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -192,7 +210,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
             onPressed: _back,
           ),
           title: Text(
-            'Step $_displayStep of 4',
+            l10n.patientOnboardStepOfFour(_displayStep),
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
@@ -200,6 +218,13 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
             ),
           ),
           centerTitle: true,
+          actions: [
+            IconButton(
+              tooltip: l10n.patientMoreLanguage,
+              onPressed: () => showLanguageSelectorSheet(context),
+              icon: const Icon(Icons.language_rounded),
+            ),
+          ],
         ),
         body: Column(
           children: [
@@ -282,9 +307,9 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text(
-                              'Skip for now',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.patientOnboardSkipForNow,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
                               ),
@@ -307,7 +332,9 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                               ),
                               onPressed: _next,
                               child: Text(
-                                _pageIndex == 2 ? 'Get started' : 'Next',
+                                _pageIndex == 2
+                                    ? l10n.patientOnboardGetStarted
+                                    : l10n.patientOnboardNext,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,

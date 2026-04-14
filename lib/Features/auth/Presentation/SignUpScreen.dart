@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/Registration/Presentation/nurse_registration_screen.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_data.dart';
 import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_screen.dart';
 import 'package:nurse_app/app_locale_scope.dart';
@@ -70,13 +71,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     Expanded(child: _buildBackToLogin(context, l10n)),
                     TextButton(
-                      onPressed: () => AppLocaleScope.of(context)
-                          .setLocale(const Locale('en')),
+                      onPressed: () async {
+                        await AppLanguagePrefs.saveLanguage('en');
+                        if (!context.mounted) return;
+                        AppLocaleScope.of(context).setLocale(const Locale('en'));
+                      },
                       child: Text(l10n.patientMoreLanguageEnglish),
                     ),
                     TextButton(
-                      onPressed: () => AppLocaleScope.of(context)
-                          .setLocale(const Locale('ar')),
+                      onPressed: () async {
+                        await AppLanguagePrefs.saveLanguage('ar');
+                        if (!context.mounted) return;
+                        AppLocaleScope.of(context).setLocale(const Locale('ar'));
+                      },
                       child: Text(l10n.patientMoreLanguageArabic),
                     ),
                   ],

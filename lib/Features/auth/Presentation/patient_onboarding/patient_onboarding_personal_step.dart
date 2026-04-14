@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'patient_onboarding_constants.dart';
 import 'patient_onboarding_styled_dropdown.dart';
 
@@ -61,8 +62,20 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
     if (picked != null) onDateOfBirthChanged(picked);
   }
 
+  static String _genderLabel(AppLocalizations l10n, String value) {
+    switch (value) {
+      case 'Male':
+        return l10n.profileGenderMale;
+      case 'Female':
+        return l10n.profileGenderFemale;
+      default:
+        return value;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final primary = AppColors.primary;
 
     return SingleChildScrollView(
@@ -70,9 +83,9 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Personal info',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardPersonalTitle,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: PatientOnboardingTokens.text,
@@ -80,7 +93,7 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Optional — you can skip and complete this later.',
+            l10n.patientOnboardPersonalSubtitle,
             style: TextStyle(
               fontSize: 13.5,
               color: PatientOnboardingTokens.muted,
@@ -89,17 +102,18 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          _label('Gender'),
+          _label(l10n.gender),
           const SizedBox(height: 8),
           PatientOnboardingStyledDropdown<String>(
             value: gender,
-            hint: 'Select gender',
+            hint: l10n.patientOnboardSelectGender,
             items: _genders,
+            itemLabel: (v) => _genderLabel(l10n, v),
             onChanged: onGenderChanged,
             primary: primary,
           ),
           const SizedBox(height: 16),
-          _label('Date of birth'),
+          _label(l10n.dateOfBirth),
           const SizedBox(height: 8),
           InkWell(
             onTap: () => _pickDob(context),
@@ -114,7 +128,7 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
                   Expanded(
                     child: Text(
                       dateOfBirth == null
-                          ? 'Select date'
+                          ? l10n.patientOnboardSelectDate
                           : '${dateOfBirth!.year}-${dateOfBirth!.month.toString().padLeft(2, '0')}-${dateOfBirth!.day.toString().padLeft(2, '0')}',
                       style: TextStyle(
                         fontSize: 15,
@@ -130,11 +144,11 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _label('Blood type'),
+          _label(l10n.bloodType),
           const SizedBox(height: 8),
           PatientOnboardingStyledDropdown<String>(
             value: bloodType,
-            hint: 'Select blood type',
+            hint: l10n.patientOnboardSelectBloodType,
             items: _bloodTypes,
             onChanged: onBloodTypeChanged,
             primary: primary,
@@ -155,4 +169,3 @@ class PatientOnboardingPersonalStep extends StatelessWidget {
     );
   }
 }
-

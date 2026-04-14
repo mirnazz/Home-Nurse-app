@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'patient_onboarding_constants.dart';
 
 class PatientOnboardingMedicalStep extends StatelessWidget {
@@ -22,13 +23,13 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
   final TextEditingController customAllergyController;
   final TextEditingController notesController;
 
-  static const _conditions = [
-    ('diabetes', 'Diabetes'),
-    ('hypertension', 'Hypertension'),
-    ('asthma', 'Asthma'),
-    ('heart_disease', 'Heart Disease'),
-    ('arthritis', 'Arthritis'),
-    ('none', 'None'),
+  static const _conditionKeys = [
+    'diabetes',
+    'hypertension',
+    'asthma',
+    'heart_disease',
+    'arthritis',
+    'none',
   ];
 
   static const _allergyChips = [
@@ -39,8 +40,45 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
     'Pollen',
   ];
 
+  static String _conditionLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'diabetes':
+        return l10n.profileConditionDiabetes;
+      case 'hypertension':
+        return l10n.profileConditionHypertension;
+      case 'asthma':
+        return l10n.profileConditionAsthma;
+      case 'heart_disease':
+        return l10n.profileConditionHeartDisease;
+      case 'arthritis':
+        return l10n.profileConditionArthritis;
+      case 'none':
+        return l10n.profileConditionNone;
+      default:
+        return key;
+    }
+  }
+
+  static String _allergyLabel(AppLocalizations l10n, String en) {
+    switch (en) {
+      case 'Penicillin':
+        return l10n.profileAllergyPenicillin;
+      case 'Dust':
+        return l10n.profileAllergyDust;
+      case 'Food':
+        return l10n.profileAllergyFood;
+      case 'Latex':
+        return l10n.profileAllergyLatex;
+      case 'Pollen':
+        return l10n.profileAllergyPollen;
+      default:
+        return en;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final primary = AppColors.primary;
 
     return SingleChildScrollView(
@@ -48,9 +86,9 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Medical info',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardMedicalTitle,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: PatientOnboardingTokens.text,
@@ -58,7 +96,7 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Optional — share only what you are comfortable with.',
+            l10n.patientOnboardMedicalSubtitle,
             style: TextStyle(
               fontSize: 13.5,
               color: PatientOnboardingTokens.muted,
@@ -67,9 +105,9 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Conditions',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardConditionsSection,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: PatientOnboardingTokens.text,
               fontSize: 14,
@@ -77,7 +115,7 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Select any that apply. None cannot be combined with other conditions.',
+            l10n.patientOnboardConditionsHint,
             style: TextStyle(
               fontSize: 12.5,
               color: PatientOnboardingTokens.muted,
@@ -85,9 +123,8 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          ..._conditions.map((e) {
-            final key = e.$1;
-            final label = e.$2;
+          ..._conditionKeys.map((key) {
+            final label = _conditionLabel(l10n, key);
             final checked = conditionKeys.contains(key);
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -139,9 +176,9 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             );
           }),
           const SizedBox(height: 8),
-          const Text(
-            'Other condition (optional)',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardOtherConditionLabel,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: PatientOnboardingTokens.text,
               fontSize: 14,
@@ -153,13 +190,13 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             textInputAction: TextInputAction.next,
             decoration: patientOnboardingOutlineDecoration(
               primary,
-              hint: 'e.g. Cancer, Kidney disease',
+              hint: l10n.patientOnboardOtherConditionHint,
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Allergies',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardAllergiesSection,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: PatientOnboardingTokens.text,
               fontSize: 14,
@@ -167,7 +204,7 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Tap common allergies or add your own below.',
+            l10n.patientOnboardAllergiesHint,
             style: TextStyle(
               fontSize: 12.5,
               color: PatientOnboardingTokens.muted,
@@ -178,12 +215,12 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _allergyChips.map((label) {
-              final sel = selectedAllergyLabels.contains(label);
+            children: _allergyChips.map((enKey) {
+              final sel = selectedAllergyLabels.contains(enKey);
               return FilterChip(
-                label: Text(label),
+                label: Text(_allergyLabel(l10n, enKey)),
                 selected: sel,
-                onSelected: (v) => onAllergyChipToggle(label, v),
+                onSelected: (v) => onAllergyChipToggle(enKey, v),
                 selectedColor: primary.withValues(alpha: 0.18),
                 checkmarkColor: primary,
                 labelStyle: TextStyle(
@@ -197,9 +234,9 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Other allergies (optional)',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardOtherAllergiesLabel,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: PatientOnboardingTokens.text,
               fontSize: 14,
@@ -211,13 +248,13 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             textInputAction: TextInputAction.next,
             decoration: patientOnboardingOutlineDecoration(
               primary,
-              hint: 'e.g. Sulfa, nuts, seafood',
+              hint: l10n.patientOnboardOtherAllergiesHint,
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Notes',
-            style: TextStyle(
+          Text(
+            l10n.patientOnboardNotes,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: PatientOnboardingTokens.text,
               fontSize: 14,
@@ -230,7 +267,7 @@ class PatientOnboardingMedicalStep extends StatelessWidget {
             minLines: 3,
             decoration: patientOnboardingOutlineDecoration(
               primary,
-              hint: 'Anything else your care team should know...',
+              hint: l10n.patientOnboardNotesHint,
             ),
           ),
         ],

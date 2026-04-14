@@ -915,5 +915,38 @@
         "type": "int"
       }
     }
-  }
+  },
+  "patientOnboardStepOfFour": "Step {step} of 4",
+  "@patientOnboardStepOfFour": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "patientOnboardSkipForNow": "Skip for now",
+  "patientOnboardNext": "Next",
+  "patientOnboardGetStarted": "Get started",
+  "patientOnboardPersonalTitle": "Personal info",
+  "patientOnboardPersonalSubtitle": "Optional — you can skip and complete this later.",
+  "patientOnboardSelectGender": "Select gender",
+  "patientOnboardSelectDate": "Select date",
+  "patientOnboardSelectBloodType": "Select blood type",
+  "patientOnboardAddressTitle": "Address",
+  "patientOnboardAddressSubtitle": "Optional — helps nurses find you faster.",
+  "patientOnboardAreaHint": "e.g. Abdoun, Jubeiha",
+  "patientOnboardStreetLabel": "Street / building details",
+  "patientOnboardStreetHint": "Apartment, building, landmarks",
+  "patientOnboardMedicalTitle": "Medical info",
+  "patientOnboardMedicalSubtitle": "Optional — share only what you are comfortable with.",
+  "patientOnboardConditionsSection": "Conditions",
+  "patientOnboardConditionsHint": "Select any that apply. None cannot be combined with other conditions.",
+  "patientOnboardOtherConditionLabel": "Other condition (optional)",
+  "patientOnboardOtherConditionHint": "e.g. Cancer, Kidney disease",
+  "patientOnboardAllergiesSection": "Allergies",
+  "patientOnboardAllergiesHint": "Tap common allergies or add your own below.",
+  "patientOnboardOtherAllergiesLabel": "Other allergies (optional)",
+  "patientOnboardOtherAllergiesHint": "e.g. Sulfa, nuts, seafood",
+  "patientOnboardNotes": "Notes",
+  "patientOnboardNotesHint": "Anything else your care team should know..."
 }

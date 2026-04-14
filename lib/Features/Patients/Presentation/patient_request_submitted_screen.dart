@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 
 class PatientRequestSubmittedScreen extends StatelessWidget {

@@ -915,5 +915,38 @@
         "type": "int"
       }
     }
-  }
+  },
+  "patientOnboardStepOfFour": "الخطوة {step} من 4",
+  "@patientOnboardStepOfFour": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "patientOnboardSkipForNow": "تخطّي الآن",
+  "patientOnboardNext": "التالي",
+  "patientOnboardGetStarted": "ابدأ",
+  "patientOnboardPersonalTitle": "المعلومات الشخصية",
+  "patientOnboardPersonalSubtitle": "اختياري — يمكنك التخطي وإكماله لاحقًا.",
+  "patientOnboardSelectGender": "اختر الجنس",
+  "patientOnboardSelectDate": "اختر التاريخ",
+  "patientOnboardSelectBloodType": "اختر فصيلة الدم",
+  "patientOnboardAddressTitle": "العنوان",
+  "patientOnboardAddressSubtitle": "اختياري — يساعد الممرضين على الوصول إليك بسرعة.",
+  "patientOnboardAreaHint": "مثال: عبدون، الجبيهة",
+  "patientOnboardStreetLabel": "الشارع / تفاصيل المبنى",
+  "patientOnboardStreetHint": "الشقة، المبنى، معالم قريبة",
+  "patientOnboardMedicalTitle": "المعلومات الطبية",
+  "patientOnboardMedicalSubtitle": "اختياري — شارك فقط ما يريحك.",
+  "patientOnboardConditionsSection": "الحالات الصحية",
+  "patientOnboardConditionsHint": "اختر ما ينطبق. لا يمكن الجمع بين «لا يوجد» وحالات أخرى.",
+  "patientOnboardOtherConditionLabel": "حالة أخرى (اختياري)",
+  "patientOnboardOtherConditionHint": "مثال: سرطان، أمراض الكلى",
+  "patientOnboardAllergiesSection": "الحساسية",
+  "patientOnboardAllergiesHint": "اضغط على الحساسيات الشائعة أو أضف حساسيتك أدناه.",
+  "patientOnboardOtherAllergiesLabel": "حساسيات أخرى (اختياري)",
+  "patientOnboardOtherAllergiesHint": "مثال: السلفا، المكسرات، المأكولات البحرية",
+  "patientOnboardNotes": "ملاحظات",
+  "patientOnboardNotesHint": "أي معلومات إضافية يجب أن يعرفها فريق الرعاية..."
 }

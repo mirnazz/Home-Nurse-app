@@ -67,7 +67,15 @@ Stripe initialization remains **active** with the same publishable key pattern a
 | `lib/Core/localization/app_language_prefs.dart` | `SharedPreferences` read/write for `app_language`. |
 | `lib/Core/widgets/language_selector_sheet.dart` | Shared bottom sheet: English / العربية + checkmark; saves + applies locale. |
 
-Generated code is consumed as `package:flutter_gen/gen_l10n/app_localizations.dart` (standard Flutter setup).
+Generated code lives in the repo under `lib/l10n/` and is imported as `package:nurse_app/l10n/app_localizations.dart` (non-synthetic `gen-l10n`; see `l10n.yaml` with `synthetic-package: false` and `output-dir: lib/l10n`).
+
+**Commit these generated files** (they are real sources, not `package:flutter_gen`):
+
+- `lib/l10n/app_localizations.dart`
+- `lib/l10n/app_localizations_en.dart`
+- `lib/l10n/app_localizations_ar.dart`
+
+Whenever you change ARBs, run `flutter gen-l10n` again and commit the updated generated files so teammates and CI do not depend on the deprecated synthetic package.
 
 ---
 

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// TEMPORARY: uncomment when flutter_stripe is enabled again (removes analyzer red lines).
+// import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/localization/app_language_prefs.dart';
-import 'package:nurse_app/Features/onboarding/Presentation/splash_screen.dart';
 
 import 'package:nurse_app/app_locale_scope.dart';
 import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
 import 'Features/auth/Presentation/SignUpScreen.dart';
+import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_data.dart';
+import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_screen.dart';
 import 'Features/nurse_verification/nurse_pending_screen.dart';
 import 'Features/nurse_verification/nurse_rejected_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_resubmission_screen.dart';
@@ -21,9 +23,10 @@ import 'Features/Shared/Presentation/notifications_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Stripe.publishableKey =
-      'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
-  await Stripe.instance.applySettings();
+  // TEMPORARY: Stripe init commented — restore with import above when ready.
+  // Stripe.publishableKey =
+  //     'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
+  // await Stripe.instance.applySettings();
 
   final code = await AppLanguagePrefs.getLanguage();
   runApp(NurseApp(initialLocale: Locale(code)));
@@ -70,7 +73,12 @@ class _NurseAppState extends State<NurseApp> {
           }
           return const Locale('en');
         },
-        home: const SplashScreen(),
+        // Dev: skip signup step 1 — patient onboarding steps 2–4.
+        // initialPageIndex: 0 = step 2 (personal), 1 = step 3 (address), 2 = step 4 (medical)
+        home: PatientOnboardingScreen(
+          data: PatientOnboardingData(phoneNumber: ''),
+          initialPageIndex: 0,
+        ),
         routes: {
           "/login": (_) => const LoginScreen(),
           "/Signup": (_) => const SignUpScreen(),
