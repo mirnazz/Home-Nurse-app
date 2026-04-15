@@ -6,6 +6,7 @@ import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 
 import 'package:nurse_app/app_locale_scope.dart';
 import 'Features/auth/Presentation/login_screen.dart';
+import 'Features/onboarding/Presentation/splash_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
 import 'Features/auth/Presentation/SignUpScreen.dart';
@@ -73,7 +74,7 @@ class _NurseAppState extends State<NurseApp> {
         },
         // Dev: skip signup step 1 — patient onboarding steps 2–4.
         // initialPageIndex: 0 = step 2 (personal), 1 = step 3 (address), 2 = step 4 (medical)
-        home: const NurseDashboardScreen(),
+        home: const SplashScreen(),
         routes: {
           "/login": (_) => const LoginScreen(),
           "/Signup": (_) => const SignUpScreen(),

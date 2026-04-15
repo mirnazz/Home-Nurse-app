@@ -84,16 +84,14 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
 
       if (!mounted) return;
 
-      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        nurseName = data["fullName"] ?? l10n.nurseHomeDefaultName;
+        nurseName = data["fullName"] ?? '';
       });
     } catch (_) {
       if (!mounted) return;
 
-      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        nurseName = l10n.nurseHomeDefaultName;
+        nurseName = '';
       });
     }
   }
@@ -296,7 +294,7 @@ class _NurseHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      name,
+                      name.isEmpty ? l10n.nurseHomeDefaultName : name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
