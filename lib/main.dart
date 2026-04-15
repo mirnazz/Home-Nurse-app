@@ -9,8 +9,6 @@ import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
 import 'Features/auth/Presentation/SignUpScreen.dart';
-import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_data.dart';
-import 'package:nurse_app/Features/auth/Presentation/patient_onboarding/patient_onboarding_screen.dart';
 import 'Features/nurse_verification/nurse_pending_screen.dart';
 import 'Features/nurse_verification/nurse_rejected_screen.dart';
 import 'package:nurse_app/Features/nurse_verification/nurse_resubmission_screen.dart';
@@ -75,10 +73,7 @@ class _NurseAppState extends State<NurseApp> {
         },
         // Dev: skip signup step 1 — patient onboarding steps 2–4.
         // initialPageIndex: 0 = step 2 (personal), 1 = step 3 (address), 2 = step 4 (medical)
-        home: PatientOnboardingScreen(
-          data: PatientOnboardingData(phoneNumber: ''),
-          initialPageIndex: 0,
-        ),
+        home: const NurseDashboardScreen(),
         routes: {
           "/login": (_) => const LoginScreen(),
           "/Signup": (_) => const SignUpScreen(),

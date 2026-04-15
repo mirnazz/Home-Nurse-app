@@ -2054,4 +2054,256 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get patientOnboardNotesHint => 'Anything else your care team should know...';
+
+  @override
+  String get paymentBillingTitle => 'Payments & Billing';
+
+  @override
+  String get paymentTotalSpent => 'Total Spent';
+
+  @override
+  String get paymentPendingLabel => 'Pending';
+
+  @override
+  String get paymentTransactionHistoryTitle => 'Transaction History';
+
+  @override
+  String get paymentTransactionHistorySubtitle => 'View all payments';
+
+  @override
+  String get paymentMethodsTitle => 'Payment Methods';
+
+  @override
+  String get paymentMethodsSubtitle => 'Manage your cards';
+
+  @override
+  String get paymentRecentTransactions => 'Recent Transactions';
+
+  @override
+  String get paymentViewAll => 'View All';
+
+  @override
+  String get paymentStatusCompleted => 'Completed';
+
+  @override
+  String get paymentStatusPending => 'Pending';
+
+  @override
+  String get paymentPrimaryLabel => 'Primary';
+
+  @override
+  String get paymentAddNewMethod => 'Add New Payment Method';
+
+  @override
+  String get paymentSupportedMethods => 'Supported Payment Methods';
+
+  @override
+  String get paymentCreditDebitCards => 'Credit/Debit Cards';
+
+  @override
+  String get paymentCashComingSoon => 'Cash (Coming Soon)';
+
+  @override
+  String get paymentNoTransactions => 'No transactions yet.';
+
+  @override
+  String get patientMoreReportIssueTitle => 'Report Issue';
+
+  @override
+  String get patientMoreReportIssueSubtitle => 'Flag a concern or complaint';
+
+  @override
+  String get reportIssueTitle => 'Report Issue';
+
+  @override
+  String get reportIssueCategoryLabel => 'Category';
+
+  @override
+  String get reportIssueCategoryHint => 'Select a category';
+
+  @override
+  String get reportIssueSubjectLabel => 'Subject';
+
+  @override
+  String get reportIssueSubjectHint => 'Enter subject';
+
+  @override
+  String get reportIssueDescriptionLabel => 'Detailed Description';
+
+  @override
+  String get reportIssueDescriptionHint => 'Describe the issue in detail...';
+
+  @override
+  String get reportIssueMarkUrgent => 'Mark as Urgent';
+
+  @override
+  String get reportIssueUrgentSubtitle => 'This requires immediate attention';
+
+  @override
+  String get reportIssueNoticeTitle => 'Important Notice';
+
+  @override
+  String get reportIssueNoticeBody => 'False reports are taken very seriously and may result in account suspension. Please ensure all information provided is accurate and truthful.';
+
+  @override
+  String get reportIssueSubmit => 'Submit Report';
+
+  @override
+  String get reportIssueCancel => 'Cancel';
+
+  @override
+  String get reportIssueFieldRequired => 'This field is required';
+
+  @override
+  String get reportIssueCategoryRequired => 'Please select a category';
+
+  @override
+  String get reportIssueCatLateArrival => 'Late Arrival';
+
+  @override
+  String get reportIssueCatUnprofessional => 'Unprofessional Behavior';
+
+  @override
+  String get reportIssueCatPoorService => 'Poor Service Quality';
+
+  @override
+  String get reportIssueCatCommunication => 'Communication Issues';
+
+  @override
+  String get reportIssueCatHygiene => 'Hygiene Concerns';
+
+  @override
+  String get reportIssueCatBillingDispute => 'Billing Dispute';
+
+  @override
+  String get reportIssueCatInappropriate => 'Inappropriate Behavior';
+
+  @override
+  String get reportIssueCatHarassment => 'Harassment';
+
+  @override
+  String get reportIssueCatSafety => 'Safety Concern';
+
+  @override
+  String get reportIssueCatFraud => 'Fraud/Scam';
+
+  @override
+  String get reportIssueCatViolence => 'Violence or Threats';
+
+  @override
+  String get reportIssueCatOtherSerious => 'Other Serious Issue';
+
+  @override
+  String get reportIssueCatOther => 'Other';
+
+  @override
+  String get nurseEarningsSubtitle => 'Track your income';
+
+  @override
+  String get nurseEarningsTotalLabel => 'Total Earnings';
+
+  @override
+  String get nurseEarningsThisMonthLabel => 'Earnings This Month';
+
+  @override
+  String get nurseEarningsPendingLabel => 'Pending Amount';
+
+  @override
+  String get nurseEarningsAwaitingPayment => 'Awaiting payment completion';
+
+  @override
+  String get nurseEarningsTabAll => 'All Earnings';
+
+  @override
+  String get nurseEarningsTabThisMonth => 'This Month';
+
+  @override
+  String get nurseEarningsTabHistory => 'History';
+
+  @override
+  String get nurseEarningsRecords => 'Earnings Records';
+
+  @override
+  String get nurseEarningsCompletedServices => 'completed services';
+
+  @override
+  String get nurseEarningsServicesThisMonth => 'services this month';
+
+  @override
+  String get nurseEarningsEmpty => 'No earnings records yet.';
+
+  @override
+  String get nurseProfileReportTitle => 'Report a Problem';
+
+  @override
+  String get nurseProfileReportSubtitle => 'Flag a technical or service issue';
+
+  @override
+  String get nurseReportTitle => 'Report a Problem';
+
+  @override
+  String get nurseReportCategoryLabel => 'Problem Category';
+
+  @override
+  String get nurseReportCategoryHint => 'Select a category';
+
+  @override
+  String get nurseReportSubjectLabel => 'Subject';
+
+  @override
+  String get nurseReportSubjectHint => 'Enter subject';
+
+  @override
+  String get nurseReportDescriptionLabel => 'Detailed Description';
+
+  @override
+  String get nurseReportDescriptionHint => 'Describe the problem in detail...';
+
+  @override
+  String get nurseReportMarkUrgent => 'Mark as Urgent';
+
+  @override
+  String get nurseReportUrgentSubtitle => 'This requires immediate attention';
+
+  @override
+  String get nurseReportNoticeTitle => 'Important Notice';
+
+  @override
+  String get nurseReportNoticeBody => 'False reports are taken seriously and may result in account suspension. Only report genuine issues.';
+
+  @override
+  String get nurseReportSubmit => 'Submit Report';
+
+  @override
+  String get nurseReportCancel => 'Cancel';
+
+  @override
+  String get nurseReportFieldRequired => 'This field is required';
+
+  @override
+  String get nurseReportCategoryRequired => 'Please select a category';
+
+  @override
+  String get nurseReportCatPayment => 'Payment Issue';
+
+  @override
+  String get nurseReportCatTechnical => 'Technical Problem';
+
+  @override
+  String get nurseReportCatPatient => 'Patient Issue';
+
+  @override
+  String get nurseReportCatSafety => 'Safety Concern';
+
+  @override
+  String get nurseReportCatBug => 'Platform Bug';
+
+  @override
+  String get nurseReportCatAccount => 'Account Problem';
+
+  @override
+  String get nurseReportCatScheduling => 'Scheduling Issue';
+
+  @override
+  String get nurseReportCatOther => 'Other';
 }

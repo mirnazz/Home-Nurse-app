@@ -3,6 +3,7 @@ import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 import 'package:nurse_app/app_locale_scope.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_profile_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_report_issue_screen.dart';
 
 /// More tab: profile, language, and future settings.
 class PatientMoreScreen extends StatelessWidget {
@@ -39,6 +40,19 @@ class PatientMoreScreen extends StatelessWidget {
               Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   builder: (_) => const PatientProfileScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _MoreTileCard(
+            icon: Icons.flag_outlined,
+            title: l10n.patientMoreReportIssueTitle,
+            subtitle: l10n.patientMoreReportIssueSubtitle,
+            onTap: () {
+              Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => const PatientReportIssueScreen(),
                 ),
               );
             },

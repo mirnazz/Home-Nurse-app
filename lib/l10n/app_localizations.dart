@@ -3976,6 +3976,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Anything else your care team should know...'**
   String get patientOnboardNotesHint;
+
+  /// No description provided for @paymentBillingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments & Billing'**
+  String get paymentBillingTitle;
+
+  /// No description provided for @paymentTotalSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Spent'**
+  String get paymentTotalSpent;
+
+  /// No description provided for @paymentPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get paymentPendingLabel;
+
+  /// No description provided for @paymentTransactionHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction History'**
+  String get paymentTransactionHistoryTitle;
+
+  /// No description provided for @paymentTransactionHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View all payments'**
+  String get paymentTransactionHistorySubtitle;
+
+  /// No description provided for @paymentMethodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get paymentMethodsTitle;
+
+  /// No description provided for @paymentMethodsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your cards'**
+  String get paymentMethodsSubtitle;
+
+  /// No description provided for @paymentRecentTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Transactions'**
+  String get paymentRecentTransactions;
+
+  /// No description provided for @paymentViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get paymentViewAll;
+
+  /// No description provided for @paymentStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get paymentStatusCompleted;
+
+  /// No description provided for @paymentStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get paymentStatusPending;
+
+  /// No description provided for @paymentPrimaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get paymentPrimaryLabel;
+
+  /// No description provided for @paymentAddNewMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Payment Method'**
+  String get paymentAddNewMethod;
+
+  /// No description provided for @paymentSupportedMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported Payment Methods'**
+  String get paymentSupportedMethods;
+
+  /// No description provided for @paymentCreditDebitCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit/Debit Cards'**
+  String get paymentCreditDebitCards;
+
+  /// No description provided for @paymentCashComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash (Coming Soon)'**
+  String get paymentCashComingSoon;
+
+  /// No description provided for @paymentNoTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet.'**
+  String get paymentNoTransactions;
+
+  /// No description provided for @patientMoreReportIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Issue'**
+  String get patientMoreReportIssueTitle;
+
+  /// No description provided for @patientMoreReportIssueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag a concern or complaint'**
+  String get patientMoreReportIssueSubtitle;
+
+  /// No description provided for @reportIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Issue'**
+  String get reportIssueTitle;
+
+  /// No description provided for @reportIssueCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get reportIssueCategoryLabel;
+
+  /// No description provided for @reportIssueCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get reportIssueCategoryHint;
+
+  /// No description provided for @reportIssueSubjectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get reportIssueSubjectLabel;
+
+  /// No description provided for @reportIssueSubjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter subject'**
+  String get reportIssueSubjectHint;
+
+  /// No description provided for @reportIssueDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Description'**
+  String get reportIssueDescriptionLabel;
+
+  /// No description provided for @reportIssueDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the issue in detail...'**
+  String get reportIssueDescriptionHint;
+
+  /// No description provided for @reportIssueMarkUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Urgent'**
+  String get reportIssueMarkUrgent;
+
+  /// No description provided for @reportIssueUrgentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This requires immediate attention'**
+  String get reportIssueUrgentSubtitle;
+
+  /// No description provided for @reportIssueNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important Notice'**
+  String get reportIssueNoticeTitle;
+
+  /// No description provided for @reportIssueNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'False reports are taken very seriously and may result in account suspension. Please ensure all information provided is accurate and truthful.'**
+  String get reportIssueNoticeBody;
+
+  /// No description provided for @reportIssueSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Report'**
+  String get reportIssueSubmit;
+
+  /// No description provided for @reportIssueCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get reportIssueCancel;
+
+  /// No description provided for @reportIssueFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get reportIssueFieldRequired;
+
+  /// No description provided for @reportIssueCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get reportIssueCategoryRequired;
+
+  /// No description provided for @reportIssueCatLateArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Late Arrival'**
+  String get reportIssueCatLateArrival;
+
+  /// No description provided for @reportIssueCatUnprofessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Unprofessional Behavior'**
+  String get reportIssueCatUnprofessional;
+
+  /// No description provided for @reportIssueCatPoorService.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor Service Quality'**
+  String get reportIssueCatPoorService;
+
+  /// No description provided for @reportIssueCatCommunication.
+  ///
+  /// In en, this message translates to:
+  /// **'Communication Issues'**
+  String get reportIssueCatCommunication;
+
+  /// No description provided for @reportIssueCatHygiene.
+  ///
+  /// In en, this message translates to:
+  /// **'Hygiene Concerns'**
+  String get reportIssueCatHygiene;
+
+  /// No description provided for @reportIssueCatBillingDispute.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing Dispute'**
+  String get reportIssueCatBillingDispute;
+
+  /// No description provided for @reportIssueCatInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate Behavior'**
+  String get reportIssueCatInappropriate;
+
+  /// No description provided for @reportIssueCatHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get reportIssueCatHarassment;
+
+  /// No description provided for @reportIssueCatSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Concern'**
+  String get reportIssueCatSafety;
+
+  /// No description provided for @reportIssueCatFraud.
+  ///
+  /// In en, this message translates to:
+  /// **'Fraud/Scam'**
+  String get reportIssueCatFraud;
+
+  /// No description provided for @reportIssueCatViolence.
+  ///
+  /// In en, this message translates to:
+  /// **'Violence or Threats'**
+  String get reportIssueCatViolence;
+
+  /// No description provided for @reportIssueCatOtherSerious.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Serious Issue'**
+  String get reportIssueCatOtherSerious;
+
+  /// No description provided for @reportIssueCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get reportIssueCatOther;
+
+  /// No description provided for @nurseEarningsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your income'**
+  String get nurseEarningsSubtitle;
+
+  /// No description provided for @nurseEarningsTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Earnings'**
+  String get nurseEarningsTotalLabel;
+
+  /// No description provided for @nurseEarningsThisMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings This Month'**
+  String get nurseEarningsThisMonthLabel;
+
+  /// No description provided for @nurseEarningsPendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Amount'**
+  String get nurseEarningsPendingLabel;
+
+  /// No description provided for @nurseEarningsAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting payment completion'**
+  String get nurseEarningsAwaitingPayment;
+
+  /// No description provided for @nurseEarningsTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All Earnings'**
+  String get nurseEarningsTabAll;
+
+  /// No description provided for @nurseEarningsTabThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get nurseEarningsTabThisMonth;
+
+  /// No description provided for @nurseEarningsTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get nurseEarningsTabHistory;
+
+  /// No description provided for @nurseEarningsRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings Records'**
+  String get nurseEarningsRecords;
+
+  /// No description provided for @nurseEarningsCompletedServices.
+  ///
+  /// In en, this message translates to:
+  /// **'completed services'**
+  String get nurseEarningsCompletedServices;
+
+  /// No description provided for @nurseEarningsServicesThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'services this month'**
+  String get nurseEarningsServicesThisMonth;
+
+  /// No description provided for @nurseEarningsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No earnings records yet.'**
+  String get nurseEarningsEmpty;
+
+  /// No description provided for @nurseProfileReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a Problem'**
+  String get nurseProfileReportTitle;
+
+  /// No description provided for @nurseProfileReportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag a technical or service issue'**
+  String get nurseProfileReportSubtitle;
+
+  /// No description provided for @nurseReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a Problem'**
+  String get nurseReportTitle;
+
+  /// No description provided for @nurseReportCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem Category'**
+  String get nurseReportCategoryLabel;
+
+  /// No description provided for @nurseReportCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get nurseReportCategoryHint;
+
+  /// No description provided for @nurseReportSubjectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get nurseReportSubjectLabel;
+
+  /// No description provided for @nurseReportSubjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter subject'**
+  String get nurseReportSubjectHint;
+
+  /// No description provided for @nurseReportDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Description'**
+  String get nurseReportDescriptionLabel;
+
+  /// No description provided for @nurseReportDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem in detail...'**
+  String get nurseReportDescriptionHint;
+
+  /// No description provided for @nurseReportMarkUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Urgent'**
+  String get nurseReportMarkUrgent;
+
+  /// No description provided for @nurseReportUrgentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This requires immediate attention'**
+  String get nurseReportUrgentSubtitle;
+
+  /// No description provided for @nurseReportNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important Notice'**
+  String get nurseReportNoticeTitle;
+
+  /// No description provided for @nurseReportNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'False reports are taken seriously and may result in account suspension. Only report genuine issues.'**
+  String get nurseReportNoticeBody;
+
+  /// No description provided for @nurseReportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Report'**
+  String get nurseReportSubmit;
+
+  /// No description provided for @nurseReportCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get nurseReportCancel;
+
+  /// No description provided for @nurseReportFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get nurseReportFieldRequired;
+
+  /// No description provided for @nurseReportCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get nurseReportCategoryRequired;
+
+  /// No description provided for @nurseReportCatPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Issue'**
+  String get nurseReportCatPayment;
+
+  /// No description provided for @nurseReportCatTechnical.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Problem'**
+  String get nurseReportCatTechnical;
+
+  /// No description provided for @nurseReportCatPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient Issue'**
+  String get nurseReportCatPatient;
+
+  /// No description provided for @nurseReportCatSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Concern'**
+  String get nurseReportCatSafety;
+
+  /// No description provided for @nurseReportCatBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Bug'**
+  String get nurseReportCatBug;
+
+  /// No description provided for @nurseReportCatAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Problem'**
+  String get nurseReportCatAccount;
+
+  /// No description provided for @nurseReportCatScheduling.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduling Issue'**
+  String get nurseReportCatScheduling;
+
+  /// No description provided for @nurseReportCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get nurseReportCatOther;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

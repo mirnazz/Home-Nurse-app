@@ -2062,4 +2062,256 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get patientOnboardNotesHint => 'أي معلومات إضافية يجب أن يعرفها فريق الرعاية...';
+
+  @override
+  String get paymentBillingTitle => 'المدفوعات والفواتير';
+
+  @override
+  String get paymentTotalSpent => 'إجمالي الإنفاق';
+
+  @override
+  String get paymentPendingLabel => 'معلق';
+
+  @override
+  String get paymentTransactionHistoryTitle => 'سجل المعاملات';
+
+  @override
+  String get paymentTransactionHistorySubtitle => 'عرض جميع المدفوعات';
+
+  @override
+  String get paymentMethodsTitle => 'طرق الدفع';
+
+  @override
+  String get paymentMethodsSubtitle => 'إدارة بطاقاتك';
+
+  @override
+  String get paymentRecentTransactions => 'المعاملات الأخيرة';
+
+  @override
+  String get paymentViewAll => 'عرض الكل';
+
+  @override
+  String get paymentStatusCompleted => 'مكتملة';
+
+  @override
+  String get paymentStatusPending => 'معلقة';
+
+  @override
+  String get paymentPrimaryLabel => 'أساسية';
+
+  @override
+  String get paymentAddNewMethod => 'إضافة طريقة دفع جديدة';
+
+  @override
+  String get paymentSupportedMethods => 'طرق الدفع المدعومة';
+
+  @override
+  String get paymentCreditDebitCards => 'بطاقات الائتمان/الخصم';
+
+  @override
+  String get paymentCashComingSoon => 'نقداً (قريباً)';
+
+  @override
+  String get paymentNoTransactions => 'لا توجد معاملات بعد.';
+
+  @override
+  String get patientMoreReportIssueTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get patientMoreReportIssueSubtitle => 'الإبلاغ عن شكوى أو مخاوف';
+
+  @override
+  String get reportIssueTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get reportIssueCategoryLabel => 'الفئة';
+
+  @override
+  String get reportIssueCategoryHint => 'اختر فئة';
+
+  @override
+  String get reportIssueSubjectLabel => 'الموضوع';
+
+  @override
+  String get reportIssueSubjectHint => 'أدخل الموضوع';
+
+  @override
+  String get reportIssueDescriptionLabel => 'الوصف التفصيلي';
+
+  @override
+  String get reportIssueDescriptionHint => 'اصف المشكلة بالتفصيل...';
+
+  @override
+  String get reportIssueMarkUrgent => 'تحديد كأولوية عاجلة';
+
+  @override
+  String get reportIssueUrgentSubtitle => 'هذا الأمر يتطلب اهتماماً فورياً';
+
+  @override
+  String get reportIssueNoticeTitle => 'تنبيه مهم';
+
+  @override
+  String get reportIssueNoticeBody => 'البلاغات الكاذبة تُعامل بجدية تامة وقد تؤدي إلى تعليق الحساب. يرجى التأكد من أن جميع المعلومات المقدمة دقيقة وصحيحة.';
+
+  @override
+  String get reportIssueSubmit => 'إرسال البلاغ';
+
+  @override
+  String get reportIssueCancel => 'إلغاء';
+
+  @override
+  String get reportIssueFieldRequired => 'هذا الحقل مطلوب';
+
+  @override
+  String get reportIssueCategoryRequired => 'يرجى اختيار فئة';
+
+  @override
+  String get reportIssueCatLateArrival => 'التأخر في الوصول';
+
+  @override
+  String get reportIssueCatUnprofessional => 'سلوك غير مهني';
+
+  @override
+  String get reportIssueCatPoorService => 'جودة خدمة رديئة';
+
+  @override
+  String get reportIssueCatCommunication => 'مشاكل في التواصل';
+
+  @override
+  String get reportIssueCatHygiene => 'مخاوف تتعلق بالنظافة';
+
+  @override
+  String get reportIssueCatBillingDispute => 'نزاع في الفوترة';
+
+  @override
+  String get reportIssueCatInappropriate => 'سلوك غير لائق';
+
+  @override
+  String get reportIssueCatHarassment => 'تحرش أو مضايقة';
+
+  @override
+  String get reportIssueCatSafety => 'مخاوف تتعلق بالسلامة';
+
+  @override
+  String get reportIssueCatFraud => 'احتيال أو نصب';
+
+  @override
+  String get reportIssueCatViolence => 'عنف أو تهديدات';
+
+  @override
+  String get reportIssueCatOtherSerious => 'مشكلة خطيرة أخرى';
+
+  @override
+  String get reportIssueCatOther => 'أخرى';
+
+  @override
+  String get nurseEarningsSubtitle => 'تتبع دخلك';
+
+  @override
+  String get nurseEarningsTotalLabel => 'إجمالي الأرباح';
+
+  @override
+  String get nurseEarningsThisMonthLabel => 'أرباح هذا الشهر';
+
+  @override
+  String get nurseEarningsPendingLabel => 'المبلغ المعلق';
+
+  @override
+  String get nurseEarningsAwaitingPayment => 'في انتظار اكتمال الدفع';
+
+  @override
+  String get nurseEarningsTabAll => 'جميع الأرباح';
+
+  @override
+  String get nurseEarningsTabThisMonth => 'هذا الشهر';
+
+  @override
+  String get nurseEarningsTabHistory => 'السجل';
+
+  @override
+  String get nurseEarningsRecords => 'سجلات الأرباح';
+
+  @override
+  String get nurseEarningsCompletedServices => 'خدمة مكتملة';
+
+  @override
+  String get nurseEarningsServicesThisMonth => 'خدمات هذا الشهر';
+
+  @override
+  String get nurseEarningsEmpty => 'لا توجد سجلات أرباح بعد.';
+
+  @override
+  String get nurseProfileReportTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get nurseProfileReportSubtitle => 'الإبلاغ عن مشكلة تقنية أو في الخدمة';
+
+  @override
+  String get nurseReportTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get nurseReportCategoryLabel => 'فئة المشكلة';
+
+  @override
+  String get nurseReportCategoryHint => 'اختر فئة';
+
+  @override
+  String get nurseReportSubjectLabel => 'الموضوع';
+
+  @override
+  String get nurseReportSubjectHint => 'أدخل الموضوع';
+
+  @override
+  String get nurseReportDescriptionLabel => 'الوصف التفصيلي';
+
+  @override
+  String get nurseReportDescriptionHint => 'اصف المشكلة بالتفصيل...';
+
+  @override
+  String get nurseReportMarkUrgent => 'تحديد كأولوية عاجلة';
+
+  @override
+  String get nurseReportUrgentSubtitle => 'هذا الأمر يتطلب اهتماماً فورياً';
+
+  @override
+  String get nurseReportNoticeTitle => 'تنبيه مهم';
+
+  @override
+  String get nurseReportNoticeBody => 'البلاغات الكاذبة تُعامل بجدية وقد تؤدي إلى تعليق الحساب. يُرجى الإبلاغ عن المشكلات الحقيقية فقط.';
+
+  @override
+  String get nurseReportSubmit => 'إرسال البلاغ';
+
+  @override
+  String get nurseReportCancel => 'إلغاء';
+
+  @override
+  String get nurseReportFieldRequired => 'هذا الحقل مطلوب';
+
+  @override
+  String get nurseReportCategoryRequired => 'يرجى اختيار فئة';
+
+  @override
+  String get nurseReportCatPayment => 'مشكلة في الدفع';
+
+  @override
+  String get nurseReportCatTechnical => 'مشكلة تقنية';
+
+  @override
+  String get nurseReportCatPatient => 'مشكلة مع المريض';
+
+  @override
+  String get nurseReportCatSafety => 'مخاوف تتعلق بالسلامة';
+
+  @override
+  String get nurseReportCatBug => 'خلل في المنصة';
+
+  @override
+  String get nurseReportCatAccount => 'مشكلة في الحساب';
+
+  @override
+  String get nurseReportCatScheduling => 'مشكلة في الجدولة';
+
+  @override
+  String get nurseReportCatOther => 'أخرى';
 }

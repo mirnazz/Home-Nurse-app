@@ -4,6 +4,7 @@ import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/nurse_personal_info_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_earnings_screen.dart';
+import 'package:nurse_app/Features/Nurse/Presentation/nurse_report_problem_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_ratings_screen.dart';
 import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 
@@ -117,6 +118,19 @@ class NurseProfileScreen extends StatelessWidget {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
                     builder: (_) => const NurseEarningsScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _ProfileSettingsTile(
+              icon: Icons.flag_outlined,
+              title: l10n.nurseProfileReportTitle,
+              subtitle: l10n.nurseProfileReportSubtitle,
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NurseReportProblemScreen(),
                   ),
                 );
               },
