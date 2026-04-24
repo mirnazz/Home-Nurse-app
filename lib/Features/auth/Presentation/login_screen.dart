@@ -117,10 +117,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.next,
                   decoration: fieldDecoration(
-                    hint: l10n.emailFieldHint,
+                    hint: l10n.emailLocalPartHint,
                     icon: Icons.email_outlined,
+                  ).copyWith(
+                    suffixText: l10n.emailDomainSuffix,
+                    suffixStyle: const TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -251,10 +259,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final l10n = AppLocalizations.of(context)!;
-    final email = emailController.text.trim();
+    final localPart = emailController.text.trim();
     final pass = passwordController.text;
 
-    if (email.isEmpty || !email.contains('@')) {
+    if (localPart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.errorValidEmail)),
       );
@@ -267,6 +275,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
+
+    final email = '$localPart@nursenow.com';
 
     setState(() => isLoading = true);
 

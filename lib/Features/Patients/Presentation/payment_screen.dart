@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-// TEMPORARY: uncomment when flutter_stripe is enabled again (removes analyzer red lines).
-// import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
-// TEMPORARY: only used by commented payment flow below — restore with Stripe block.
-// import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
-// TEMPORARY: restore with Stripe payment block in _confirmPayment.
-// import 'package:nurse_app/Features/Patients/Presentation/payment_failed_screen.dart';
-// import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/payment_failed_screen.dart';
+import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Appointment appointment;
@@ -30,10 +27,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     setState(() => _isSubmitting = true);
 
-    /* TEMPORARY — full payment + Stripe flow preserved below; uncomment block and
-       flutter_stripe import when package is enabled again.
     try {
-     final bookingId = widget.appointment.id;
+      final bookingId = widget.appointment.id;
 
       // 1) create payment intent from backend
       final clientSecret = await ApiService.createPaymentIntent(
@@ -87,22 +82,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         MaterialPageRoute(
           builder: (_) => PaymentFailedScreen(
             appointment: widget.appointment,
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-    */
-
-    try {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Payment temporarily disabled — restore Stripe block in _confirmPayment.',
           ),
         ),
       );

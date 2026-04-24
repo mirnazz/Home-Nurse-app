@@ -2314,4 +2314,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nurseReportCatOther => 'أخرى';
+
+  @override
+  String get emailDomainSuffix => '@nursenow.com';
+
+  @override
+  String get emailLocalPartHint => 'اسم.المستخدم';
+
+  @override
+  String get resetPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get resetPasswordSubtitle => 'أدخل رمز التحقق المُرسَل إلى بريدك الإلكتروني وعيّن كلمة مرور جديدة.';
+
+  @override
+  String get resetPasswordCodeLabel => 'رمز التحقق';
+
+  @override
+  String get resetPasswordCodeHint => 'أدخل الرمز من بريدك الإلكتروني';
+
+  @override
+  String get resetPasswordNewLabel => 'كلمة المرور الجديدة';
+
+  @override
+  String get resetPasswordNewHint => 'أدخل كلمة المرور الجديدة';
+
+  @override
+  String get resetPasswordConfirmLabel => 'تأكيد كلمة المرور';
+
+  @override
+  String get resetPasswordConfirmHint => 'أعد إدخال كلمة المرور الجديدة';
+
+  @override
+  String get resetPasswordButton => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get resetPasswordCodeRequired => 'رمز التحقق مطلوب';
+
+  @override
+  String get resetPasswordMinLength => 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل';
+
+  @override
+  String get resetPasswordMismatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get resetPasswordSuccess => 'تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول.';
+
+  @override
+  String get welcomeDialogTitle => 'أنت جاهز تمامًا!';
+
+  @override
+  String get welcomeDialogBody => 'ملفك الشخصي جاهز. ابدأ الاستكشاف واحجز أول موعد مع ممرضتك.';
+
+  @override
+  String get welcomeDialogButton => 'انتقل إلى لوحة التحكم';
 }

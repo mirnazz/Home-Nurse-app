@@ -2306,4 +2306,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nurseReportCatOther => 'Other';
+
+  @override
+  String get emailDomainSuffix => '@nursenow.com';
+
+  @override
+  String get emailLocalPartHint => 'your.username';
+
+  @override
+  String get resetPasswordTitle => 'Reset Password';
+
+  @override
+  String get resetPasswordSubtitle => 'Enter the verification code sent to your email and set a new password.';
+
+  @override
+  String get resetPasswordCodeLabel => 'Verification Code';
+
+  @override
+  String get resetPasswordCodeHint => 'Enter the code from your email';
+
+  @override
+  String get resetPasswordNewLabel => 'New Password';
+
+  @override
+  String get resetPasswordNewHint => 'Enter your new password';
+
+  @override
+  String get resetPasswordConfirmLabel => 'Confirm Password';
+
+  @override
+  String get resetPasswordConfirmHint => 'Re-enter your new password';
+
+  @override
+  String get resetPasswordButton => 'Reset Password';
+
+  @override
+  String get resetPasswordCodeRequired => 'Verification code is required';
+
+  @override
+  String get resetPasswordMinLength => 'Password must be at least 6 characters';
+
+  @override
+  String get resetPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get resetPasswordSuccess => 'Password reset successfully. Please log in.';
+
+  @override
+  String get welcomeDialogTitle => 'You\'re all set!';
+
+  @override
+  String get welcomeDialogBody => 'Your profile is ready. Start exploring and book your first nurse appointment.';
+
+  @override
+  String get welcomeDialogButton => 'Go to Dashboard';
 }

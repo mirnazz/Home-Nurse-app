@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Features/auth/Presentation/reset_password_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -23,58 +24,57 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
-    final email = emailController.text.trim();
+    final localPart = emailController.text.trim();
 
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.forgotEnterEmail)));
-      return;
-    }
-
-    if (!email.contains("@") || !email.contains(".")) {
+    if (localPart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.forgotEnterValidEmail)),
+        SnackBar(content: Text(l10n.forgotEnterEmail)),
       );
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    final fullEmail = '$localPart@nursenow.com';
+
+    setState(() => isLoading = true);
+
+    String? errorMessage;
+    String? successResult;
 
     try {
-      final result = await ApiService.forgotPassword(email: email);
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result)));
+      successResult = await ApiService.forgotPassword(email: fullEmail);
     } catch (e) {
-      if (!mounted) return;
-
-      final errorText = e.toString().replaceFirst("Exception: ", "");
-
-      String displayMessage = errorText;
-
-      if (errorText.contains("SocketException") ||
-          errorText.contains("Connection timed out") ||
-          errorText.contains("timed out")) {
-        displayMessage =
-            l10n.forgotServerTimeoutMessage;
+      final errorText = e.toString().replaceFirst('Exception: ', '');
+      if (errorText.contains('SocketException') ||
+          errorText.contains('Connection timed out') ||
+          errorText.contains('timed out')) {
+        errorMessage = l10n.forgotServerTimeoutMessage;
+      } else {
+        errorMessage = errorText;
       }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(displayMessage)));
-    } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
     }
+
+    if (!mounted) return;
+    setState(() => isLoading = false);
+
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      return;
+    }
+
+    if (successResult != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successResult)),
+      );
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ResetPasswordScreen(email: fullEmail),
+      ),
+    );
   }
 
   @override
@@ -85,8 +85,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     InputDecoration deco() {
       return InputDecoration(
-        hintText: l10n.emailFieldHint,
+        hintText: l10n.emailLocalPartHint,
         prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9CA3AF)),
+        suffixText: l10n.emailDomainSuffix,
+        suffixStyle: const TextStyle(
+          color: Color(0xFF6B7280),
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
@@ -158,7 +164,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: emailController,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => handleForgotPassword(),
                 decoration: deco(),
               ),
               const SizedBox(height: 18),

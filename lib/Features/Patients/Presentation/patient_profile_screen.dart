@@ -864,7 +864,6 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           label: l10n.phoneNumber,
           controller: _phoneCtrl,
           keyboard: TextInputType.phone,
-          readOnly: true,
         ),
         _dropdown<String>(
           p,

@@ -91,6 +91,93 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
     );
   }
 
+  void _skip() {
+    if (_pageIndex < 2) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      _goPatientHome();
+    }
+  }
+
+  Future<void> _showWelcomeDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: _primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.check_circle_rounded,
+                    color: _primary, size: 42),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.welcomeDialogTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: PatientOnboardingTokens.text,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.welcomeDialogBody,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: PatientOnboardingTokens.muted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _goPatientHome();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    l10n.welcomeDialogButton,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _onConditionToggle(String key, bool selected) {
     setState(() {
       if (key == 'none') {
@@ -176,7 +263,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
       );
     } else {
       _syncDataFromForm();
-      _goPatientHome();
+      await _showWelcomeDialog();
     }
   }
 
@@ -187,7 +274,10 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         curve: Curves.easeOutCubic,
       );
     } else {
-      _goPatientHome();
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
     }
   }
 
@@ -296,7 +386,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: _goPatientHome,
+                            onPressed: _skip,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: PatientOnboardingTokens.muted,
                               side: const BorderSide(

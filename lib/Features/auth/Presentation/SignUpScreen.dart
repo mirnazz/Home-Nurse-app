@@ -128,7 +128,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: _primary.withOpacity(0.1),
+                            color: _primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
@@ -193,18 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       const SizedBox(height: 14),
 
-                      _buildInputField(
-                        controller: emailController,
-                        label: l10n.signupEmailLabel,
-                        hint: l10n.signupEmailHint,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        validator:
-                            (value) =>
-                                value == null || !value.contains('@')
-                                    ? l10n.validationEmailInvalid
-                                    : null,
-                      ),
+                      _buildEmailField(l10n),
 
                       const SizedBox(height: 14),
 
@@ -429,7 +418,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         height: 46,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? _primary.withOpacity(0.14) : Colors.transparent,
+          color: selected ? _primary.withValues(alpha: 0.14) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? _primary : Colors.transparent,
@@ -445,6 +434,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmailField(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.signupEmailLabel,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: _text,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: emailController,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            hintText: l10n.emailLocalPartHint,
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+            filled: true,
+            fillColor: Colors.white,
+            suffixText: l10n.emailDomainSuffix,
+            suffixStyle: const TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: _primary, width: 1.6),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.6),
+            ),
+          ),
+          validator: (value) =>
+              value == null || value.trim().isEmpty
+                  ? l10n.validationEmailInvalid
+                  : null,
+        ),
+      ],
     );
   }
 
@@ -520,16 +567,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final bool isNurse = selectedRole == UserRole.nurse;
     setState(() => isLoading = true);
 
+    final String fullEmail = '${emailController.text.trim()}@nursenow.com';
+
     try {
       if (isNurse) {
         await ApiService.registerNurse(
           fullName: fullNameController.text.trim(),
-          email: emailController.text.trim(),
+          email: fullEmail,
           password: passwordController.text,
         );
 
         await ApiService.login(
-          email: emailController.text.trim(),
+          email: fullEmail,
           password: passwordController.text,
         );
 
@@ -537,20 +586,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder:
-                (_) =>
-                    NurseRegistrationScreen(email: emailController.text.trim()),
+            builder: (_) => NurseRegistrationScreen(email: fullEmail),
           ),
         );
       } else {
         await ApiService.registerPatient(
           fullName: fullNameController.text.trim(),
-          email: emailController.text.trim(),
+          email: fullEmail,
           password: passwordController.text,
         );
 
         await ApiService.login(
-          email: emailController.text.trim(),
+          email: fullEmail,
           password: passwordController.text,
         );
 

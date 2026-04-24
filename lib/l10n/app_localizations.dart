@@ -4480,6 +4480,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get nurseReportCatOther;
+
+  /// No description provided for @emailDomainSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'@nursenow.com'**
+  String get emailDomainSuffix;
+
+  /// No description provided for @emailLocalPartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'your.username'**
+  String get emailLocalPartHint;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your email and set a new password.'**
+  String get resetPasswordSubtitle;
+
+  /// No description provided for @resetPasswordCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get resetPasswordCodeLabel;
+
+  /// No description provided for @resetPasswordCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code from your email'**
+  String get resetPasswordCodeHint;
+
+  /// No description provided for @resetPasswordNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get resetPasswordNewLabel;
+
+  /// No description provided for @resetPasswordNewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new password'**
+  String get resetPasswordNewHint;
+
+  /// No description provided for @resetPasswordConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get resetPasswordConfirmLabel;
+
+  /// No description provided for @resetPasswordConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your new password'**
+  String get resetPasswordConfirmHint;
+
+  /// No description provided for @resetPasswordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPasswordButton;
+
+  /// No description provided for @resetPasswordCodeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code is required'**
+  String get resetPasswordCodeRequired;
+
+  /// No description provided for @resetPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get resetPasswordMinLength;
+
+  /// No description provided for @resetPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get resetPasswordMismatch;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset successfully. Please log in.'**
+  String get resetPasswordSuccess;
+
+  /// No description provided for @welcomeDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set!'**
+  String get welcomeDialogTitle;
+
+  /// No description provided for @welcomeDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is ready. Start exploring and book your first nurse appointment.'**
+  String get welcomeDialogBody;
+
+  /// No description provided for @welcomeDialogButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Dashboard'**
+  String get welcomeDialogButton;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

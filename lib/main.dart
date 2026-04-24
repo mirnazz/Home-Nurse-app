@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// TEMPORARY: uncomment when flutter_stripe is enabled again (removes analyzer red lines).
-// import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 
@@ -22,10 +21,9 @@ import 'Features/Shared/Presentation/notifications_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TEMPORARY: Stripe init commented — restore with import above when ready.
-  // Stripe.publishableKey =
-  //     'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
-  // await Stripe.instance.applySettings();
+  Stripe.publishableKey =
+      'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
+  await Stripe.instance.applySettings();
 
   final code = await AppLanguagePrefs.getLanguage();
   runApp(NurseApp(initialLocale: Locale(code)));
@@ -72,8 +70,6 @@ class _NurseAppState extends State<NurseApp> {
           }
           return const Locale('en');
         },
-        // Dev: skip signup step 1 — patient onboarding steps 2–4.
-        // initialPageIndex: 0 = step 2 (personal), 1 = step 3 (address), 2 = step 4 (medical)
         home: const SplashScreen(),
         routes: {
           "/login": (_) => const LoginScreen(),
