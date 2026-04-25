@@ -301,9 +301,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ),
                                   )
                                   : Text(
-                                    isNurse
-                                        ? l10n.continueButton
-                                        : l10n.signUp,
+                                    l10n.continueButton,
                                     style: const TextStyle(
                                       fontSize: 16.5,
                                       fontWeight: FontWeight.w800,
@@ -590,17 +588,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       } else {
-        await ApiService.registerPatient(
-          fullName: fullNameController.text.trim(),
-          email: fullEmail,
-          password: passwordController.text,
-        );
-
-        await ApiService.login(
-          email: fullEmail,
-          password: passwordController.text,
-        );
-
         if (!mounted) return;
         final phone = phoneController.text.trim();
         Navigator.pushReplacement(
@@ -608,6 +595,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           MaterialPageRoute<void>(
             builder: (_) => PatientOnboardingScreen(
               data: PatientOnboardingData(phoneNumber: phone),
+              fullName: fullNameController.text.trim(),
+              email: fullEmail,
+              password: passwordController.text,
             ),
           ),
         );

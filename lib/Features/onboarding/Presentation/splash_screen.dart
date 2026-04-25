@@ -53,67 +53,66 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
 
       final rawRoles = me['roles'];
-String role = '';
+      String role = '';
 
-if (rawRoles is List && rawRoles.isNotEmpty) {
-  role = rawRoles.first.toString().trim().toLowerCase();
-} else {
-  role = (me['role'] ?? me['roleType'] ?? '')
-      .toString()
-      .trim()
-      .toLowerCase();
-}
+      if (rawRoles is List && rawRoles.isNotEmpty) {
+        role = rawRoles.first.toString().trim().toLowerCase();
+      } else {
+        role =
+            (me['role'] ?? me['roleType'] ?? '')
+                .toString()
+                .trim()
+                .toLowerCase();
+      }
 
-final verificationStatus = (me['verificationStatus'] ?? '')
-    .toString()
-    .trim()
-    .toLowerCase();
+      final verificationStatus =
+          (me['verificationStatus'] ?? '').toString().trim().toLowerCase();
 
-debugPrint('SPLASH GET ME => $me');
-debugPrint('SPLASH ROLE => $role');
-debugPrint('SPLASH STATUS => $verificationStatus');
+      debugPrint('SPLASH GET ME => $me');
+      debugPrint('SPLASH ROLE => $role');
+      debugPrint('SPLASH STATUS => $verificationStatus');
 
-if (role == 'nurse') {
-  if (verificationStatus == 'pending') {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const NursePendingScreen()),
-    );
-    return;
-  }
+      if (role == 'nurse') {
+        if (verificationStatus == 'pending') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const NursePendingScreen()),
+          );
+          return;
+        }
 
-  if (verificationStatus == 'rejected') {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
-    );
-    return;
-  }
+        if (verificationStatus == 'rejected') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const NurseRejectedScreen()),
+          );
+          return;
+        }
 
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
-  );
-  return;
-}
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const NurseDashboardScreen()),
+        );
+        return;
+      }
 
-if (role == 'patient') {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
-  );
-  return;
-}
+      if (role == 'patient') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+        );
+        return;
+      }
 
-// إذا الدور مش معروف، امسحي التوكن وارجعي لوجن
-await TokenStorage.clearToken();
+      // إذا الدور مش معروف، امسحي التوكن وارجعي لوجن
+      await TokenStorage.clearToken();
 
-if (!mounted) return;
+      if (!mounted) return;
 
-Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(builder: (_) => const LoginScreen()),
-); 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
     } catch (_) {
       // token invalid / unauthorized / server down
       await TokenStorage.clearToken();

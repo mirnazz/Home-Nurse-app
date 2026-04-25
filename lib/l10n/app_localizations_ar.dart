@@ -170,7 +170,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientWelcomeBackLine => 'مرحبًا بعودتك،';
 
   @override
-  String get patientSearchNursesHint => 'ابحث عن ممرض حسب الاسم أو نوع الخدمة...';
+  String get patientSearchNursesHint =>
+      'ابحث عن ممرض حسب الاسم أو نوع الخدمة...';
 
   @override
   String get patientQuickServices => 'خدمات التمريض السريعة';
@@ -234,7 +235,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientBrowseTitle => 'تصفح الممرضين';
 
   @override
-  String get patientBrowseSearchHint => 'ابحث عن ممرض حسب الاسم أو نوع الخدمة...';
+  String get patientBrowseSearchHint =>
+      'ابحث عن ممرض حسب الاسم أو نوع الخدمة...';
 
   @override
   String get patientBrowseFilters => 'عوامل التصفية';
@@ -430,7 +432,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientPayBannerTitlePaymentRequired => 'الدفع مطلوب';
 
   @override
-  String get patientPayBannerBodyPayContinue => 'أكد الممرض موعدك. أكمل الدفع لتفعيل الحجز والاحتفاظ به.';
+  String get patientPayBannerBodyPayContinue =>
+      'أكد الممرض موعدك. أكمل الدفع لتفعيل الحجز والاحتفاظ به.';
 
   @override
   String get patientPayBannerBodyPaymentRequired => 'أكمل الدفع لتأكيد موعدك.';
@@ -460,13 +463,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientPaymentMethod => 'طريقة الدفع';
 
   @override
-  String get patientPaymentStripeDisabled => 'دفع البطاقة (Stripe) معطّل في هذا الإصدار للتطوير المحلي.';
+  String get patientPaymentStripeDisabled =>
+      'دفع البطاقة (Stripe) معطّل في هذا الإصدار للتطوير المحلي.';
 
   @override
   String get patientPaymentConfirm => 'تأكيد الدفع';
 
   @override
-  String get patientPaymentStripeDisabledSnack => 'Stripe معطّل في هذا الإصدار. أعد تفعيل flutter_stripe في pubspec واستعد دالة الدفع.';
+  String get patientPaymentStripeDisabledSnack =>
+      'Stripe معطّل في هذا الإصدار. أعد تفعيل flutter_stripe في pubspec واستعد دالة الدفع.';
 
   @override
   String patientPaymentError(String message) {
@@ -480,10 +485,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientMoreProfileSubtitle => 'عرض وتعديل معلوماتك';
 
   @override
-  String get patientPaymentsTabEmpty => 'ستظهر هنا سجل المدفوعات والإيصالات عند توفرها.';
+  String get patientPaymentsTabEmpty =>
+      'ستظهر هنا سجل المدفوعات والإيصالات عند توفرها.';
 
   @override
-  String get patientReviewSetRatingFirstSnack => 'يرجى تحديد التقييم العام أولاً.';
+  String get patientReviewSetRatingFirstSnack =>
+      'يرجى تحديد التقييم العام أولاً.';
 
   @override
   String get patientReviewOverallRating => 'التقييم العام';
@@ -610,7 +617,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileNotes => 'ملاحظات';
 
   @override
-  String get profileNoneCombinationWarning => 'لا يمكن الجمع بين «لا يوجد» وحالات أخرى.';
+  String get profileNoneCombinationWarning =>
+      'لا يمكن الجمع بين «لا يوجد» وحالات أخرى.';
 
   @override
   String get profileOtherConditionOptional => 'حالة أخرى (اختياري)';
@@ -721,7 +729,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseHomeActionViewRequestsTitle => 'طلبات المرضى';
 
   @override
-  String get nurseHomeActionViewRequestsSubtitle => 'عرض الطلبات المعلقة والمرفوضة';
+  String get nurseHomeActionViewRequestsSubtitle =>
+      'عرض الطلبات المعلقة والمرفوضة';
 
   @override
   String get nurseHomeActionAppointmentsTitle => 'مواعيدي';
@@ -815,19 +824,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseRequestsEmptyPendingTitle => 'لا توجد طلبات حالياً';
 
   @override
-  String get nurseRequestsEmptyPendingSubtitle => 'ستظهر الطلبات الجديدة هنا عند توفرها.';
+  String get nurseRequestsEmptyPendingSubtitle =>
+      'ستظهر الطلبات الجديدة هنا عند توفرها.';
 
   @override
   String get nurseRequestsEmptyRejectedTitle => 'لا توجد طلبات حالياً';
 
   @override
-  String get nurseRequestsEmptyRejectedSubtitle => 'ستظهر الطلبات هنا عند توفرها.';
+  String get nurseRequestsEmptyRejectedSubtitle =>
+      'ستظهر الطلبات هنا عند توفرها.';
 
   @override
   String get nurseRequestsLoadErrorTitle => 'لم نتمكن من تحميل الطلبات';
 
   @override
-  String get nurseRequestsLoadErrorSubtitle => 'تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.';
+  String get nurseRequestsLoadErrorSubtitle =>
+      'تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.';
 
   @override
   String get nurseRetry => 'إعادة المحاولة';
@@ -836,7 +848,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseRequestsRejectDialogTitle => 'رفض الطلب';
 
   @override
-  String get nurseRequestsRejectDialogMessage => 'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
+  String get nurseRequestsRejectDialogMessage =>
+      'هل أنت متأكد أنك تريد رفض هذا الطلب؟';
 
   @override
   String get nurseDialogNo => 'لا';
@@ -877,13 +890,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailNoScheduleYet => 'لا يوجد جدول محدد حتى الآن';
 
   @override
-  String get nurseAvailNoScheduleHint => 'اضغط «إضافة وقت عمل» لتحديد ساعات عملك';
+  String get nurseAvailNoScheduleHint =>
+      'اضغط «إضافة وقت عمل» لتحديد ساعات عملك';
 
   @override
   String get nurseAvailSave => 'حفظ أوقات العمل';
 
   @override
-  String get nurseAvailSaveAutoMessage => 'يتم حفظ التغييرات تلقائيًا بعد كل إجراء';
+  String get nurseAvailSaveAutoMessage =>
+      'يتم حفظ التغييرات تلقائيًا بعد كل إجراء';
 
   @override
   String get nurseAvailTimeSlotAdded => 'تمت إضافة الفترة بنجاح';
@@ -927,7 +942,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailOverrideHoursTitle => 'تعديل ساعات هذا اليوم';
 
   @override
-  String get nurseAvailOverrideHoursSubtitle => 'تحديد ساعات مخصصة لهذا اليوم فقط';
+  String get nurseAvailOverrideHoursSubtitle =>
+      'تحديد ساعات مخصصة لهذا اليوم فقط';
 
   @override
   String get nurseAvailBlockDayTitle => 'إيقاف هذا اليوم';
@@ -939,7 +955,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailUnblockDaySubtitle => 'جعل هذا اليوم متاحًا مرة أخرى';
 
   @override
-  String get nurseAvailBlockDaySubtitle => 'تحديد هذا اليوم كغير متاح (إجازة مثلاً)';
+  String get nurseAvailBlockDaySubtitle =>
+      'تحديد هذا اليوم كغير متاح (إجازة مثلاً)';
 
   @override
   String nurseAvailOverrideHoursForDate(String date) {
@@ -962,7 +979,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailBlockConfirmTitle => 'هل تريد إيقاف هذا اليوم؟';
 
   @override
-  String get nurseAvailBlockConfirmMessage => 'لن يتمكن المرضى من حجز مواعيد في هذا اليوم.';
+  String get nurseAvailBlockConfirmMessage =>
+      'لن يتمكن المرضى من حجز مواعيد في هذا اليوم.';
 
   @override
   String get nurseAvailBlockDay => 'إيقاف اليوم';
@@ -974,13 +992,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailQuickCopyWeekdays => 'تطبيق على جميع أيام الأسبوع';
 
   @override
-  String get nurseAvailQuickCopyWeekdaysSubtitle => 'تطبيق جدول يوم الإثنين على باقي الأيام';
+  String get nurseAvailQuickCopyWeekdaysSubtitle =>
+      'تطبيق جدول يوم الإثنين على باقي الأيام';
 
   @override
   String get nurseAvailQuickWeekend => 'تحديد توفر نهاية الأسبوع';
 
   @override
-  String get nurseAvailQuickWeekendSubtitle => 'تحديد ساعات العمل ليومي السبت والأحد';
+  String get nurseAvailQuickWeekendSubtitle =>
+      'تحديد ساعات العمل ليومي السبت والأحد';
 
   @override
   String get nurseAvailQuickBlockDays => 'إيقاف أيام محددة';
@@ -989,7 +1009,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailQuickBlockDaysSubtitle => 'تحديد الأيام غير المتاحة';
 
   @override
-  String get nurseAvailQuickPlaceholder => 'الإعدادات السريعة للواجهة فقط حاليًا';
+  String get nurseAvailQuickPlaceholder =>
+      'الإعدادات السريعة للواجهة فقط حاليًا';
 
   @override
   String get nurseAvailQuickBlockHint => 'استخدم التقويم لإيقاف أيام محددة';
@@ -1016,7 +1037,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailSummaryDuration => 'المدة';
 
   @override
-  String get nurseAvailBookingNote => 'ملاحظة: سيتم إنشاء مواعيد الحجز تلقائيًا بناءً على ساعات عملك ومدة الخدمات.';
+  String get nurseAvailBookingNote =>
+      'ملاحظة: سيتم إنشاء مواعيد الحجز تلقائيًا بناءً على ساعات عملك ومدة الخدمات.';
 
   @override
   String get nurseAvailAddButton => 'إضافة ساعات العمل';
@@ -1025,7 +1047,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailInvalidTimeRange => 'مدة غير صالحة';
 
   @override
-  String get nurseAvailEndAfterStart => 'وقت الانتهاء يجب أن يكون بعد وقت البدء';
+  String get nurseAvailEndAfterStart =>
+      'وقت الانتهاء يجب أن يكون بعد وقت البدء';
 
   @override
   String get nurseAvailWeekdayMonday => 'الإثنين';
@@ -1133,7 +1156,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseProfileLogoutDialogTitle => 'تسجيل الخروج؟';
 
   @override
-  String get nurseProfileLogoutDialogMessage => 'ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.';
+  String get nurseProfileLogoutDialogMessage =>
+      'ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.';
 
   @override
   String nurseProfileLogoutFailed(String error) {
@@ -1146,7 +1170,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get nursePersonalExperienceInvalid => 'سنوات الخبرة يجب أن تكون رقمًا صحيحًا';
+  String get nursePersonalExperienceInvalid =>
+      'سنوات الخبرة يجب أن تكون رقمًا صحيحًا';
 
   @override
   String get nursePersonalUpdatedSuccess => 'تم تحديث الملف بنجاح';
@@ -1282,10 +1307,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseServiceNoteTitle => 'ملاحظة:';
 
   @override
-  String get nurseServiceAddNoteBody => 'مدة الخدمة تأتي من كتالوج الخدمات في النظام. كل ما عليك اختيار الخدمة وإدخال السعر.';
+  String get nurseServiceAddNoteBody =>
+      'مدة الخدمة تأتي من كتالوج الخدمات في النظام. كل ما عليك اختيار الخدمة وإدخال السعر.';
 
   @override
-  String get nurseServiceEditNoteBody => 'مدة الخدمة تأتي من كتالوج الخدمات في النظام. يمكنك تعديل الخدمة المختارة والسعر فقط.';
+  String get nurseServiceEditNoteBody =>
+      'مدة الخدمة تأتي من كتالوج الخدمات في النظام. يمكنك تعديل الخدمة المختارة والسعر فقط.';
 
   @override
   String nurseServiceSummaryService(String name) {
@@ -1317,13 +1344,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseRatingsMockName1 => 'أحمد م.';
 
   @override
-  String get nurseRatingsMockComment1 => 'ممرضة متميزة ومنتظمة في المواعيد. أنصح بها جدًا.';
+  String get nurseRatingsMockComment1 =>
+      'ممرضة متميزة ومنتظمة في المواعيد. أنصح بها جدًا.';
 
   @override
   String get nurseRatingsMockName2 => 'رانيا ك.';
 
   @override
-  String get nurseRatingsMockComment2 => 'تعامل ممتاز في العناية بالجروح وشرح واضح.';
+  String get nurseRatingsMockComment2 =>
+      'تعامل ممتاز في العناية بالجروح وشرح واضح.';
 
   @override
   String get nurseRatingsMockName3 => 'سارة المصري';
@@ -1335,7 +1364,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseEarningsPlaceholderTitle => 'الأرباح';
 
   @override
-  String get nurseEarningsPlaceholderBody => 'ستظهر تفاصيل الأرباح وسجل الدفعات هنا عند ربطها بالنظام.';
+  String get nurseEarningsPlaceholderBody =>
+      'ستظهر تفاصيل الأرباح وسجل الدفعات هنا عند ربطها بالنظام.';
 
   @override
   String get nurseRegTitle => 'تسجيل كممرض';
@@ -1419,7 +1449,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseRegConfirmInfoError => 'يرجى تأكيد صحة المعلومات';
 
   @override
-  String get nurseRegExperienceInvalid => 'سنوات الخبرة يجب أن تكون رقمًا صحيحًا';
+  String get nurseRegExperienceInvalid =>
+      'سنوات الخبرة يجب أن تكون رقمًا صحيحًا';
 
   @override
   String get nurseRegUploadNationalIdError => 'يرجى رفع صورة الهوية';
@@ -1511,7 +1542,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAppointmentDetailsTitle => 'تفاصيل الموعد';
 
   @override
-  String get nurseAppointmentWaitingBanner => 'بانتظار الدفع\nلقد قمت بقبول هذا الموعد. يجب على المريض إكمال الدفع لتفعيله.';
+  String get nurseAppointmentWaitingBanner =>
+      'بانتظار الدفع\nلقد قمت بقبول هذا الموعد. يجب على المريض إكمال الدفع لتفعيله.';
 
   @override
   String get nurseAppointmentStatusLabel => 'الحالة';
@@ -1550,10 +1582,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAppointmentCancelTitle => 'إلغاء الموعد';
 
   @override
-  String get nurseAppointmentCancelConfirmMessage => 'هل أنت متأكد أنك تريد إلغاء هذا الموعد؟';
+  String get nurseAppointmentCancelConfirmMessage =>
+      'هل أنت متأكد أنك تريد إلغاء هذا الموعد؟';
 
   @override
-  String get nurseAppointmentCompleteConfirmMessage => 'هل أنت متأكد أنك تريد تحديد هذا الموعد كمكتمل؟';
+  String get nurseAppointmentCompleteConfirmMessage =>
+      'هل أنت متأكد أنك تريد تحديد هذا الموعد كمكتمل؟';
 
   @override
   String get nurseAppointmentCancelledSuccess => 'تم إلغاء الموعد بنجاح.';
@@ -1580,7 +1614,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAppointmentServiceFallback => 'الخدمة';
 
   @override
-  String get nurseAppointmentPaymentPendingBannerBody => 'المريض لم يُكمل الدفع بعد — يمكنك التواصل معه أو إلغاء الموعد.';
+  String get nurseAppointmentPaymentPendingBannerBody =>
+      'المريض لم يُكمل الدفع بعد — يمكنك التواصل معه أو إلغاء الموعد.';
 
   @override
   String get patientAppointmentDetailsTitle => 'تفاصيل الموعد';
@@ -1613,7 +1648,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientAppointmentPayNow => 'ادفع الآن';
 
   @override
-  String get patientAppointmentNoActions => 'لا توجد إجراءات متاحة لهذا الموعد.';
+  String get patientAppointmentNoActions =>
+      'لا توجد إجراءات متاحة لهذا الموعد.';
 
   @override
   String get patientAppointmentCancelling => 'جاري الإلغاء...';
@@ -1628,7 +1664,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientAppointmentPayToContinueTitle => 'ادفع للمتابعة';
 
   @override
-  String get patientAppointmentPayToContinueBody => 'تم تأكيد موعدك من الممرضة. الرجاء إكمال الدفع لتفعيل الموعد والحفاظ على الحجز.';
+  String get patientAppointmentPayToContinueBody =>
+      'تم تأكيد موعدك من الممرضة. الرجاء إكمال الدفع لتفعيل الموعد والحفاظ على الحجز.';
 
   @override
   String get patientAppointmentStatusLabel => 'الحالة';
@@ -1646,7 +1683,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientAppointmentCancelTitle => 'إلغاء الموعد';
 
   @override
-  String get patientAppointmentCancelConfirm => 'هل أنت متأكد أنك تريد إلغاء هذا الموعد؟';
+  String get patientAppointmentCancelConfirm =>
+      'هل أنت متأكد أنك تريد إلغاء هذا الموعد؟';
 
   @override
   String get patientAppointmentCancelConfirmAction => 'نعم، إلغاء';
@@ -1697,16 +1735,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientNurseProfileServicesOffered => 'الخدمات المتاحة';
 
   @override
-  String get patientNurseProfileNoServicesTitle => 'لا توجد خدمات متاحة لهذه الممرضة حالياً.';
+  String get patientNurseProfileNoServicesTitle =>
+      'لا توجد خدمات متاحة لهذه الممرضة حالياً.';
 
   @override
-  String get patientNurseProfileNoServicesSubtitle => 'لا يمكنك حجز خدمة في الوقت الحالي.';
+  String get patientNurseProfileNoServicesSubtitle =>
+      'لا يمكنك حجز خدمة في الوقت الحالي.';
 
   @override
   String get patientNurseProfileReviews => 'التقييمات';
 
   @override
-  String get patientNurseProfileReviewsPlaceholder => 'ستظهر التقييمات بعد توفرها من الخادم.';
+  String get patientNurseProfileReviewsPlaceholder =>
+      'ستظهر التقييمات بعد توفرها من الخادم.';
 
   @override
   String get patientNurseProfileBookServiceRequest => 'حجز طلب خدمة';
@@ -1730,7 +1771,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientRequestSelectServiceType => 'اختر نوع الخدمة';
 
   @override
-  String get patientRequestNoServicesForNurse => 'لا توجد خدمات متاحة لهذه الممرضة.';
+  String get patientRequestNoServicesForNurse =>
+      'لا توجد خدمات متاحة لهذه الممرضة.';
 
   @override
   String get patientRequestSelectDate => 'اختر التاريخ';
@@ -1742,10 +1784,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientRequestSelectTimeSlot => 'اختر وقتاً متاحاً';
 
   @override
-  String get patientRequestSelectServiceDateFirst => 'اختر الخدمة والتاريخ لعرض الأوقات المتاحة.';
+  String get patientRequestSelectServiceDateFirst =>
+      'اختر الخدمة والتاريخ لعرض الأوقات المتاحة.';
 
   @override
-  String get patientRequestNoAvailableTimeSlots => 'لا توجد أوقات متاحة لهذا التاريخ.';
+  String get patientRequestNoAvailableTimeSlots =>
+      'لا توجد أوقات متاحة لهذا التاريخ.';
 
   @override
   String get patientRequestServiceAddress => 'عنوان الخدمة';
@@ -1754,7 +1798,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientRequestAddressHint => 'أدخل عنوانك الكامل';
 
   @override
-  String get patientRequestAdditionalNotesOptional => 'ملاحظات إضافية (اختياري)';
+  String get patientRequestAdditionalNotesOptional =>
+      'ملاحظات إضافية (اختياري)';
 
   @override
   String get patientRequestNotesHint => 'أي تعليمات خاصة أو معلومات طبية...';
@@ -1834,7 +1879,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusBannerNurseWaitingPayment => 'الدفع ما زال بانتظار المريض.';
 
   @override
-  String get statusBannerPatientWaitingPayment => 'يرجى إكمال الدفع لتأكيد هذا الموعد.';
+  String get statusBannerPatientWaitingPayment =>
+      'يرجى إكمال الدفع لتأكيد هذا الموعد.';
 
   @override
   String get statusBannerPaid => 'تم استلام الدفع. الموعد أصبح نشطًا.';
@@ -1863,7 +1909,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentFailedTitle => 'فشل الدفع';
 
   @override
-  String get paymentFailedBody => 'تعذر إتمام عملية الدفع. يرجى المحاولة مرة أخرى.';
+  String get paymentFailedBody =>
+      'تعذر إتمام عملية الدفع. يرجى المحاولة مرة أخرى.';
 
   @override
   String get paymentRetryButton => 'إعادة المحاولة';
@@ -1878,16 +1925,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forgotEnterValidEmail => 'يرجى إدخال بريد إلكتروني صالح';
 
   @override
-  String get forgotServerTimeoutMessage => 'استغرقت استجابة الخادم وقتًا طويلًا. تحقق من الإعدادات وحاول مرة أخرى.';
+  String get forgotServerTimeoutMessage =>
+      'استغرقت استجابة الخادم وقتًا طويلًا. تحقق من الإعدادات وحاول مرة أخرى.';
 
   @override
   String get forgotResetPasswordTitle => 'إعادة تعيين كلمة المرور';
 
   @override
-  String get forgotResetPasswordSubtitle => 'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.';
+  String get forgotResetPasswordSubtitle =>
+      'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.';
 
   @override
-  String get forgotResetLinkHint => 'سنرسل رابط إعادة التعيين إلى بريدك الإلكتروني.';
+  String get forgotResetLinkHint =>
+      'سنرسل رابط إعادة التعيين إلى بريدك الإلكتروني.';
 
   @override
   String get forgotSendResetLink => 'إرسال رابط إعادة التعيين';
@@ -1899,10 +1949,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseResubmitNoFileSelected => 'لم يتم اختيار ملف';
 
   @override
-  String get nurseResubmitExperienceInvalid => 'سنوات الخبرة يجب أن تكون رقمًا صالحًا';
+  String get nurseResubmitExperienceInvalid =>
+      'سنوات الخبرة يجب أن تكون رقمًا صالحًا';
 
   @override
-  String get nurseResubmitSubmittedSuccess => 'تمت إعادة الإرسال بنجاح. بانتظار موافقة الإدارة.';
+  String get nurseResubmitSubmittedSuccess =>
+      'تمت إعادة الإرسال بنجاح. بانتظار موافقة الإدارة.';
 
   @override
   String nurseResubmitSubmitFailed(String error) {
@@ -1913,7 +1965,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseResubmitUpdateDetailsTitle => 'تحديث بياناتك';
 
   @override
-  String get nurseResubmitUpdateDetailsSubtitle => 'عدّل العناصر المطلوبة ثم أعد إرسال معلوماتك.\nبعد الإرسال ستعود حالتك إلى قيد المراجعة.';
+  String get nurseResubmitUpdateDetailsSubtitle =>
+      'عدّل العناصر المطلوبة ثم أعد إرسال معلوماتك.\nبعد الإرسال ستعود حالتك إلى قيد المراجعة.';
 
   @override
   String get nurseResubmitPhoneRequired => 'رقم الهاتف مطلوب';
@@ -2001,7 +2054,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientOnboardPersonalTitle => 'المعلومات الشخصية';
 
   @override
-  String get patientOnboardPersonalSubtitle => 'اختياري — يمكنك التخطي وإكماله لاحقًا.';
+  String get patientOnboardPersonalSubtitle =>
+      'اختياري — يمكنك التخطي وإكماله لاحقًا.';
 
   @override
   String get patientOnboardSelectGender => 'اختر الجنس';
@@ -2016,7 +2070,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientOnboardAddressTitle => 'العنوان';
 
   @override
-  String get patientOnboardAddressSubtitle => 'اختياري — يساعد الممرضين على الوصول إليك بسرعة.';
+  String get patientOnboardAddressSubtitle =>
+      'اختياري — يساعد الممرضين على الوصول إليك بسرعة.';
 
   @override
   String get patientOnboardAreaHint => 'مثال: عبدون، الجبيهة';
@@ -2037,7 +2092,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientOnboardConditionsSection => 'الحالات الصحية';
 
   @override
-  String get patientOnboardConditionsHint => 'اختر ما ينطبق. لا يمكن الجمع بين «لا يوجد» وحالات أخرى.';
+  String get patientOnboardConditionsHint =>
+      'اختر ما ينطبق. لا يمكن الجمع بين «لا يوجد» وحالات أخرى.';
 
   @override
   String get patientOnboardOtherConditionLabel => 'حالة أخرى (اختياري)';
@@ -2049,19 +2105,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get patientOnboardAllergiesSection => 'الحساسية';
 
   @override
-  String get patientOnboardAllergiesHint => 'اضغط على الحساسيات الشائعة أو أضف حساسيتك أدناه.';
+  String get patientOnboardAllergiesHint =>
+      'اضغط على الحساسيات الشائعة أو أضف حساسيتك أدناه.';
 
   @override
   String get patientOnboardOtherAllergiesLabel => 'حساسيات أخرى (اختياري)';
 
   @override
-  String get patientOnboardOtherAllergiesHint => 'مثال: السلفا، المكسرات، المأكولات البحرية';
+  String get patientOnboardOtherAllergiesHint =>
+      'مثال: السلفا، المكسرات، المأكولات البحرية';
 
   @override
   String get patientOnboardNotes => 'ملاحظات';
 
   @override
-  String get patientOnboardNotesHint => 'أي معلومات إضافية يجب أن يعرفها فريق الرعاية...';
+  String get patientOnboardNotesHint =>
+      'أي معلومات إضافية يجب أن يعرفها فريق الرعاية...';
 
   @override
   String get paymentBillingTitle => 'المدفوعات والفواتير';
@@ -2151,7 +2210,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportIssueNoticeTitle => 'تنبيه مهم';
 
   @override
-  String get reportIssueNoticeBody => 'البلاغات الكاذبة تُعامل بجدية تامة وقد تؤدي إلى تعليق الحساب. يرجى التأكد من أن جميع المعلومات المقدمة دقيقة وصحيحة.';
+  String get reportIssueNoticeBody =>
+      'البلاغات الكاذبة تُعامل بجدية تامة وقد تؤدي إلى تعليق الحساب. يرجى التأكد من أن جميع المعلومات المقدمة دقيقة وصحيحة.';
 
   @override
   String get reportIssueSubmit => 'إرسال البلاغ';
@@ -2244,7 +2304,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseProfileReportTitle => 'الإبلاغ عن مشكلة';
 
   @override
-  String get nurseProfileReportSubtitle => 'الإبلاغ عن مشكلة تقنية أو في الخدمة';
+  String get nurseProfileReportSubtitle =>
+      'الإبلاغ عن مشكلة تقنية أو في الخدمة';
 
   @override
   String get nurseReportTitle => 'الإبلاغ عن مشكلة';
@@ -2277,7 +2338,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseReportNoticeTitle => 'تنبيه مهم';
 
   @override
-  String get nurseReportNoticeBody => 'البلاغات الكاذبة تُعامل بجدية وقد تؤدي إلى تعليق الحساب. يُرجى الإبلاغ عن المشكلات الحقيقية فقط.';
+  String get nurseReportNoticeBody =>
+      'البلاغات الكاذبة تُعامل بجدية وقد تؤدي إلى تعليق الحساب. يُرجى الإبلاغ عن المشكلات الحقيقية فقط.';
 
   @override
   String get nurseReportSubmit => 'إرسال البلاغ';
@@ -2325,7 +2387,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetPasswordTitle => 'إعادة تعيين كلمة المرور';
 
   @override
-  String get resetPasswordSubtitle => 'أدخل رمز التحقق المُرسَل إلى بريدك الإلكتروني وعيّن كلمة مرور جديدة.';
+  String get resetPasswordSubtitle =>
+      'أدخل رمز التحقق المُرسَل إلى بريدك الإلكتروني وعيّن كلمة مرور جديدة.';
 
   @override
   String get resetPasswordCodeLabel => 'رمز التحقق';
@@ -2352,19 +2415,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetPasswordCodeRequired => 'رمز التحقق مطلوب';
 
   @override
-  String get resetPasswordMinLength => 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل';
+  String get resetPasswordMinLength =>
+      'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل';
 
   @override
   String get resetPasswordMismatch => 'كلمتا المرور غير متطابقتين';
 
   @override
-  String get resetPasswordSuccess => 'تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول.';
+  String get resetPasswordSuccess =>
+      'تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول.';
 
   @override
   String get welcomeDialogTitle => 'أنت جاهز تمامًا!';
 
   @override
-  String get welcomeDialogBody => 'ملفك الشخصي جاهز. ابدأ الاستكشاف واحجز أول موعد مع ممرضتك.';
+  String get welcomeDialogBody =>
+      'ملفك الشخصي جاهز. ابدأ الاستكشاف واحجز أول موعد مع ممرضتك.';
 
   @override
   String get welcomeDialogButton => 'انتقل إلى لوحة التحكم';

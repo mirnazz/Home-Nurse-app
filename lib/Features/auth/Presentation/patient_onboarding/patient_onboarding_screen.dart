@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
@@ -25,15 +26,23 @@ class PatientOnboardingScreen extends StatefulWidget {
     super.key,
     required this.data,
     this.initialPageIndex = 0,
+    this.fullName,
+    this.email,
+    this.password,
   }) : assert(
-          initialPageIndex >= 0 && initialPageIndex <= 2,
-          'initialPageIndex must be 0, 1, or 2',
-        );
+         initialPageIndex >= 0 && initialPageIndex <= 2,
+         'initialPageIndex must be 0, 1, or 2',
+       );
 
   final PatientOnboardingData data;
 
   /// First onboarding page shown: 0 personal, 1 address, 2 medical.
   final int initialPageIndex;
+
+  /// Account credentials passed from SignUpScreen — used to register at the end.
+  final String? fullName;
+  final String? email;
+  final String? password;
 
   @override
   State<PatientOnboardingScreen> createState() =>
@@ -44,6 +53,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
   late final PageController _pageController;
 
   int _pageIndex = 0;
+  bool _isSubmitting = false;
 
   String? _gender;
   DateTime? _dateOfBirth;
@@ -85,10 +95,9 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
   int get _displayStep => _pageIndex + 2;
 
   void _goPatientHome() {
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/patientHome',
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/patientHome', (route) => false);
   }
 
   void _skip() {
@@ -107,75 +116,110 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: _primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.check_circle_rounded,
-                    color: _primary, size: 42),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                l10n.welcomeDialogTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: PatientOnboardingTokens.text,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                l10n.welcomeDialogBody,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: PatientOnboardingTokens.muted,
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _goPatientHome();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+      builder:
+          (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: _primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    elevation: 0,
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: _primary,
+                      size: 42,
+                    ),
                   ),
-                  child: Text(
-                    l10n.welcomeDialogButton,
+                  const SizedBox(height: 20),
+                  Text(
+                    l10n.welcomeDialogTitle,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: PatientOnboardingTokens.text,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  Text(
+                    l10n.welcomeDialogBody,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: PatientOnboardingTokens.muted,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _goPatientHome();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        l10n.welcomeDialogButton,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
+  }
+
+  Future<void> _register() async {
+    _syncDataFromForm();
+    setState(() => _isSubmitting = true);
+
+    try {
+      await ApiService.registerPatient(
+        fullName: widget.fullName ?? '',
+        email: widget.email ?? '',
+        password: widget.password ?? '',
+      );
+
+      await ApiService.login(
+        email: widget.email ?? '',
+        password: widget.password ?? '',
+      );
+
+      if (!mounted) return;
+      await _showWelcomeDialog();
+    } catch (e) {
+      if (!mounted) return;
+      final errorText = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorText)));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   void _onConditionToggle(String key, bool selected) {
@@ -215,24 +259,24 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
     d.dateOfBirth = _dateOfBirth;
     d.bloodType = _bloodType;
     d.governorate = _governorate;
-    d.area = _areaController.text.trim().isEmpty
-        ? null
-        : _areaController.text.trim();
-    d.addressLine = _addressController.text.trim().isEmpty
-        ? null
-        : _addressController.text.trim();
+    d.area =
+        _areaController.text.trim().isEmpty
+            ? null
+            : _areaController.text.trim();
+    d.addressLine =
+        _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim();
     d.conditionKeys = Set<String>.from(_conditionKeys);
-    final customConditionParts = _otherConditionController.text
-        .split(RegExp(r'[,;\n]'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    final customConditionParts =
+        _otherConditionController.text
+            .split(RegExp(r'[,;\n]'))
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
 
     if (_conditionKeys.contains('none')) {
-      d.allMedicalConditions = [
-        'None',
-        ...customConditionParts,
-      ];
+      d.allMedicalConditions = ['None', ...customConditionParts];
     } else {
       d.allMedicalConditions = [
         for (final k in _conditionKeys)
@@ -246,13 +290,11 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         .split(RegExp(r'[,;\n]'))
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty);
-    d.allergies = [
-      ..._selectedAllergyLabels,
-      ...customAllergyParts,
-    ];
-    d.notes = _notesController.text.trim().isEmpty
-        ? null
-        : _notesController.text.trim();
+    d.allergies = [..._selectedAllergyLabels, ...customAllergyParts];
+    d.notes =
+        _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim();
   }
 
   Future<void> _next() async {
@@ -262,8 +304,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         curve: Curves.easeOutCubic,
       );
     } else {
-      _syncDataFromForm();
-      await _showWelcomeDialog();
+      await _register();
     }
   }
 
@@ -274,10 +315,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         curve: Curves.easeOutCubic,
       );
     } else {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/login',
-        (route) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 
@@ -330,9 +368,10 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                         duration: const Duration(milliseconds: 220),
                         height: 4,
                         decoration: BoxDecoration(
-                          color: active
-                              ? _primary
-                              : PatientOnboardingTokens.border,
+                          color:
+                              active
+                                  ? _primary
+                                  : PatientOnboardingTokens.border,
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -351,16 +390,15 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                     gender: _gender,
                     onGenderChanged: (v) => setState(() => _gender = v),
                     dateOfBirth: _dateOfBirth,
-                    onDateOfBirthChanged: (v) =>
-                        setState(() => _dateOfBirth = v),
+                    onDateOfBirthChanged:
+                        (v) => setState(() => _dateOfBirth = v),
                     bloodType: _bloodType,
-                    onBloodTypeChanged: (v) =>
-                        setState(() => _bloodType = v),
+                    onBloodTypeChanged: (v) => setState(() => _bloodType = v),
                   ),
                   PatientOnboardingAddressStep(
                     governorate: _governorate,
-                    onGovernorateChanged: (v) =>
-                        setState(() => _governorate = v),
+                    onGovernorateChanged:
+                        (v) => setState(() => _governorate = v),
                     areaController: _areaController,
                     addressController: _addressController,
                   ),
@@ -420,16 +458,26 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: _next,
-                              child: Text(
-                                _pageIndex == 2
-                                    ? l10n.patientOnboardGetStarted
-                                    : l10n.patientOnboardNext,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
+                              onPressed: _isSubmitting ? null : _next,
+                              child:
+                                  _isSubmitting
+                                      ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.4,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                      : Text(
+                                        _pageIndex == 2
+                                            ? l10n.signUp
+                                            : l10n.patientOnboardNext,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
                             ),
                           ),
                         ),

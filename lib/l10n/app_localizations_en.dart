@@ -138,7 +138,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signUp => 'Sign Up';
 
   @override
-  String get signupFooterNurse => 'You will complete verification in the next step.';
+  String get signupFooterNurse =>
+      'You will complete verification in the next step.';
 
   @override
   String get signupFooterPatient => 'Create your account to continue.';
@@ -188,7 +189,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientActiveRequests => 'Active Requests';
 
   @override
-  String get patientAppointmentsPlaceholder => 'Appointments section stays as-is.';
+  String get patientAppointmentsPlaceholder =>
+      'Appointments section stays as-is.';
 
   @override
   String get patientLogout => 'Logout';
@@ -217,7 +219,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientWriteReview => 'Write Review';
 
   @override
-  String get patientReviewSubmittedThanks => 'Thanks! Your review was submitted.';
+  String get patientReviewSubmittedThanks =>
+      'Thanks! Your review was submitted.';
 
   @override
   String patientLogoutFailed(String message) {
@@ -348,7 +351,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientBrowseCatalog8 => 'Catheter Care';
 
   @override
-  String get patientBrowseCatalog9 => 'Diabetes Monitoring and Insulin Injection';
+  String get patientBrowseCatalog9 =>
+      'Diabetes Monitoring and Insulin Injection';
 
   @override
   String get patientBrowseCatalog10 => 'Elderly Home Care Visit';
@@ -430,10 +434,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientPayBannerTitlePaymentRequired => 'Payment required';
 
   @override
-  String get patientPayBannerBodyPayContinue => 'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.';
+  String get patientPayBannerBodyPayContinue =>
+      'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.';
 
   @override
-  String get patientPayBannerBodyPaymentRequired => 'Complete payment to confirm your appointment.';
+  String get patientPayBannerBodyPaymentRequired =>
+      'Complete payment to confirm your appointment.';
 
   @override
   String get patientPaymentTitle => 'Payment';
@@ -460,13 +466,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientPaymentMethod => 'Payment Method';
 
   @override
-  String get patientPaymentStripeDisabled => 'Card payments (Stripe) are turned off in this build for local development.';
+  String get patientPaymentStripeDisabled =>
+      'Card payments (Stripe) are turned off in this build for local development.';
 
   @override
   String get patientPaymentConfirm => 'Confirm Payment';
 
   @override
-  String get patientPaymentStripeDisabledSnack => 'Stripe is disabled in this build. Re-enable flutter_stripe in pubspec and restore _confirmPayment below.';
+  String get patientPaymentStripeDisabledSnack =>
+      'Stripe is disabled in this build. Re-enable flutter_stripe in pubspec and restore _confirmPayment below.';
 
   @override
   String patientPaymentError(String message) {
@@ -480,10 +488,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientMoreProfileSubtitle => 'View and edit your information';
 
   @override
-  String get patientPaymentsTabEmpty => 'Payment history and receipts will appear here when available.';
+  String get patientPaymentsTabEmpty =>
+      'Payment history and receipts will appear here when available.';
 
   @override
-  String get patientReviewSetRatingFirstSnack => 'Please set your overall rating first.';
+  String get patientReviewSetRatingFirstSnack =>
+      'Please set your overall rating first.';
 
   @override
   String get patientReviewOverallRating => 'Overall Rating';
@@ -610,7 +620,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileNotes => 'Notes';
 
   @override
-  String get profileNoneCombinationWarning => 'None cannot be combined with other conditions.';
+  String get profileNoneCombinationWarning =>
+      'None cannot be combined with other conditions.';
 
   @override
   String get profileOtherConditionOptional => 'Other condition (optional)';
@@ -715,13 +726,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseHomeActionManageAvailabilityTitle => 'Manage Availability';
 
   @override
-  String get nurseHomeActionManageAvailabilitySubtitle => 'Set your working hours';
+  String get nurseHomeActionManageAvailabilitySubtitle =>
+      'Set your working hours';
 
   @override
   String get nurseHomeActionViewRequestsTitle => 'View Requests';
 
   @override
-  String get nurseHomeActionViewRequestsSubtitle => 'Pending and rejected requests';
+  String get nurseHomeActionViewRequestsSubtitle =>
+      'Pending and rejected requests';
 
   @override
   String get nurseHomeActionAppointmentsTitle => 'Appointments';
@@ -765,13 +778,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseHomeNoAppointmentsToday => 'No appointments for today';
 
   @override
-  String get nurseHomeNoAppointmentsTodayHint => 'Today appointments will appear here.';
+  String get nurseHomeNoAppointmentsTodayHint =>
+      'Today appointments will appear here.';
 
   @override
   String get nurseHomeAvailableTitle => 'You\'re Available';
 
   @override
-  String get nurseHomeAvailableSubtitle => 'You can receive new service requests';
+  String get nurseHomeAvailableSubtitle =>
+      'You can receive new service requests';
 
   @override
   String get nurseNavHome => 'Home';
@@ -815,19 +830,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseRequestsEmptyPendingTitle => 'No pending requests';
 
   @override
-  String get nurseRequestsEmptyPendingSubtitle => 'New service requests will appear here.';
+  String get nurseRequestsEmptyPendingSubtitle =>
+      'New service requests will appear here.';
 
   @override
   String get nurseRequestsEmptyRejectedTitle => 'No rejected requests';
 
   @override
-  String get nurseRequestsEmptyRejectedSubtitle => 'Rejected requests will appear here for reference.';
+  String get nurseRequestsEmptyRejectedSubtitle =>
+      'Rejected requests will appear here for reference.';
 
   @override
   String get nurseRequestsLoadErrorTitle => 'Failed to load requests';
 
   @override
-  String get nurseRequestsLoadErrorSubtitle => 'Please check your connection and try again.';
+  String get nurseRequestsLoadErrorSubtitle =>
+      'Please check your connection and try again.';
 
   @override
   String get nurseRetry => 'Retry';
@@ -836,7 +854,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseRequestsRejectDialogTitle => 'Reject Request';
 
   @override
-  String get nurseRequestsRejectDialogMessage => 'Are you sure you want to reject this request?';
+  String get nurseRequestsRejectDialogMessage =>
+      'Are you sure you want to reject this request?';
 
   @override
   String get nurseDialogNo => 'No';
@@ -877,13 +896,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailNoScheduleYet => 'No schedule set yet';
 
   @override
-  String get nurseAvailNoScheduleHint => 'Tap \"Add Time Slot\" to set your working hours';
+  String get nurseAvailNoScheduleHint =>
+      'Tap \"Add Time Slot\" to set your working hours';
 
   @override
   String get nurseAvailSave => 'Save Availability';
 
   @override
-  String get nurseAvailSaveAutoMessage => 'Changes are saved automatically after each action';
+  String get nurseAvailSaveAutoMessage =>
+      'Changes are saved automatically after each action';
 
   @override
   String get nurseAvailTimeSlotAdded => 'Time slot added successfully';
@@ -927,7 +948,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailOverrideHoursTitle => 'Override Working Hours';
 
   @override
-  String get nurseAvailOverrideHoursSubtitle => 'Set custom hours for this date only';
+  String get nurseAvailOverrideHoursSubtitle =>
+      'Set custom hours for this date only';
 
   @override
   String get nurseAvailBlockDayTitle => 'Block This Day';
@@ -939,7 +961,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailUnblockDaySubtitle => 'Make this day available again';
 
   @override
-  String get nurseAvailBlockDaySubtitle => 'Mark as unavailable (vacation, day off)';
+  String get nurseAvailBlockDaySubtitle =>
+      'Mark as unavailable (vacation, day off)';
 
   @override
   String nurseAvailOverrideHoursForDate(String date) {
@@ -962,7 +985,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailBlockConfirmTitle => 'Block this day?';
 
   @override
-  String get nurseAvailBlockConfirmMessage => 'Patients will not be able to book appointments on this day.';
+  String get nurseAvailBlockConfirmMessage =>
+      'Patients will not be able to book appointments on this day.';
 
   @override
   String get nurseAvailBlockDay => 'Block Day';
@@ -974,25 +998,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailQuickCopyWeekdays => 'Copy to All Weekdays';
 
   @override
-  String get nurseAvailQuickCopyWeekdaysSubtitle => 'Apply Monday schedule to Tue–Fri';
+  String get nurseAvailQuickCopyWeekdaysSubtitle =>
+      'Apply Monday schedule to Tue–Fri';
 
   @override
   String get nurseAvailQuickWeekend => 'Set Weekend Availability';
 
   @override
-  String get nurseAvailQuickWeekendSubtitle => 'Configure Saturday & Sunday hours';
+  String get nurseAvailQuickWeekendSubtitle =>
+      'Configure Saturday & Sunday hours';
 
   @override
   String get nurseAvailQuickBlockDays => 'Block Specific Days';
 
   @override
-  String get nurseAvailQuickBlockDaysSubtitle => 'Mark days when you\'re unavailable';
+  String get nurseAvailQuickBlockDaysSubtitle =>
+      'Mark days when you\'re unavailable';
 
   @override
   String get nurseAvailQuickPlaceholder => 'Quick settings are UI-only for now';
 
   @override
-  String get nurseAvailQuickBlockHint => 'Use the calendar to block specific days';
+  String get nurseAvailQuickBlockHint =>
+      'Use the calendar to block specific days';
 
   @override
   String get nurseAvailAddWorkingHoursTitle => 'Add Working Hours';
@@ -1016,7 +1044,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailSummaryDuration => 'Duration';
 
   @override
-  String get nurseAvailBookingNote => 'Note: The system will automatically generate available booking slots based on your working hours and service durations.';
+  String get nurseAvailBookingNote =>
+      'Note: The system will automatically generate available booking slots based on your working hours and service durations.';
 
   @override
   String get nurseAvailAddButton => 'Add Working Hours';
@@ -1105,7 +1134,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseProfilePersonalInfoTitle => 'Personal Info';
 
   @override
-  String get nurseProfilePersonalInfoSubtitle => 'Profile, services & professional details';
+  String get nurseProfilePersonalInfoSubtitle =>
+      'Profile, services & professional details';
 
   @override
   String get nurseProfileRatingsTitle => 'Ratings';
@@ -1129,7 +1159,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseProfileLogoutDialogTitle => 'Log out?';
 
   @override
-  String get nurseProfileLogoutDialogMessage => 'You will need to sign in again to access your account.';
+  String get nurseProfileLogoutDialogMessage =>
+      'You will need to sign in again to access your account.';
 
   @override
   String nurseProfileLogoutFailed(String error) {
@@ -1142,7 +1173,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nursePersonalExperienceInvalid => 'Experience must be a valid number';
+  String get nursePersonalExperienceInvalid =>
+      'Experience must be a valid number';
 
   @override
   String get nursePersonalUpdatedSuccess => 'Profile updated successfully';
@@ -1156,7 +1188,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nursePersonalHeaderTitle => 'Personal Info';
 
   @override
-  String get nursePersonalHeaderSubtitle => 'Manage your professional information';
+  String get nursePersonalHeaderSubtitle =>
+      'Manage your professional information';
 
   @override
   String get nursePersonalSectionPersonal => 'Personal Information';
@@ -1272,16 +1305,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseServiceDeleteTitle => 'Delete Service';
 
   @override
-  String get nurseServiceDeleteConfirm => 'Are you sure you want to delete this service?';
+  String get nurseServiceDeleteConfirm =>
+      'Are you sure you want to delete this service?';
 
   @override
   String get nurseServiceNoteTitle => 'Note:';
 
   @override
-  String get nurseServiceAddNoteBody => 'Service duration comes from the backend catalog. You only choose the service and enter your price.';
+  String get nurseServiceAddNoteBody =>
+      'Service duration comes from the backend catalog. You only choose the service and enter your price.';
 
   @override
-  String get nurseServiceEditNoteBody => 'Service duration comes from the backend catalog. You can update the selected service and price only.';
+  String get nurseServiceEditNoteBody =>
+      'Service duration comes from the backend catalog. You can update the selected service and price only.';
 
   @override
   String nurseServiceSummaryService(String name) {
@@ -1313,13 +1349,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseRatingsMockName1 => 'Ahmad M.';
 
   @override
-  String get nurseRatingsMockComment1 => 'Very professional and punctual. Highly recommend.';
+  String get nurseRatingsMockComment1 =>
+      'Very professional and punctual. Highly recommend.';
 
   @override
   String get nurseRatingsMockName2 => 'Rania K.';
 
   @override
-  String get nurseRatingsMockComment2 => 'Excellent wound care. Clear explanations.';
+  String get nurseRatingsMockComment2 =>
+      'Excellent wound care. Clear explanations.';
 
   @override
   String get nurseRatingsMockName3 => 'Sara Al-Masri';
@@ -1331,7 +1369,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseEarningsPlaceholderTitle => 'Earnings';
 
   @override
-  String get nurseEarningsPlaceholderBody => 'Detailed earnings and payout history will appear here once connected to your backend.';
+  String get nurseEarningsPlaceholderBody =>
+      'Detailed earnings and payout history will appear here once connected to your backend.';
 
   @override
   String get nurseRegTitle => 'Nurse Registration';
@@ -1415,7 +1454,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseRegConfirmInfoError => 'Please confirm the information';
 
   @override
-  String get nurseRegExperienceInvalid => 'Experience years must be a valid number';
+  String get nurseRegExperienceInvalid =>
+      'Experience years must be a valid number';
 
   @override
   String get nurseRegUploadNationalIdError => 'Please upload national ID image';
@@ -1439,19 +1479,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsLoadFailed => 'Failed to load notifications';
 
   @override
-  String get notificationsMarkOneFailed => 'Failed to mark notification as read';
+  String get notificationsMarkOneFailed =>
+      'Failed to mark notification as read';
 
   @override
-  String get notificationsMarkAllFailed => 'Failed to mark all notifications as read';
+  String get notificationsMarkAllFailed =>
+      'Failed to mark all notifications as read';
 
   @override
-  String get notificationsNoLinkedScreen => 'No screen linked to this notification';
+  String get notificationsNoLinkedScreen =>
+      'No screen linked to this notification';
 
   @override
   String get notificationsNoBookingLinked => 'No booking linked';
 
   @override
-  String get notificationsOpenDetailsFailed => 'Failed to open appointment details';
+  String get notificationsOpenDetailsFailed =>
+      'Failed to open appointment details';
 
   @override
   String notificationsUnhandledTarget(String target) {
@@ -1503,7 +1547,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAppointmentDetailsTitle => 'Appointment Details';
 
   @override
-  String get nurseAppointmentWaitingBanner => 'Waiting for Payment\nYou confirmed this appointment. The patient needs to complete payment to activate it.';
+  String get nurseAppointmentWaitingBanner =>
+      'Waiting for Payment\nYou confirmed this appointment. The patient needs to complete payment to activate it.';
 
   @override
   String get nurseAppointmentStatusLabel => 'Status';
@@ -1542,16 +1587,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAppointmentCancelTitle => 'Cancel Appointment';
 
   @override
-  String get nurseAppointmentCancelConfirmMessage => 'Are you sure you want to cancel this appointment?';
+  String get nurseAppointmentCancelConfirmMessage =>
+      'Are you sure you want to cancel this appointment?';
 
   @override
-  String get nurseAppointmentCompleteConfirmMessage => 'Are you sure you want to mark this appointment as completed?';
+  String get nurseAppointmentCompleteConfirmMessage =>
+      'Are you sure you want to mark this appointment as completed?';
 
   @override
-  String get nurseAppointmentCancelledSuccess => 'Appointment cancelled successfully.';
+  String get nurseAppointmentCancelledSuccess =>
+      'Appointment cancelled successfully.';
 
   @override
-  String get nurseAppointmentCompletedSuccess => 'Appointment marked as completed.';
+  String get nurseAppointmentCompletedSuccess =>
+      'Appointment marked as completed.';
 
   @override
   String get nurseAppointmentStatusWaitingPayment => 'Waiting for Payment';
@@ -1572,7 +1621,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAppointmentServiceFallback => 'Service';
 
   @override
-  String get nurseAppointmentPaymentPendingBannerBody => 'Patient hasn\'t paid yet — you can contact or cancel.';
+  String get nurseAppointmentPaymentPendingBannerBody =>
+      'Patient hasn\'t paid yet — you can contact or cancel.';
 
   @override
   String get patientAppointmentDetailsTitle => 'Appointment Details';
@@ -1605,7 +1655,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientAppointmentPayNow => 'Pay now';
 
   @override
-  String get patientAppointmentNoActions => 'No actions available for this appointment.';
+  String get patientAppointmentNoActions =>
+      'No actions available for this appointment.';
 
   @override
   String get patientAppointmentCancelling => 'Cancelling...';
@@ -1614,19 +1665,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientAppointmentCancelButton => 'Cancel Appointment';
 
   @override
-  String get patientAppointmentLoadFailed => 'Failed to load appointment details';
+  String get patientAppointmentLoadFailed =>
+      'Failed to load appointment details';
 
   @override
   String get patientAppointmentPayToContinueTitle => 'Pay to continue';
 
   @override
-  String get patientAppointmentPayToContinueBody => 'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.';
+  String get patientAppointmentPayToContinueBody =>
+      'Your nurse confirmed this appointment. Please complete payment to activate it and keep your booking.';
 
   @override
   String get patientAppointmentStatusLabel => 'Status';
 
   @override
-  String get patientAppointmentPhoneUnavailable => 'Phone number is not available.';
+  String get patientAppointmentPhoneUnavailable =>
+      'Phone number is not available.';
 
   @override
   String get patientAppointmentDialerOpenFailed => 'Could not open dialer.';
@@ -1638,13 +1692,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientAppointmentCancelTitle => 'Cancel appointment';
 
   @override
-  String get patientAppointmentCancelConfirm => 'Are you sure you want to cancel this appointment?';
+  String get patientAppointmentCancelConfirm =>
+      'Are you sure you want to cancel this appointment?';
 
   @override
   String get patientAppointmentCancelConfirmAction => 'Yes, cancel';
 
   @override
-  String get patientAppointmentCancelledSuccess => 'Appointment cancelled successfully.';
+  String get patientAppointmentCancelledSuccess =>
+      'Appointment cancelled successfully.';
 
   @override
   String patientAppointmentHours(int count) {
@@ -1689,16 +1745,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientNurseProfileServicesOffered => 'Services Offered';
 
   @override
-  String get patientNurseProfileNoServicesTitle => 'This nurse has no available services yet.';
+  String get patientNurseProfileNoServicesTitle =>
+      'This nurse has no available services yet.';
 
   @override
-  String get patientNurseProfileNoServicesSubtitle => 'You cannot book a service at the moment.';
+  String get patientNurseProfileNoServicesSubtitle =>
+      'You cannot book a service at the moment.';
 
   @override
   String get patientNurseProfileReviews => 'Reviews';
 
   @override
-  String get patientNurseProfileReviewsPlaceholder => 'Reviews will appear after backend review endpoints are available.';
+  String get patientNurseProfileReviewsPlaceholder =>
+      'Reviews will appear after backend review endpoints are available.';
 
   @override
   String get patientNurseProfileBookServiceRequest => 'Book Service Request';
@@ -1716,13 +1775,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientRequestStepReviewConfirm => 'Review & Confirm';
 
   @override
-  String get patientRequestRequiredFields => 'Please complete all required fields.';
+  String get patientRequestRequiredFields =>
+      'Please complete all required fields.';
 
   @override
   String get patientRequestSelectServiceType => 'Select Service Type';
 
   @override
-  String get patientRequestNoServicesForNurse => 'No services available for this nurse.';
+  String get patientRequestNoServicesForNurse =>
+      'No services available for this nurse.';
 
   @override
   String get patientRequestSelectDate => 'Select Date';
@@ -1734,10 +1795,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientRequestSelectTimeSlot => 'Select Available Time Slot';
 
   @override
-  String get patientRequestSelectServiceDateFirst => 'Select a service and date to view available time slots.';
+  String get patientRequestSelectServiceDateFirst =>
+      'Select a service and date to view available time slots.';
 
   @override
-  String get patientRequestNoAvailableTimeSlots => 'No available time slots for this date.';
+  String get patientRequestNoAvailableTimeSlots =>
+      'No available time slots for this date.';
 
   @override
   String get patientRequestServiceAddress => 'Service Address';
@@ -1746,10 +1809,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientRequestAddressHint => 'Enter your complete address';
 
   @override
-  String get patientRequestAdditionalNotesOptional => 'Additional Notes (Optional)';
+  String get patientRequestAdditionalNotesOptional =>
+      'Additional Notes (Optional)';
 
   @override
-  String get patientRequestNotesHint => 'Any special instructions or medical information...';
+  String get patientRequestNotesHint =>
+      'Any special instructions or medical information...';
 
   @override
   String get patientRequestReviewAndConfirm => 'Review and Confirm';
@@ -1814,19 +1879,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientRequestBackToNurses => 'Back to Nurses';
 
   @override
-  String get statusBannerNursePending => 'This booking is waiting for your response.';
+  String get statusBannerNursePending =>
+      'This booking is waiting for your response.';
 
   @override
-  String get statusBannerPatientPending => 'Your request is pending confirmation.';
+  String get statusBannerPatientPending =>
+      'Your request is pending confirmation.';
 
   @override
-  String get statusBannerConfirmed => 'Appointment confirmed. See you at the scheduled time.';
+  String get statusBannerConfirmed =>
+      'Appointment confirmed. See you at the scheduled time.';
 
   @override
-  String get statusBannerNurseWaitingPayment => 'Payment is pending from the patient.';
+  String get statusBannerNurseWaitingPayment =>
+      'Payment is pending from the patient.';
 
   @override
-  String get statusBannerPatientWaitingPayment => 'Please complete payment to finalize this appointment.';
+  String get statusBannerPatientWaitingPayment =>
+      'Please complete payment to finalize this appointment.';
 
   @override
   String get statusBannerPaid => 'Payment received. Appointment is active.';
@@ -1855,7 +1925,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentFailedTitle => 'Payment Failed';
 
   @override
-  String get paymentFailedBody => 'We could not process your payment. Please try again.';
+  String get paymentFailedBody =>
+      'We could not process your payment. Please try again.';
 
   @override
   String get paymentRetryButton => 'Retry Payment';
@@ -1870,13 +1941,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotEnterValidEmail => 'Please enter a valid email';
 
   @override
-  String get forgotServerTimeoutMessage => 'The server took too long to respond. Check backend/email settings and try again.';
+  String get forgotServerTimeoutMessage =>
+      'The server took too long to respond. Check backend/email settings and try again.';
 
   @override
   String get forgotResetPasswordTitle => 'Reset your password';
 
   @override
-  String get forgotResetPasswordSubtitle => 'Enter your email and we will send you a link to reset your password.';
+  String get forgotResetPasswordSubtitle =>
+      'Enter your email and we will send you a link to reset your password.';
 
   @override
   String get forgotResetLinkHint => 'We will send a reset link to your email.';
@@ -1891,10 +1964,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseResubmitNoFileSelected => 'No file selected';
 
   @override
-  String get nurseResubmitExperienceInvalid => 'Experience years must be a valid number';
+  String get nurseResubmitExperienceInvalid =>
+      'Experience years must be a valid number';
 
   @override
-  String get nurseResubmitSubmittedSuccess => 'Resubmitted successfully. Waiting for admin approval.';
+  String get nurseResubmitSubmittedSuccess =>
+      'Resubmitted successfully. Waiting for admin approval.';
 
   @override
   String nurseResubmitSubmitFailed(String error) {
@@ -1905,7 +1980,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseResubmitUpdateDetailsTitle => 'Update your details';
 
   @override
-  String get nurseResubmitUpdateDetailsSubtitle => 'Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.';
+  String get nurseResubmitUpdateDetailsSubtitle =>
+      'Fix the requested items and resubmit your information.\nAfter submitting, your status will return to Pending.';
 
   @override
   String get nurseResubmitPhoneRequired => 'Phone is required';
@@ -1932,7 +2008,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseResubmitLicenseRequired => 'License number is required';
 
   @override
-  String get nurseResubmitSpecializationRequired => 'Specialization is required';
+  String get nurseResubmitSpecializationRequired =>
+      'Specialization is required';
 
   @override
   String get nurseResubmitExperienceRequired => 'Experience years is required';
@@ -1944,13 +2021,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseResubmitDocumentsTitle => 'Documents';
 
   @override
-  String get nurseResubmitDocumentsSubtitle => 'Upload the requested updated files.';
+  String get nurseResubmitDocumentsSubtitle =>
+      'Upload the requested updated files.';
 
   @override
   String get nurseResubmitNationalIdTitle => 'National ID';
 
   @override
-  String get nurseResubmitNationalIdHint => 'Upload your National ID (image/PDF)';
+  String get nurseResubmitNationalIdHint =>
+      'Upload your National ID (image/PDF)';
 
   @override
   String get nurseResubmitLicenseTitle => 'Nursing License';
@@ -1993,7 +2072,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientOnboardPersonalTitle => 'Personal info';
 
   @override
-  String get patientOnboardPersonalSubtitle => 'Optional — you can skip and complete this later.';
+  String get patientOnboardPersonalSubtitle =>
+      'Optional — you can skip and complete this later.';
 
   @override
   String get patientOnboardSelectGender => 'Select gender';
@@ -2008,7 +2088,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientOnboardAddressTitle => 'Address';
 
   @override
-  String get patientOnboardAddressSubtitle => 'Optional — helps nurses find you faster.';
+  String get patientOnboardAddressSubtitle =>
+      'Optional — helps nurses find you faster.';
 
   @override
   String get patientOnboardAreaHint => 'e.g. Abdoun, Jubeiha';
@@ -2023,13 +2104,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientOnboardMedicalTitle => 'Medical info';
 
   @override
-  String get patientOnboardMedicalSubtitle => 'Optional — share only what you are comfortable with.';
+  String get patientOnboardMedicalSubtitle =>
+      'Optional — share only what you are comfortable with.';
 
   @override
   String get patientOnboardConditionsSection => 'Conditions';
 
   @override
-  String get patientOnboardConditionsHint => 'Select any that apply. None cannot be combined with other conditions.';
+  String get patientOnboardConditionsHint =>
+      'Select any that apply. None cannot be combined with other conditions.';
 
   @override
   String get patientOnboardOtherConditionLabel => 'Other condition (optional)';
@@ -2041,7 +2124,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientOnboardAllergiesSection => 'Allergies';
 
   @override
-  String get patientOnboardAllergiesHint => 'Tap common allergies or add your own below.';
+  String get patientOnboardAllergiesHint =>
+      'Tap common allergies or add your own below.';
 
   @override
   String get patientOnboardOtherAllergiesLabel => 'Other allergies (optional)';
@@ -2053,7 +2137,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patientOnboardNotes => 'Notes';
 
   @override
-  String get patientOnboardNotesHint => 'Anything else your care team should know...';
+  String get patientOnboardNotesHint =>
+      'Anything else your care team should know...';
 
   @override
   String get paymentBillingTitle => 'Payments & Billing';
@@ -2143,7 +2228,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportIssueNoticeTitle => 'Important Notice';
 
   @override
-  String get reportIssueNoticeBody => 'False reports are taken very seriously and may result in account suspension. Please ensure all information provided is accurate and truthful.';
+  String get reportIssueNoticeBody =>
+      'False reports are taken very seriously and may result in account suspension. Please ensure all information provided is accurate and truthful.';
 
   @override
   String get reportIssueSubmit => 'Submit Report';
@@ -2269,7 +2355,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseReportNoticeTitle => 'Important Notice';
 
   @override
-  String get nurseReportNoticeBody => 'False reports are taken seriously and may result in account suspension. Only report genuine issues.';
+  String get nurseReportNoticeBody =>
+      'False reports are taken seriously and may result in account suspension. Only report genuine issues.';
 
   @override
   String get nurseReportSubmit => 'Submit Report';
@@ -2317,7 +2404,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetPasswordTitle => 'Reset Password';
 
   @override
-  String get resetPasswordSubtitle => 'Enter the verification code sent to your email and set a new password.';
+  String get resetPasswordSubtitle =>
+      'Enter the verification code sent to your email and set a new password.';
 
   @override
   String get resetPasswordCodeLabel => 'Verification Code';
@@ -2350,13 +2438,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetPasswordMismatch => 'Passwords do not match';
 
   @override
-  String get resetPasswordSuccess => 'Password reset successfully. Please log in.';
+  String get resetPasswordSuccess =>
+      'Password reset successfully. Please log in.';
 
   @override
   String get welcomeDialogTitle => 'You\'re all set!';
 
   @override
-  String get welcomeDialogBody => 'Your profile is ready. Start exploring and book your first nurse appointment.';
+  String get welcomeDialogBody =>
+      'Your profile is ready. Start exploring and book your first nurse appointment.';
 
   @override
   String get welcomeDialogButton => 'Go to Dashboard';

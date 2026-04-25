@@ -30,7 +30,8 @@ class PatientRequestServiceScreen extends StatefulWidget {
       _PatientRequestServiceScreenState();
 }
 
-class _PatientRequestServiceScreenState extends State<PatientRequestServiceScreen> {
+class _PatientRequestServiceScreenState
+    extends State<PatientRequestServiceScreen> {
   static const _primary = Color(0xFF2F7F8D);
 
   PatientServiceOption? _selectedService;
@@ -47,16 +48,20 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   List<PatientServiceOption> _serviceOptions = [];
   List<DateTime> _availableDates = [];
   List<String> _availableTimeSlots = [];
+@override
+void initState() {
+  super.initState();
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = widget.initialDate;
-    _addressController = TextEditingController(text: widget.initialAddress ?? '');
-    _notesController = TextEditingController(text: widget.initialNotes ?? '');
-    _loadInitialData();
-  }
+  _selectedDate = widget.initialDate;
+  _addressController = TextEditingController(text: widget.initialAddress ?? '');
+  _notesController = TextEditingController(text: widget.initialNotes ?? '');
 
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      _loadInitialData();
+    }
+  });
+} 
   @override
   void dispose() {
     _addressController.dispose();
@@ -65,83 +70,104 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
   }
 
   Future<void> _loadInitialData() async {
-  final l10n = AppLocalizations.of(context)!;
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
+    final l10n = AppLocalizations.of(context)!;
 
-  try {
-    final servicesJson = await ApiService.getPatientNurseServices(
-      nurseId: widget.nurseId,
-    );
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    final datesJson = await ApiService.getPatientAvailableDates(
-      nurseId: widget.nurseId,
-      daysAhead: 14,
-    );
+    try {
+      debugPrint("LOADING REQUEST SCREEN");
+      debugPrint("NURSE ID => ${widget.nurseId}");
 
-    final services = servicesJson.map((item) {
-      final map = item as Map<String, dynamic>;
-      final int serviceId = ((map['serviceId'] ?? 0) as num).toInt();
-      final String serviceName = (map['serviceName'] ?? '').toString();
-      final int duration = ((map['durationInMinutes'] ?? 0) as num).toInt();
-      final double price = ((map['price'] ?? 0) as num).toDouble();
+      final results = await Future.wait([
+        ApiService.getPatientNurseServices(nurseId: widget.nurseId),
+        ApiService.getPatientAvailableDates(
+          nurseId: widget.nurseId,
+          daysAhead: 14,
+        ),
+      ]);
 
-      return PatientServiceOption(
-        id: serviceId.toString(),
-        title: serviceName,
-        durationLabel: l10n.patientAppointmentMinutes(duration),
-        priceJod: price,
-      );
-    }).toList();
+      final servicesJson = results[0];
+      final datesJson = results[1];
 
-    final dates = datesJson
-        .map((e) => DateTime.tryParse(e.toString()))
-        .whereType<DateTime>()
-        .map((d) => DateTime(d.year, d.month, d.day))
-        .toList();
+      debugPrint("SERVICES RESPONSE => $servicesJson");
+      debugPrint("DATES RESPONSE => $datesJson");
 
-    DateTime? selectedDate = _selectedDate;
-    if (selectedDate != null) {
-      final normalized = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-      );
-      final exists = dates.any((d) => _isSameDate(d, normalized));
-      if (!exists) {
-        selectedDate = null;
+      final services =
+          servicesJson.map((item) {
+            final map = item as Map<String, dynamic>;
+
+            final int serviceId =
+                ((map['serviceId'] ?? map['id'] ?? 0) as num).toInt();
+            final String serviceName =
+                (map['serviceName'] ?? map['name'] ?? map['title'] ?? '')
+                    .toString();
+            final int duration =
+                ((map['durationInMinutes'] ?? map['duration'] ?? 0) as num)
+                    .toInt();
+            final double price = ((map['price'] ?? 0) as num).toDouble();
+
+            return PatientServiceOption(
+              id: serviceId.toString(),
+              title: serviceName,
+              durationLabel: l10n.patientAppointmentMinutes(duration),
+              priceJod: price,
+            );
+          }).toList();
+
+      final dates =
+          datesJson
+              .map((e) => DateTime.tryParse(e.toString()))
+              .whereType<DateTime>()
+              .map((d) => DateTime(d.year, d.month, d.day))
+              .toList();
+
+      DateTime? selectedDate = _selectedDate;
+
+      if (selectedDate != null) {
+        final normalized = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+
+        final exists = dates.any((d) => _isSameDate(d, normalized));
+
+        if (!exists) {
+          selectedDate = null;
+        }
       }
-    }
 
-    final autoSelectedService =
-        services.isNotEmpty ? services.first : null;
+      final autoSelectedService = services.isNotEmpty ? services.first : null;
 
-    if (mounted) {
+      if (!mounted) return;
+
       setState(() {
         _serviceOptions = services;
         _availableDates = dates;
         _selectedDate = selectedDate ?? (dates.isNotEmpty ? dates.first : null);
         _selectedService = autoSelectedService;
       });
-    }
 
-    if (_selectedService != null && _selectedDate != null) {
-      await _loadAvailableSlots();
-    }
-  } catch (e) {
-    if (mounted) {
+      if (_selectedService != null && _selectedDate != null) {
+        await _loadAvailableSlots();
+      }
+    } catch (e) {
+      debugPrint("REQUEST SCREEN ERROR => $e");
+
+      if (!mounted) return;
+
       setState(() {
         _errorMessage = e.toString().replaceFirst('Exception: ', '');
       });
-    }
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
 
   Future<void> _loadAvailableSlots() async {
     if (_selectedService == null || _selectedDate == null) {
@@ -287,159 +313,173 @@ class _PatientRequestServiceScreenState extends State<PatientRequestServiceScree
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null && _serviceOptions.isEmpty && _availableDates.isEmpty
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _errorMessage != null &&
+                        _serviceOptions.isEmpty &&
+                        _availableDates.isEmpty
                     ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _errorMessage!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFFB91C1C),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: _loadInitialData,
-                                child: Text(l10n.patientRetry),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            _NurseCard(
-                              initials: widget.nurseInitials,
-                              name: widget.nurseName,
-                              subtitle: widget.nurseSubtitle,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _InputLabel('${l10n.patientRequestSelectServiceType} *'),
-                            const SizedBox(height: 8),
-                            if (_serviceOptions.isEmpty)
-                              _EmptyState(
-                                text: l10n.patientRequestNoServicesForNurse,
-                              )
-                            else
-                              ..._serviceOptions.map(
-                                (service) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: _ServiceTile(
-                                    service: service,
-                                    selected: _selectedService?.id == service.id,
-                                    onTap: () => _onSelectService(service),
-                                  ),
-                                ),
-                              ),
-
-                            const SizedBox(height: 8),
-
-                            _InputLabel('${l10n.patientRequestSelectDate} *'),
-                            const SizedBox(height: 8),
-                            if (_availableDates.isEmpty)
-                              _EmptyState(
-                                text: l10n.patientRequestNoAvailableDates,
-                              )
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _availableDates.map((date) {
-                                  final selected =
-                                      _selectedDate != null && _isSameDate(_selectedDate!, date);
-                                  return _DateChip(
-                                    text: _formatDate(date),
-                                    selected: selected,
-                                    onTap: () => _onSelectDate(date),
-                                  );
-                                }).toList(),
-                              ),
-
-                            const SizedBox(height: 14),
-
-                            _InputLabel('${l10n.patientRequestSelectTimeSlot} *'),
-                            const SizedBox(height: 8),
-                            if (_selectedService == null || _selectedDate == null)
-                              _EmptyState(
-                                text: l10n.patientRequestSelectServiceDateFirst,
-                              )
-                            else if (_isLoadingSlots)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(child: CircularProgressIndicator()),
-                              )
-                            else if (_availableTimeSlots.isEmpty)
-                              _EmptyState(
-                                text: l10n.patientRequestNoAvailableTimeSlots,
-                              )
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _availableTimeSlots
-                                    .map(
-                                      (slot) => _TimeChip(
-                                        text: slot,
-                                        selected: _selectedTimeSlot == slot,
-                                        onTap: () => setState(() => _selectedTimeSlot = slot),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-
-                            const SizedBox(height: 14),
-
-                            _InputLabel('${l10n.patientRequestServiceAddress} *'),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _addressController,
-                              decoration: _inputDecoration(
-                                l10n.patientRequestAddressHint,
-                              )
-                                  .copyWith(
-                                prefixIcon: const Icon(Icons.location_on_outlined),
+                            Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFB91C1C),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-
-                            const SizedBox(height: 14),
-
-                            _InputLabel(l10n.patientRequestAdditionalNotesOptional),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _notesController,
-                              maxLines: 4,
-                              decoration: _inputDecoration(
-                                l10n.patientRequestNotesHint,
-                              ).copyWith(
-                                prefixIcon: const Icon(Icons.note_alt_outlined),
-                              ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _loadInitialData,
+                              child: Text(l10n.patientRetry),
                             ),
-
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 14),
-                              Text(
-                                _errorMessage!,
-                                style: const TextStyle(
-                                  color: Color(0xFFB91C1C),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12.5,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ),
+                    )
+                    : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _NurseCard(
+                            initials: widget.nurseInitials,
+                            name: widget.nurseName,
+                            subtitle: widget.nurseSubtitle,
+                          ),
+                          const SizedBox(height: 16),
+
+                          _InputLabel(
+                            '${l10n.patientRequestSelectServiceType} *',
+                          ),
+                          const SizedBox(height: 8),
+                          if (_serviceOptions.isEmpty)
+                            _EmptyState(
+                              text: l10n.patientRequestNoServicesForNurse,
+                            )
+                          else
+                            ..._serviceOptions.map(
+                              (service) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _ServiceTile(
+                                  service: service,
+                                  selected: _selectedService?.id == service.id,
+                                  onTap: () => _onSelectService(service),
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 8),
+
+                          _InputLabel('${l10n.patientRequestSelectDate} *'),
+                          const SizedBox(height: 8),
+                          if (_availableDates.isEmpty)
+                            _EmptyState(
+                              text: l10n.patientRequestNoAvailableDates,
+                            )
+                          else
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children:
+                                  _availableDates.map((date) {
+                                    final selected =
+                                        _selectedDate != null &&
+                                        _isSameDate(_selectedDate!, date);
+                                    return _DateChip(
+                                      text: _formatDate(date),
+                                      selected: selected,
+                                      onTap: () => _onSelectDate(date),
+                                    );
+                                  }).toList(),
+                            ),
+
+                          const SizedBox(height: 14),
+
+                          _InputLabel('${l10n.patientRequestSelectTimeSlot} *'),
+                          const SizedBox(height: 8),
+                          if (_selectedService == null || _selectedDate == null)
+                            _EmptyState(
+                              text: l10n.patientRequestSelectServiceDateFirst,
+                            )
+                          else if (_isLoadingSlots)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else if (_availableTimeSlots.isEmpty)
+                            _EmptyState(
+                              text: l10n.patientRequestNoAvailableTimeSlots,
+                            )
+                          else
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children:
+                                  _availableTimeSlots
+                                      .map(
+                                        (slot) => _TimeChip(
+                                          text: slot,
+                                          selected: _selectedTimeSlot == slot,
+                                          onTap:
+                                              () => setState(
+                                                () => _selectedTimeSlot = slot,
+                                              ),
+                                        ),
+                                      )
+                                      .toList(),
+                            ),
+
+                          const SizedBox(height: 14),
+
+                          _InputLabel('${l10n.patientRequestServiceAddress} *'),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _addressController,
+                            decoration: _inputDecoration(
+                              l10n.patientRequestAddressHint,
+                            ).copyWith(
+                              prefixIcon: const Icon(
+                                Icons.location_on_outlined,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          _InputLabel(
+                            l10n.patientRequestAdditionalNotesOptional,
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _notesController,
+                            maxLines: 4,
+                            decoration: _inputDecoration(
+                              l10n.patientRequestNotesHint,
+                            ).copyWith(
+                              prefixIcon: const Icon(Icons.note_alt_outlined),
+                            ),
+                          ),
+
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 14),
+                            Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Color(0xFFB91C1C),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
           ),
         ],
       ),
@@ -646,7 +686,8 @@ class _ServiceTile extends StatelessWidget {
                   Text(
                     service.durationLabel,
                     style: TextStyle(
-                      color: selected ? Colors.white70 : const Color(0xFF6B7280),
+                      color:
+                          selected ? Colors.white70 : const Color(0xFF6B7280),
                       fontWeight: FontWeight.w600,
                       fontSize: 12.5,
                     ),
