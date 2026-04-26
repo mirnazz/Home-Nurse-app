@@ -689,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @patientBrowseExperienceYears.
   ///
   /// In en, this message translates to:
-  /// **'{years} years'**
+  /// **'{years, plural, one{1 year of experience} other{{years} years of experience}}'**
   String patientBrowseExperienceYears(int years);
 
   /// No description provided for @patientBrowseCatalog1.
@@ -1733,8 +1733,26 @@ abstract class AppLocalizations {
   /// No description provided for @nurseAvailTapDateHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap any date to manage or block it'**
+  /// **'Your weekly schedule repeats every week. Tap any date to block it or set custom hours for that day.'**
   String get nurseAvailTapDateHint;
+
+  /// No description provided for @nurseAvailLegendWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get nurseAvailLegendWorking;
+
+  /// No description provided for @nurseAvailLegendCustomHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom hours'**
+  String get nurseAvailLegendCustomHours;
+
+  /// No description provided for @nurseAvailLegendBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get nurseAvailLegendBlocked;
 
   /// No description provided for @nurseAvailWeeklySchedule.
   ///
@@ -2179,6 +2197,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile, services & professional details'**
   String get nurseProfilePersonalInfoSubtitle;
+
+  /// No description provided for @nurseProfileMyServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Services'**
+  String get nurseProfileMyServicesTitle;
+
+  /// No description provided for @nurseProfileMyServicesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or edit your offered services'**
+  String get nurseProfileMyServicesSubtitle;
 
   /// No description provided for @nurseProfileRatingsTitle.
   ///

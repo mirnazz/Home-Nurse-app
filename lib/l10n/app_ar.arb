@@ -139,7 +139,7 @@
   },
   "patientBrowseNoResults": "لا يوجد ممرضون مطابقون لعوامل التصفية.",
   "patientBrowseViewProfile": "عرض الملف",
-  "patientBrowseExperienceYears": "{years} سنة",
+  "patientBrowseExperienceYears": "{years, plural, one{سنة خبرة} two{سنتين خبرة} few{{years} سنوات خبرة} many{{years} سنة خبرة} other{{years} سنة خبرة}}",
   "@patientBrowseExperienceYears": {
     "placeholders": {
       "years": {"type": "int"}
@@ -385,7 +385,10 @@
   },
   "nurseAvailEmbeddedTitle": "اوقات العمل",
   "nurseAvailManageTitle": "إدارة أوقات العمل",
-  "nurseAvailTapDateHint": "اضغط على أي يوم لإدارته أو إيقافه",
+  "nurseAvailTapDateHint": "جدولك الأسبوعي يتكرر كل أسبوع. اضغط على أي يوم لإيقافه أو تحديد ساعات مخصصة له.",
+  "nurseAvailLegendWorking": "متاح للعمل",
+  "nurseAvailLegendCustomHours": "ساعات مخصصة",
+  "nurseAvailLegendBlocked": "يوم محجوب",
   "nurseAvailWeeklySchedule": "الجدول الأسبوعي",
   "nurseAvailAddTimeSlot": "إضافة وقت عمل",
   "nurseAvailNoScheduleYet": "لا يوجد جدول محدد حتى الآن",
@@ -497,6 +500,8 @@
   "nurseProfileSubtitle": "الحساب والإعدادات",
   "nurseProfilePersonalInfoTitle": "المعلومات الشخصية",
   "nurseProfilePersonalInfoSubtitle": "بياناتك وخدماتك المهنية",
+  "nurseProfileMyServicesTitle": "خدماتي",
+  "nurseProfileMyServicesSubtitle": "أضف أو عدّل الخدمات التي تقدمها",
   "nurseProfileRatingsTitle": "التقييمات",
   "nurseProfileRatingsSubtitle": "تقييمات المرضى",
   "nurseProfileEarningsTitle": "الأرباح",

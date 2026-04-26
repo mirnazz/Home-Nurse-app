@@ -1,11 +1,13 @@
 class PatientServiceOption {
   final String id;
+  final int catalogId;
   final String title;
   final String durationLabel;
   final num priceJod;
 
   const PatientServiceOption({
     required this.id,
+    required this.catalogId,
     required this.title,
     required this.durationLabel,
     required this.priceJod,

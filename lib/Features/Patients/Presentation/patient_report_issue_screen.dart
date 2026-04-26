@@ -95,6 +95,7 @@ class ReportTextField extends StatelessWidget {
         TextField(
           controller: controller,
           maxLines: maxLines,
+          minLines: maxLines > 1 ? maxLines : null,
           maxLength: maxLength,
           buildCounter: (_, {required currentLength, required isFocused, required maxLength}) => null,
           decoration: InputDecoration(
@@ -118,7 +119,16 @@ class ReportTextField extends StatelessWidget {
         if (maxLength != null && currentLength != null)
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: Text('$currentLength/$maxLength', style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+            child: Text(
+              '$currentLength/$maxLength',
+              style: TextStyle(
+                fontSize: 12,
+                color: currentLength! >= maxLength!
+                    ? const Color(0xFFD32F2F)
+                    : const Color(0xFF9CA3AF),
+                fontWeight: currentLength! >= maxLength! ? FontWeight.w700 : FontWeight.normal,
+              ),
+            ),
           ),
         if (hasError) ...[
           const SizedBox(height: 4),

@@ -4,10 +4,12 @@ import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/nurse_personal_info_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_services_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_earnings_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_report_problem_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_ratings_screen.dart';
 import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
+import 'package:nurse_app/Features/Nurse/add_service_screen.dart';
 
 class NurseProfileScreen extends StatefulWidget {
   const NurseProfileScreen({super.key});
@@ -51,29 +53,30 @@ class _NurseProfileScreenState extends State<NurseProfileScreen> {
     final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          l10n.nurseProfileLogoutDialogTitle,
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-        content: Text(l10n.nurseProfileLogoutDialogMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.nurseAvailCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              l10n.nurseProfileLogoutTitle,
-              style: const TextStyle(
-                color: Color(0xFFDC2626),
-                fontWeight: FontWeight.w800,
-              ),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(
+              l10n.nurseProfileLogoutDialogTitle,
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
+            content: Text(l10n.nurseProfileLogoutDialogMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.nurseAvailCancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  l10n.nurseProfileLogoutTitle,
+                  style: const TextStyle(
+                    color: Color(0xFFDC2626),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirm != true || !context.mounted) return;
@@ -92,16 +95,14 @@ class _NurseProfileScreenState extends State<NurseProfileScreen> {
 
   void _openRatings() {
     if (_nurseId == null || _nurseId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to load nurse ID')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to load nurse ID')));
       return;
     }
 
     Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => const NurseRatingsScreen( ),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const NurseRatingsScreen()),
     );
   }
 
@@ -149,11 +150,25 @@ class _NurseProfileScreenState extends State<NurseProfileScreen> {
             const SizedBox(height: 10),
 
             _ProfileSettingsTile(
+              icon: Icons.medical_services_outlined,
+              title: l10n.nurseProfileMyServicesTitle,
+              subtitle: l10n.nurseProfileMyServicesSubtitle,
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AddServiceScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _ProfileSettingsTile(
               icon: Icons.star_outline_rounded,
               title: l10n.nurseProfileRatingsTitle,
-              subtitle: _isLoadingMe
-                  ? 'Loading...'
-                  : l10n.nurseProfileRatingsSubtitle,
+              subtitle:
+                  _isLoadingMe
+                      ? 'Loading...'
+                      : l10n.nurseProfileRatingsSubtitle,
               onTap: _openRatings,
             ),
             const SizedBox(height: 10),
@@ -242,13 +257,12 @@ class _ProfileSettingsTile extends StatelessWidget {
                 height: 44,
                 width: 44,
                 decoration: BoxDecoration(
-                  color: (iconColor ?? AppColors.primary).withValues(alpha: 0.12),
+                  color: (iconColor ?? AppColors.primary).withValues(
+                    alpha: 0.12,
+                  ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor ?? AppColors.primary,
-                ),
+                child: Icon(icon, color: iconColor ?? AppColors.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -275,10 +289,7 @@ class _ProfileSettingsTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.grey.shade400,
-              ),
+              Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
             ],
           ),
         ),

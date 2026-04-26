@@ -887,60 +887,69 @@ class _NurseCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: available
-                            ? const Color(0xFFE8F8ED)
-                            : const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        item.availabilityLabel,
-                        style: TextStyle(
-                          color: available
-                              ? const Color(0xFF1F8A4D)
-                              : const Color(0xFF6B7280),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11.5,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                      ),
-                    ),
-                    const Spacer(),
-                    if (item.price > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: available
+                              ? const Color(0xFFE8F8ED)
+                              : const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
                         child: Text(
-                          '${item.price.toStringAsFixed(0)} JD',
-                          style: const TextStyle(
-                            color: Color(0xFF2F7F8D),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
+                          item.availabilityLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: available
+                                ? const Color(0xFF1F8A4D)
+                                : const Color(0xFF6B7280),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11.5,
                           ),
                         ),
                       ),
-                    OutlinedButton(
-                      onPressed: onViewProfile,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF2F7F8D),
-                        side: const BorderSide(color: Color(0xFF2F7F8D)),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.price > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${item.price.toStringAsFixed(0)} JD',
+                              style: const TextStyle(
+                                color: Color(0xFF2F7F8D),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        OutlinedButton(
+                          onPressed: onViewProfile,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF2F7F8D),
+                            side: const BorderSide(color: Color(0xFF2F7F8D)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                          child: Text(l10n.patientBrowseViewProfile),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        textStyle: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12.5,
-                        ),
-                      ),
-                      child: Text(l10n.patientBrowseViewProfile),
+                      ],
                     ),
                   ],
                 ),

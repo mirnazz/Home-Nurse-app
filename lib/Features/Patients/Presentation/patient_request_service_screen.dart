@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/catalog_name_helper.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_bottom_nav_bar.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_review_confirm_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_service_request_models.dart';
@@ -101,6 +102,8 @@ void initState() {
 
             final int serviceId =
                 ((map['serviceId'] ?? map['id'] ?? 0) as num).toInt();
+            final int catalogId =
+                ((map['serviceCatalogId'] ?? 0) as num).toInt();
             final String serviceName =
                 (map['serviceName'] ?? map['name'] ?? map['title'] ?? '')
                     .toString();
@@ -109,9 +112,14 @@ void initState() {
                     .toInt();
             final double price = ((map['price'] ?? 0) as num).toDouble();
 
+            final String localizedName = catalogId > 0
+                ? localizedCatalogName(catalogId, l10n)
+                : serviceName;
+
             return PatientServiceOption(
               id: serviceId.toString(),
-              title: serviceName,
+              catalogId: catalogId,
+              title: localizedName,
               durationLabel: l10n.patientAppointmentMinutes(duration),
               priceJod: price,
             );
@@ -458,7 +466,10 @@ void initState() {
                           const SizedBox(height: 8),
                           TextField(
                             controller: _notesController,
+                            minLines: 3,
                             maxLines: 4,
+                            maxLength: 250,
+                            keyboardType: TextInputType.multiline,
                             decoration: _inputDecoration(
                               l10n.patientRequestNotesHint,
                             ).copyWith(

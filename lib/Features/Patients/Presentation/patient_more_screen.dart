@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
-import 'package:nurse_app/Core/localization/app_language_prefs.dart';
-import 'package:nurse_app/app_locale_scope.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
+import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_profile_screen.dart';
 import 'package:nurse_app/Features/Patients/Presentation/patient_report_issue_screen.dart';
 
-/// More tab: profile, language, and future settings.
+/// More tab: profile, language, logout and future settings.
 class PatientMoreScreen extends StatelessWidget {
   const PatientMoreScreen({super.key});
 
   static const Color _primary = Color(0xFF2F7F8D);
   static const Color _bg = Color(0xFFF6F7F9);
-  static const Color _border = Color(0xFFE8ECF2);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final effectiveCode = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -57,182 +55,30 @@ class PatientMoreScreen extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 20),
-          _LanguageSettingsGroup(
-            primary: _primary,
-            border: _border,
-            sectionTitle: l10n.patientMoreLanguage,
-            isArabicUi: Localizations.localeOf(context).languageCode == 'ar',
-            englishSelected: effectiveCode == 'en',
-            arabicSelected: effectiveCode == 'ar',
-            englishTitle: l10n.patientMoreLanguageEnglish,
-            arabicTitle: l10n.patientMoreLanguageArabic,
-            onSelectEnglish: () async {
-              await AppLanguagePrefs.saveLanguage('en');
+          const SizedBox(height: 12),
+          _MoreTileCard(
+            icon: Icons.language_rounded,
+            title: l10n.patientMoreLanguage,
+            subtitle: 'Switch app language',
+            onTap: () => showLanguageSelectorSheet(context),
+          ),
+          const SizedBox(height: 12),
+          _MoreTileCard(
+            icon: Icons.logout_rounded,
+            title: l10n.patientLogout,
+            subtitle: 'Sign out of your account',
+            isDestructive: true,
+            onTap: () async {
+              await TokenStorage.clearToken();
               if (!context.mounted) return;
-              AppLocaleScope.of(context).setLocale(const Locale('en'));
-            },
-            onSelectArabic: () async {
-              await AppLanguagePrefs.saveLanguage('ar');
-              if (!context.mounted) return;
-              AppLocaleScope.of(context).setLocale(const Locale('ar'));
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/login',
+                (route) => false,
+              );
             },
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Grouped settings-style language list (system Settings–like).
-class _LanguageSettingsGroup extends StatelessWidget {
-  const _LanguageSettingsGroup({
-    required this.primary,
-    required this.border,
-    required this.sectionTitle,
-    required this.isArabicUi,
-    required this.englishSelected,
-    required this.arabicSelected,
-    required this.englishTitle,
-    required this.arabicTitle,
-    required this.onSelectEnglish,
-    required this.onSelectArabic,
-  });
-
-  static const Color _sectionLabelColor = Color(0xFF6B7280);
-
-  final Color primary;
-  final Color border;
-  final String sectionTitle;
-  final bool isArabicUi;
-  final bool englishSelected;
-  final bool arabicSelected;
-  final String englishTitle;
-  final String arabicTitle;
-  final VoidCallback onSelectEnglish;
-  final VoidCallback onSelectArabic;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsetsDirectional.only(start: 4, bottom: 8),
-          child: Text(
-            sectionTitle,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: isArabicUi ? 0 : 0.35,
-              color: _sectionLabelColor,
-            ),
-          ),
-        ),
-        Material(
-          color: Colors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: border),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _LanguageListTile(
-                primary: primary,
-                dividerColor: border,
-                title: englishTitle,
-                selected: englishSelected,
-                onTap: onSelectEnglish,
-                showDividerBelow: true,
-              ),
-              _LanguageListTile(
-                primary: primary,
-                dividerColor: border,
-                title: arabicTitle,
-                selected: arabicSelected,
-                onTap: onSelectArabic,
-                showDividerBelow: false,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LanguageListTile extends StatelessWidget {
-  const _LanguageListTile({
-    required this.primary,
-    required this.dividerColor,
-    required this.title,
-    required this.selected,
-    required this.onTap,
-    required this.showDividerBelow,
-  });
-
-  static const Color _titleColor = Color(0xFF1D2433);
-
-  final Color primary;
-  final Color dividerColor;
-  final String title;
-  final bool selected;
-  final VoidCallback onTap;
-  final bool showDividerBelow;
-
-  @override
-  Widget build(BuildContext context) {
-    const titleStyle = TextStyle(
-      fontWeight: FontWeight.w700,
-      fontSize: 16,
-      height: 1.2,
-      color: _titleColor,
-    );
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: selected ? primary.withValues(alpha: 0.07) : Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            child: ListTile(
-              contentPadding: const EdgeInsetsDirectional.only(
-                start: 16,
-                end: 12,
-                top: 12,
-                bottom: 12,
-              ),
-              minVerticalPadding: 0,
-              title: Text(
-                title,
-                style: titleStyle.copyWith(
-                  color: selected ? primary : _titleColor,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-                ),
-              ),
-              trailing: SizedBox(
-                width: 28,
-                child: selected
-                    ? Icon(Icons.check_rounded, color: primary, size: 26)
-                    : const SizedBox.shrink(),
-              ),
-            ),
-          ),
-        ),
-        if (showDividerBelow)
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: 16,
-            endIndent: 16,
-            color: dividerColor,
-          ),
-      ],
     );
   }
 }
@@ -243,16 +89,23 @@ class _MoreTileCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.isDestructive = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
     const border = Color(0xFFE8ECF2);
+    const destructiveRed = Color(0xFFDC2626);
+    final iconBg = isDestructive ? const Color(0xFFFFECEC) : const Color(0xFFEAF4F6);
+    final iconColor = isDestructive ? destructiveRed : PatientMoreScreen._primary;
+    final titleColor = isDestructive ? destructiveRed : const Color(0xFF1D2433);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -278,10 +131,10 @@ class _MoreTileCard extends StatelessWidget {
                 height: 48,
                 width: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF4F6),
+                  color: iconBg,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: PatientMoreScreen._primary),
+                child: Icon(icon, color: iconColor),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -290,10 +143,10 @@ class _MoreTileCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
-                        color: Color(0xFF1D2433),
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -308,9 +161,9 @@ class _MoreTileCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: Color(0xFF9CA3AF),
+                color: isDestructive ? destructiveRed.withValues(alpha: 0.5) : const Color(0xFF9CA3AF),
               ),
             ],
           ),
