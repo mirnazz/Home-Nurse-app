@@ -40,10 +40,9 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   void _openNotifications() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => const NotificationsScreen(
-          audience: NotificationAudience.nurse,
-          
-        ),
+        builder:
+            (_) =>
+                const NotificationsScreen(audience: NotificationAudience.nurse),
       ),
     );
   }
@@ -59,10 +58,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
       isLoading = true;
     });
 
-    await Future.wait([
-      loadNurse(),
-      loadDashboardData(),
-    ]);
+    await Future.wait([loadNurse(), loadDashboardData()]);
 
     if (!mounted) return;
 
@@ -72,10 +68,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   }
 
   Future<void> loadDashboardData() async {
-    await Future.wait([
-      loadPendingRequestsCount(),
-      loadTodayAppointments(),
-    ]);
+    await Future.wait([loadPendingRequestsCount(), loadTodayAppointments()]);
   }
 
   Future<void> loadNurse() async {
@@ -144,26 +137,27 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : IndexedStack(
-                index: currentTab,
-                children: [
-                  NurseHomeScreen(
-                    nurseName: nurseName,
-                    onNavigate: (tabIndex) => _navigate(tabIndex),
-                    onOpenNotifications: _openNotifications,
-                    pendingCount: pendingRequestsCount,
-                    todayAppointments: todayAppointments,
-                    todayEarnings: todayEarnings,
-                    onRefreshDashboard: loadDashboardData,
-                  ),
-                  const NurseAvailabilityScreen(),
-                  const NurseAppointmentsScreen(),
-                  const NurseRequestsScreen(),
-                  const NurseProfileScreen(),
-                ],
-              ),
+        child:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : IndexedStack(
+                  index: currentTab,
+                  children: [
+                    NurseHomeScreen(
+                      nurseName: nurseName,
+                      onNavigate: (tabIndex) => _navigate(tabIndex),
+                      onOpenNotifications: _openNotifications,
+                      pendingCount: pendingRequestsCount,
+                      todayAppointments: todayAppointments,
+                      todayEarnings: todayEarnings,
+                      onRefreshDashboard: loadDashboardData,
+                    ),
+                    const NurseAvailabilityScreen(),
+                    const NurseAppointmentsScreen(),
+                    const NurseRequestsScreen(),
+                    const NurseProfileScreen(),
+                  ],
+                ),
       ),
       bottomNavigationBar: _NurseBottomNav(
         currentIndex: currentTab,
@@ -238,9 +232,7 @@ class NurseHomeScreen extends StatelessWidget {
                     onViewAll: () => onNavigate(2),
                   ),
                   const SizedBox(height: 24),
-                  _AvailabilityCard(
-                    onOpenAvailability: () => onNavigate(1),
-                  ),
+                  _AvailabilityCard(onOpenAvailability: () => onNavigate(1)),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -256,10 +248,7 @@ class _NurseHeader extends StatelessWidget {
   final String name;
   final VoidCallback onNotificationsTap;
 
-  const _NurseHeader({
-    required this.name,
-    required this.onNotificationsTap,
-  });
+  const _NurseHeader({required this.name, required this.onNotificationsTap});
 
   @override
   Widget build(BuildContext context) {
@@ -386,9 +375,7 @@ class _SummaryCardsRow extends StatelessWidget {
   });
 
   String _formatMoney(double value) {
-    return value % 1 == 0
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(2);
+    return value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
   }
 
   @override
@@ -606,28 +593,31 @@ class _QuickActionsList extends StatelessWidget {
           icon: Icons.description_outlined,
           title: l10n.nurseHomeActionViewRequestsTitle,
           subtitle: l10n.nurseHomeActionViewRequestsSubtitle,
-          trailing: pendingCount > 0
-              ? Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF8A00),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    pendingCount > 99 ? '99+' : pendingCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
+          trailing:
+              pendingCount > 0
+                  ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
                     ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF8A00),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      pendingCount > 99 ? '99+' : pendingCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                  : const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.primary,
                   ),
-                )
-              : const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: AppColors.primary,
-                ),
         ),
         const SizedBox(height: 12),
         _QuickActionTile(
@@ -770,13 +760,16 @@ class _TodayScheduleSection extends StatelessWidget {
         if (appointments.isEmpty)
           _EmptyTodayScheduleCard(l10n: l10n)
         else
-          ...appointments.take(3).map(
+          ...appointments
+              .take(3)
+              .map(
                 (appointment) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _ScheduleAppointmentCard(
-                    patientName: appointment.patientName.isEmpty
-                        ? l10n.nurseHomePatientFallback
-                        : appointment.patientName,
+                    patientName:
+                        appointment.patientName.isEmpty
+                            ? l10n.nurseHomePatientFallback
+                            : appointment.patientName,
                     service: appointment.serviceName,
                     status: _statusLabel(l10n, appointment),
                     statusColor: _statusColor(appointment),
@@ -793,9 +786,7 @@ class _TodayScheduleSection extends StatelessWidget {
   }
 
   static String _formatMoney(double value) {
-    return value % 1 == 0
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(2);
+    return value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
   }
 
   static String _statusLabel(AppLocalizations l10n, Appointment appointment) {
@@ -902,8 +893,10 @@ class _ScheduleAppointmentCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: statusBg,
                   borderRadius: BorderRadius.circular(999),
@@ -946,7 +939,11 @@ class _ScheduleAppointmentCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              const Icon(Icons.attach_money, size: 16, color: AppColors.primary),
+              const Icon(
+                Icons.attach_money,
+                size: 16,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 4),
               Text(
                 earningsDisplay,
