@@ -2,7 +2,7 @@ class ApiConstants {
   // =========================
   // Base
   // =========================
-  static const String baseUrl = "http://172.20.10.6:5235";
+  static const String baseUrl = "http://172.20.10.10:7053";
 
   // =========================
   // Auth
@@ -30,13 +30,11 @@ class ApiConstants {
 
   static const String nurseServices = "$nurseProfileBase/services";
 
-  static const String nurseServiceCatalog =
-      "$nurseProfileBase/service-catalog";
+  static const String nurseServiceCatalog = "$nurseProfileBase/service-catalog";
 
   static const String nurseProfile = "$nurseProfileBase/profile";
 
-  static const String nurseUpdateProfile =
-      "$nurseProfileBase/update-profile";
+  static const String nurseUpdateProfile = "$nurseProfileBase/update-profile";
 
   // =========================
   // Nurse Availability
@@ -70,20 +68,15 @@ class ApiConstants {
   // =========================
   static const String patientBase = "/api/patient";
 
-  static const String patientBrowseNurses =
-      "$patientBase/nurses/browse";
+  static const String patientBrowseNurses = "$patientBase/nurses/browse";
 
-  static const String patientNurseDetails =
-      "$patientBase/nurses";
+  static const String patientNurseDetails = "$patientBase/nurses";
 
-  static const String patientNurseServices =
-      "$patientBase/nurses";
+  static const String patientNurseServices = "$patientBase/nurses";
 
-  static const String patientAvailableDates =
-      "$patientBase/nurses";
+  static const String patientAvailableDates = "$patientBase/nurses";
 
-  static const String patientAvailableSlots =
-      "$patientBase/nurses";
+  static const String patientAvailableSlots = "$patientBase/nurses";
 
   // =========================
   // Patient - Bookings / Appointments
@@ -94,11 +87,11 @@ class ApiConstants {
   // =========================
   // Patient - Profile
   // =========================
-  static const String patientProfile = "/api/patientprofile";
+  static const String patientProfile = "/api/patientprofile"; 
   static const String patientProfilePersonalInfo =
-      "/api/patientprofile/personal-info";
-  static const String patientProfileAddress =
-      "/api/patientprofile/address";
+      "/api/patientprofile/personal-info"; 
+  
+  static const String patientProfileAddress = "/api/patientprofile/address";
   static const String patientProfileMedicalInfo =
       "/api/patientprofile/medical-info";
 
@@ -123,7 +116,8 @@ class ApiConstants {
   // Payments
   // =========================
   static const String paymentSummary = "/api/patient/payments/summary";
-  static const String createPaymentIntent = "/api/patient/payments/create-intent";
+  static const String createPaymentIntent =
+      "/api/patient/payments/create-intent";
   static const String confirmPayment = "/api/patient/payments/confirm";
 
   // =========================
@@ -131,4 +125,3 @@ class ApiConstants {
   // =========================
   static const String notifications = "/api/notification";
 }
-

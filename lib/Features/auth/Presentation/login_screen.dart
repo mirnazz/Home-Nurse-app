@@ -117,18 +117,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: emailController,
-                  keyboardType: TextInputType.text,
+                  keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: fieldDecoration(
-                    hint: l10n.emailLocalPartHint,
+                    hint: l10n.emailFieldHint,
                     icon: Icons.email_outlined,
-                  ).copyWith(
-                    suffixText: l10n.emailDomainSuffix,
-                    suffixStyle: const TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -161,8 +154,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, "/ForgotPassword"),
+                    onPressed:
+                        () => Navigator.pushNamed(context, "/ForgotPassword"),
                     child: Text(
                       l10n.forgotPassword,
                       style: const TextStyle(
@@ -185,23 +178,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : Text(
+                              l10n.login,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                        : Text(
-                            l10n.login,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
                 ),
                 const SizedBox(height: 22),
@@ -259,24 +253,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final l10n = AppLocalizations.of(context)!;
-    final localPart = emailController.text.trim();
+    final email = emailController.text.trim();
     final pass = passwordController.text;
 
-    if (localPart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorValidEmail)),
-      );
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorValidEmail)));
       return;
     }
 
     if (pass.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorEnterPassword)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorEnterPassword)));
       return;
     }
-
-    final email = '$localPart@nursenow.com';
 
     setState(() => isLoading = true);
 
@@ -289,7 +281,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      final role = (me['role'] ?? '').toString().trim();
+      final role =
+          (me['role_normalized'] ?? me['role'] ?? '').toString().trim();
       final verificationStatus =
           (me['verificationStatus'] ?? '').toString().trim();
 
@@ -338,9 +331,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorUnknownRole(role))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorUnknownRole(role))));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

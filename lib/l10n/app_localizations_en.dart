@@ -320,7 +320,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String patientBrowseExperienceYears(int years) {
-    return '$years years';
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years years of experience',
+      one: '1 year of experience',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -865,7 +871,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseAvailManageTitle => 'Manage Availability';
 
   @override
-  String get nurseAvailTapDateHint => 'Tap any date to manage or block it';
+  String get nurseAvailTapDateHint => 'Your weekly schedule repeats every week. Tap any date to block it or set custom hours for that day.';
+
+  @override
+  String get nurseAvailLegendWorking => 'Working';
+
+  @override
+  String get nurseAvailLegendCustomHours => 'Custom hours';
+
+  @override
+  String get nurseAvailLegendBlocked => 'Blocked';
 
   @override
   String get nurseAvailWeeklySchedule => 'Weekly Schedule';
@@ -1106,6 +1121,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nurseProfilePersonalInfoSubtitle => 'Profile, services & professional details';
+
+  @override
+  String get nurseProfileMyServicesTitle => 'My Services';
+
+  @override
+  String get nurseProfileMyServicesSubtitle => 'Add or edit your offered services';
 
   @override
   String get nurseProfileRatingsTitle => 'Ratings';

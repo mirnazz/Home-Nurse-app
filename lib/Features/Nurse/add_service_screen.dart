@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/Core/theme/catalog_name_helper.dart';
 import 'service_catalog_item.dart';
 
 class AddServiceScreen extends StatefulWidget {
@@ -241,7 +242,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           items: serviceCatalog.map((service) {
             return DropdownMenuItem<ServiceCatalogItem>(
               value: service,
-              child: Text(service.name),
+              child: Text(localizedCatalogName(service.serviceCatalogId, l10n)),
             );
           }).toList(),
           onChanged: isLoading

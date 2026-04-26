@@ -5,9 +5,9 @@ import 'package:nurse_app/Core/enums/appointment_status.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
+import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 (Color bg, Color fg, IconData icon, String label, Color border)
     _patientDetailsStatusStyle(AppLocalizations l10n, AppointmentStatus status) {
@@ -20,6 +20,7 @@ import 'package:url_launcher/url_launcher.dart';
         l10n.patientAppointmentStatusPending,
         const Color(0xFFF59E0B),
       );
+
     case AppointmentStatus.confirmed:
     case AppointmentStatus.waitingPayment:
       return (
@@ -29,6 +30,7 @@ import 'package:url_launcher/url_launcher.dart';
         l10n.patientAppointmentStatusConfirmed,
         const Color(0xFF6EE7B7),
       );
+
     case AppointmentStatus.paid:
       return (
         const Color(0xFFD1FAE5),
@@ -37,6 +39,7 @@ import 'package:url_launcher/url_launcher.dart';
         l10n.patientAppointmentStatusActivePaid,
         const Color(0xFF6EE7B7),
       );
+
     case AppointmentStatus.completed:
       return (
         const Color(0xFFD1FAE5),
@@ -45,6 +48,7 @@ import 'package:url_launcher/url_launcher.dart';
         l10n.patientAppointmentStatusCompleted,
         const Color(0xFF6EE7B7),
       );
+
     case AppointmentStatus.cancelled:
       return (
         const Color(0xFFFEE2E2),
@@ -53,6 +57,7 @@ import 'package:url_launcher/url_launcher.dart';
         l10n.patientAppointmentStatusCancelled,
         const Color(0xFFF87171),
       );
+
     case AppointmentStatus.rejected:
       return (
         const Color(0xFFFEE2E2),
@@ -80,11 +85,13 @@ class PatientAppointmentDetailsScreen extends StatefulWidget {
 class _PatientAppointmentDetailsScreenState
     extends State<PatientAppointmentDetailsScreen> {
   late Appointment _appointment;
+
   bool _isLoading = true;
   bool _isCancelling = false;
   String? _errorMessage;
 
   static const _cardRadius = 18.0;
+
   static const _sectionTitleStyle = TextStyle(
     fontWeight: FontWeight.w900,
     fontSize: 17,
@@ -99,7 +106,24 @@ class _PatientAppointmentDetailsScreenState
     _loadDetails();
   }
 
+  bool _isUnauthorizedError(Object e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('unauthorized') ||
+        msg.contains('401') ||
+        msg.contains('user not logged in');
+  }
+
+  Future<void> _handleUnauthorized() async {
+    await TokenStorage.clearToken();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   Future<void> _loadDetails() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -117,6 +141,13 @@ class _PatientAppointmentDetailsScreenState
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('PATIENT APPOINTMENT DETAILS ERROR => $e');
+
+      if (_isUnauthorizedError(e)) {
+        await _handleUnauthorized();
+        return;
+      }
+
       if (!mounted) return;
 
       setState(() {
@@ -129,10 +160,13 @@ class _PatientAppointmentDetailsScreenState
   static String _timeWithDuration(AppLocalizations l10n, Appointment a) {
     final t = DateFormat.jm().format(a.dateTime);
     final m = a.durationMinutes;
+
     if (m == null) return t;
+
     if (m % 60 == 0 && m ~/ 60 > 0) {
       return '$t (${l10n.patientAppointmentHours(m ~/ 60)})';
     }
+
     return '$t (${l10n.patientAppointmentMinutes(m)})';
   }
 
@@ -146,23 +180,27 @@ class _PatientAppointmentDetailsScreenState
           label: l10n.patientAppointmentPaymentAwaitingNurse,
           badgeBg: const Color(0xFF4B5563),
         );
+
       case AppointmentStatus.confirmed:
       case AppointmentStatus.waitingPayment:
         return (
           label: l10n.patientAppointmentPaymentUnpaid,
           badgeBg: const Color(0xFF374151),
         );
+
       case AppointmentStatus.paid:
       case AppointmentStatus.completed:
         return (
           label: l10n.patientAppointmentPaymentPaid,
           badgeBg: const Color(0xFF374151),
         );
+
       case AppointmentStatus.cancelled:
         return (
           label: l10n.patientAppointmentPaymentCancelled,
           badgeBg: const Color(0xFF4B5563),
         );
+
       case AppointmentStatus.rejected:
         return (
           label: l10n.patientAppointmentPaymentRejected,
@@ -180,15 +218,31 @@ class _PatientAppointmentDetailsScreenState
       _appointment.status == AppointmentStatus.confirmed ||
       _appointment.status == AppointmentStatus.waitingPayment;
 
+  String _normalizeJordanPhoneForWhatsApp(String phone) {
+    var digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digits.startsWith('00')) {
+      digits = digits.substring(2);
+    }
+
+    if (digits.startsWith('0')) {
+      digits = '962${digits.substring(1)}';
+    }
+
+    return digits;
+  }
+
   Future<void> _makeCall() async {
     final l10n = AppLocalizations.of(context)!;
     final phone = _appointment.nursePhone;
+
     if (phone == null || phone.trim().isEmpty) {
       _showSnack(l10n.patientAppointmentPhoneUnavailable);
       return;
     }
 
     final uri = Uri.parse('tel:${phone.trim()}');
+
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       _showSnack(l10n.patientAppointmentDialerOpenFailed);
     }
@@ -197,12 +251,19 @@ class _PatientAppointmentDetailsScreenState
   Future<void> _openWhatsApp() async {
     final l10n = AppLocalizations.of(context)!;
     final phone = _appointment.nursePhone;
+
     if (phone == null || phone.trim().isEmpty) {
       _showSnack(l10n.patientAppointmentPhoneUnavailable);
       return;
     }
 
-    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    final digits = _normalizeJordanPhoneForWhatsApp(phone);
+
+    if (digits.isEmpty) {
+      _showSnack(l10n.patientAppointmentWhatsAppOpenFailed);
+      return;
+    }
+
     final uri = Uri.parse('https://wa.me/$digits');
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -217,6 +278,7 @@ class _PatientAppointmentDetailsScreenState
       context: context,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
+
         return AlertDialog(
           title: Text(l10n.patientAppointmentCancelTitle),
           content: Text(l10n.patientAppointmentCancelConfirm),
@@ -252,10 +314,21 @@ class _PatientAppointmentDetailsScreenState
         _isCancelling = false;
       });
 
-      _showSnack(AppLocalizations.of(context)!.patientAppointmentCancelledSuccess);
+      _showSnack(
+        AppLocalizations.of(context)!.patientAppointmentCancelledSuccess,
+      );
+
       Navigator.of(context).pop(true);
     } catch (e) {
+      debugPrint('CANCEL PATIENT APPOINTMENT ERROR => $e');
+
+      if (_isUnauthorizedError(e)) {
+        await _handleUnauthorized();
+        return;
+      }
+
       if (!mounted) return;
+
       setState(() => _isCancelling = false);
       _showSnack(e.toString().replaceFirst('Exception: ', ''));
     }
@@ -270,6 +343,8 @@ class _PatientAppointmentDetailsScreenState
   }
 
   void _showSnack(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -283,7 +358,10 @@ class _PatientAppointmentDetailsScreenState
         .toList();
 
     if (parts.isEmpty) return 'N';
-    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
+    if (parts.length == 1) {
+      return parts.first.characters.first.toUpperCase();
+    }
+
     return '${parts.first.characters.first}${parts.last.characters.first}'
         .toUpperCase();
   }
@@ -303,7 +381,7 @@ class _PatientAppointmentDetailsScreenState
         elevation: 0,
         title: Text(
           l10n.patientAppointmentDetailsTitle,
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -325,7 +403,9 @@ class _PatientAppointmentDetailsScreenState
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                       children: [
                         _SectionCard(
-                          child: _PatientStatusRow(status: _appointment.status),
+                          child: _PatientStatusRow(
+                            status: _appointment.status,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         _SectionCard(
@@ -366,37 +446,42 @@ class _PatientAppointmentDetailsScreenState
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-  (_appointment.nurseSpecialty != null &&
-          _appointment.nurseSpecialty!
-              .trim()
-              .isNotEmpty)
-      ? _appointment.nurseSpecialty!
-      : _appointment.serviceName,
-  style: TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: Colors.grey.shade600,
-  ),
-),
-
-if (_appointment.nursePhone != null &&
-    _appointment.nursePhone!.trim().isNotEmpty) ...[
-  const SizedBox(height: 6),
-  Row(
-    children: [
-      const Icon(Icons.phone, size: 14, color: Colors.grey),
-      const SizedBox(width: 6),
-      Text(
-        _appointment.nursePhone!,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey.shade700,
-        ),
-      ),
-    ],
-  ),
-],
+                                          (_appointment.nurseSpecialty != null &&
+                                                  _appointment.nurseSpecialty!
+                                                      .trim()
+                                                      .isNotEmpty)
+                                              ? _appointment.nurseSpecialty!
+                                              : _appointment.serviceName,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        if (_appointment.nursePhone != null &&
+                                            _appointment.nursePhone!
+                                                .trim()
+                                                .isNotEmpty) ...[
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.phone,
+                                                size: 14,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                _appointment.nursePhone!,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -431,7 +516,9 @@ if (_appointment.nursePhone != null &&
                                     child: OutlinedButton.icon(
                                       onPressed: _openWhatsApp,
                                       icon: const Icon(Icons.chat_outlined),
-                                      label: Text(l10n.patientAppointmentWhatsApp),
+                                      label: Text(
+                                        l10n.patientAppointmentWhatsApp,
+                                      ),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor:
                                             const Color(0xFF22C55E),
@@ -574,6 +661,7 @@ if (_appointment.nursePhone != null &&
 
   List<Widget> _payAndCancel(BuildContext context, Color teal) {
     final l10n = AppLocalizations.of(context)!;
+
     return [
       SizedBox(
         width: double.infinity,
@@ -589,7 +677,10 @@ if (_appointment.nursePhone != null &&
           ),
           child: Text(
             l10n.patientAppointmentPayNow,
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
@@ -600,6 +691,7 @@ if (_appointment.nursePhone != null &&
 
   List<Widget> _buildActionButtons(BuildContext context, Color teal) {
     final l10n = AppLocalizations.of(context)!;
+
     switch (_appointment.status) {
       case AppointmentStatus.waitingPayment:
       case AppointmentStatus.confirmed:
@@ -629,6 +721,7 @@ if (_appointment.nursePhone != null &&
 
   Widget _cancelButton(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -684,7 +777,7 @@ class _DetailsErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               AppLocalizations.of(context)!.patientAppointmentLoadFailed,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
@@ -693,7 +786,7 @@ class _DetailsErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
@@ -790,6 +883,7 @@ class _PatientPayToContinueBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -808,7 +902,7 @@ class _PatientPayToContinueBanner extends StatelessWidget {
               children: [
                 Text(
                   l10n.patientAppointmentPayToContinueTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
@@ -841,13 +935,14 @@ class _PatientStatusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final (bg, fg, icon, label, border) = _patientDetailsStatusStyle(l10n, status);
+    final (bg, fg, icon, label, border) =
+        _patientDetailsStatusStyle(l10n, status);
 
     return Row(
       children: [
         Text(
           l10n.patientAppointmentStatusLabel,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 16,
             color: Color(0xFF111827),

@@ -15,8 +15,9 @@ import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
   final Future<List<PatientPendingReviewItem>> Function()?
-      onFetchPendingReviewRequests;
-  final Future<void> Function(PatientRatingSubmissionDraft draft)? onSubmitReview;
+  onFetchPendingReviewRequests;
+  final Future<void> Function(PatientRatingSubmissionDraft draft)?
+  onSubmitReview;
 
   const PatientHomeScreen({
     super.key,
@@ -47,16 +48,30 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _activeRequests = 0;
   bool _isLoadingDashboardSummary = false;
 
+  bool _hasUnreadNotifications = false;
+
   @override
   void initState() {
     super.initState();
-    _pendingReviewRequests = widget.pendingReviewRequests.isNotEmpty
-        ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
-        : <PatientPendingReviewItem>[];
+    _pendingReviewRequests =
+        widget.pendingReviewRequests.isNotEmpty
+            ? List<PatientPendingReviewItem>.from(widget.pendingReviewRequests)
+            : <PatientPendingReviewItem>[];
 
-    //_loadUserData();
-    //_loadDashboardSummary();
-    //_fetchPendingReviews();
+    _loadUserData();
+    _loadDashboardSummary();
+    _fetchPendingReviews();
+    _loadUnreadNotifications();
+  }
+
+  Future<void> _loadUnreadNotifications() async {
+    try {
+      final notifications = await ApiService.getNotifications();
+      if (!mounted) return;
+      setState(() {
+        _hasUnreadNotifications = notifications.any((n) => !n.isRead);
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadUserData() async {
@@ -69,7 +84,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         _userName = (me['fullName'] ?? me['userName'] ?? '').toString();
       });
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      await TokenStorage.clearToken();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 
@@ -185,9 +204,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                e.toString().replaceFirst('Exception: ', ''),
-              ),
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
             ),
           );
         }
@@ -207,9 +224,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                e.toString().replaceFirst('Exception: ', ''),
-              ),
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
             ),
           );
         }
@@ -247,41 +262,20 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                e.toString().replaceFirst('Exception: ', ''),
-              ),
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
             ),
           );
         }
     }
   }
 
-  Future<void> _logout() async {
-    try {
-      await TokenStorage.clearToken();
-
-      if (!mounted) return;
-
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.patientLogoutFailed(e.toString()),
-          ),
-        ),
-      );
-    }
-  }
-
   void _openNotifications() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => const NotificationsScreen(
-          audience: NotificationAudience.patient,
-        ),
+        builder:
+            (_) => const NotificationsScreen(
+              audience: NotificationAudience.patient,
+            ),
       ),
     );
   }
@@ -328,7 +322,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     final pages = [
       PatientHomeContent(
         name: _userName,
-        onLogout: _logout,
         onOpenNotifications: _openNotifications,
         onSearchTap: _openBrowseDefault,
         onQuickServiceTap: _openBrowseWithService,
@@ -339,6 +332,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         totalBookings: _totalBookings,
         activeRequests: _activeRequests,
         isLoadingDashboardSummary: _isLoadingDashboardSummary,
+        hasUnreadNotifications: _hasUnreadNotifications,
       ),
       BrowseNursesScreen(
         key: ValueKey(
@@ -355,10 +349,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      body: IndexedStack(
-        index: currentTab,
-        children: pages,
-      ),
+      body: IndexedStack(index: currentTab, children: pages),
       bottomNavigationBar: PatientBottomNavBar(
         currentIndex: currentTab,
         onTap: _onBottomNavTap,
@@ -369,7 +360,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
 class PatientHomeContent extends StatelessWidget {
   final String name;
-  final VoidCallback onLogout;
   final VoidCallback onOpenNotifications;
   final VoidCallback onSearchTap;
   final ValueChanged<int> onQuickServiceTap;
@@ -380,11 +370,11 @@ class PatientHomeContent extends StatelessWidget {
   final int totalBookings;
   final int activeRequests;
   final bool isLoadingDashboardSummary;
+  final bool hasUnreadNotifications;
 
   const PatientHomeContent({
     super.key,
     required this.name,
-    required this.onLogout,
     required this.onOpenNotifications,
     required this.onSearchTap,
     required this.onQuickServiceTap,
@@ -395,6 +385,7 @@ class PatientHomeContent extends StatelessWidget {
     required this.totalBookings,
     required this.activeRequests,
     required this.isLoadingDashboardSummary,
+    required this.hasUnreadNotifications,
   });
 
   @override
@@ -406,9 +397,9 @@ class PatientHomeContent extends StatelessWidget {
         child: Column(
           children: [
             _HomeHeader(
-              onLogout: onLogout,
               name: name,
               onNotificationTap: onOpenNotifications,
+              hasUnread: hasUnreadNotifications,
             ),
             const SizedBox(height: 14),
             Padding(
@@ -416,9 +407,7 @@ class PatientHomeContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SearchEntryCard(
-                    onTap: onSearchTap,
-                  ),
+                  _SearchEntryCard(onTap: onSearchTap),
                   const SizedBox(height: 18),
                   if (isLoadingPendingReviews) ...[
                     const Center(
@@ -435,16 +424,14 @@ class PatientHomeContent extends StatelessWidget {
                   ] else if (pendingReviewRequests.isNotEmpty) ...[
                     _RateExperienceCard(
                       request: pendingReviewRequests.first,
-                      onWriteReview: () =>
-                          onWriteReview(pendingReviewRequests.first),
+                      onWriteReview:
+                          () => onWriteReview(pendingReviewRequests.first),
                     ),
                     const SizedBox(height: 18),
                   ],
                   _SectionTitle(title: l10n.patientQuickServices),
                   const SizedBox(height: 12),
-                  _QuickServicesRow(
-                    onServiceTap: onQuickServiceTap,
-                  ),
+                  _QuickServicesRow(onServiceTap: onQuickServiceTap),
                   const SizedBox(height: 16),
                   _StatsRow(
                     totalBookings: totalBookings,
@@ -471,14 +458,14 @@ class PatientHomeContent extends StatelessWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  final VoidCallback onLogout;
   final VoidCallback onNotificationTap;
   final String name;
+  final bool hasUnread;
 
   const _HomeHeader({
-    required this.onLogout,
     required this.onNotificationTap,
     required this.name,
+    required this.hasUnread,
   });
 
   @override
@@ -543,18 +530,19 @@ class _HomeHeader extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        Positioned(
-                          right: 10,
-                          top: 10,
-                          child: Container(
-                            height: 8,
-                            width: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF4D4D),
-                              shape: BoxShape.circle,
+                        if (hasUnread)
+                          Positioned(
+                            right: 10,
+                            top: 10,
+                            child: Container(
+                              height: 8,
+                              width: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF4D4D),
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -579,38 +567,6 @@ class _HomeHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'logout') {
-                    onLogout();
-                  }
-                },
-                icon: Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.16),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.more_vert,
-                    color: Colors.white,
-                  ),
-                ),
-                itemBuilder: (context) => [
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.logout, color: Colors.red),
-                        const SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.patientLogout),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -836,9 +792,7 @@ class _RateExperienceCard extends StatelessWidget {
 class _QuickServicesRow extends StatelessWidget {
   final ValueChanged<int> onServiceTap;
 
-  const _QuickServicesRow({
-    required this.onServiceTap,
-  });
+  const _QuickServicesRow({required this.onServiceTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1023,27 +977,29 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(icon, color: filled ? Colors.white : primary),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                number,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  number,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  color: subColor,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: subColor,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1076,6 +1032,3 @@ class _UpcomingAppointments extends StatelessWidget {
     );
   }
 }
-
-
-

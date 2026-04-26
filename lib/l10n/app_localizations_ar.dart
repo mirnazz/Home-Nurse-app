@@ -320,7 +320,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String patientBrowseExperienceYears(int years) {
-    return '$years سنة';
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years سنة خبرة',
+      many: '$years سنة خبرة',
+      few: '$years سنوات خبرة',
+      two: 'سنتين خبرة',
+      one: 'سنة خبرة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -865,7 +874,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseAvailManageTitle => 'إدارة أوقات العمل';
 
   @override
-  String get nurseAvailTapDateHint => 'اضغط على أي يوم لإدارته أو إيقافه';
+  String get nurseAvailTapDateHint => 'جدولك الأسبوعي يتكرر كل أسبوع. اضغط على أي يوم لإيقافه أو تحديد ساعات مخصصة له.';
+
+  @override
+  String get nurseAvailLegendWorking => 'متاح للعمل';
+
+  @override
+  String get nurseAvailLegendCustomHours => 'ساعات مخصصة';
+
+  @override
+  String get nurseAvailLegendBlocked => 'يوم محجوب';
 
   @override
   String get nurseAvailWeeklySchedule => 'الجدول الأسبوعي';
@@ -1110,6 +1128,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nurseProfilePersonalInfoSubtitle => 'بياناتك وخدماتك المهنية';
+
+  @override
+  String get nurseProfileMyServicesTitle => 'خدماتي';
+
+  @override
+  String get nurseProfileMyServicesSubtitle => 'أضف أو عدّل الخدمات التي تقدمها';
 
   @override
   String get nurseProfileRatingsTitle => 'التقييمات';

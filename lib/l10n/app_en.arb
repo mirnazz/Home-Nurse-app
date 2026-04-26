@@ -139,7 +139,7 @@
   },
   "patientBrowseNoResults": "No nurses match your filters.",
   "patientBrowseViewProfile": "View Profile",
-  "patientBrowseExperienceYears": "{years} years",
+  "patientBrowseExperienceYears": "{years, plural, one{1 year of experience} other{{years} years of experience}}",
   "@patientBrowseExperienceYears": {
     "placeholders": {
       "years": {"type": "int"}
@@ -385,7 +385,10 @@
   },
   "nurseAvailEmbeddedTitle": "Availability",
   "nurseAvailManageTitle": "Manage Availability",
-  "nurseAvailTapDateHint": "Tap any date to manage or block it",
+  "nurseAvailTapDateHint": "Your weekly schedule repeats every week. Tap any date to block it or set custom hours for that day.",
+  "nurseAvailLegendWorking": "Working",
+  "nurseAvailLegendCustomHours": "Custom hours",
+  "nurseAvailLegendBlocked": "Blocked",
   "nurseAvailWeeklySchedule": "Weekly Schedule",
   "nurseAvailAddTimeSlot": "Add Time Slot",
   "nurseAvailNoScheduleYet": "No schedule set yet",
@@ -497,6 +500,8 @@
   "nurseProfileSubtitle": "Account & preferences",
   "nurseProfilePersonalInfoTitle": "Personal Info",
   "nurseProfilePersonalInfoSubtitle": "Profile, services & professional details",
+  "nurseProfileMyServicesTitle": "My Services",
+  "nurseProfileMyServicesSubtitle": "Add or edit your offered services",
   "nurseProfileRatingsTitle": "Ratings",
   "nurseProfileRatingsSubtitle": "Reviews from patients",
   "nurseProfileEarningsTitle": "Earnings",

@@ -27,6 +27,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     setState(() => _isSubmitting = true);
 
+    /* restore when flutter_stripe is re-enabled:
     try {
       final bookingId = widget.appointment.id;
 
@@ -82,6 +83,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
         MaterialPageRoute(
           builder: (_) => PaymentFailedScreen(
             appointment: widget.appointment,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+    */
+
+    try {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Payment temporarily disabled — restore Stripe block in _confirmPayment.',
           ),
         ),
       );

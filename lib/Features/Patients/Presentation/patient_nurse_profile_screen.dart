@@ -358,18 +358,6 @@ class _PatientNurseProfileScreenState
                                 ],
                               ),
                   ),
-                  const SizedBox(height: 14),
-                  _SectionCard(
-                    title: l10n.patientNurseProfileReviews,
-                    child: Text(
-                      l10n.patientNurseProfileReviewsPlaceholder,
-                      style: TextStyle(
-                        color: Color(0xFF6B7280),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 90),
                 ],
               ),

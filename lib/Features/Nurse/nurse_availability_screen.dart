@@ -41,6 +41,7 @@ class NurseAvailabilityScreen extends StatefulWidget {
 class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   DateTime _selectedDate = DateTime.now();
   final Set<String> _blockedDates = {};
+  final Set<String> _overrideDates = {};
 
   // Only shows days that have slots from API
   Map<String, List<_TimeSlot>> _weeklySlots = {};
@@ -181,8 +182,10 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       setState(() {
         if (blocked) {
           _blockedDates.add(dateKey);
+          _overrideDates.remove(dateKey);
         } else {
           _blockedDates.remove(dateKey);
+          if (hasOverride) _overrideDates.add(dateKey);
         }
       });
     } catch (_) {
@@ -211,7 +214,10 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
             await ApiService.blockDayAvailability(date: dateKey);
             nav.pop();
             if (!mounted) return;
-            setState(() => _blockedDates.add(dateKey));
+            setState(() {
+              _blockedDates.add(dateKey);
+              _overrideDates.remove(dateKey);
+            });
             messenger.showSnackBar(
               SnackBar(content: Text(l10n.nurseAvailDayBlocked)),
             );
@@ -250,6 +256,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
               endTime: end,
             );
             nav.pop();
+            if (mounted) setState(() => _overrideDates.add(dateKey));
             messenger.showSnackBar(
               SnackBar(
                 content: Text(l10n.nurseAvailOverrideSuccess(start, end)),
@@ -279,26 +286,6 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.nurseAvailSlotDeleted)),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
-    }
-  }
-
-  Future<void> _toggleSlot(String day, int index) async {
-    final slot = _weeklySlots[day]?[index];
-    if (slot == null || slot.id == null) return;
-
-    try {
-      await ApiService.toggleWeeklyAvailability(slot.id!);
-      await _loadAvailability();
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.nurseAvailSlotStatusUpdated)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -349,15 +336,6 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                           color: Color(0xFF1D2433),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.nurseAvailTapDateHint,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
                     ] else ...[
                       Text(
                         l10n.nurseAvailManageTitle,
@@ -367,20 +345,40 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                           color: Color(0xFF1D2433),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.nurseAvailTapDateHint,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
                     ],
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6F4F7),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBFDFE8)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.nurseAvailTapDateHint,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1D4E5F),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 14),
                     _CalendarCard(
                       selectedDate: _selectedDate,
                       blockedDates: _blockedDates,
+                      activeDays: _weeklySlots.keys.toSet(),
+                      overrideDates: _overrideDates,
                       onDateTapped: (date) {
                         setState(() => _selectedDate = date);
                         _openManageDaySheet(date);
@@ -472,35 +470,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                             day: day,
                             slots: daySlots,
                             onDisable: (index) => _disableSlot(day, index),
-                            onToggle: (index) => _toggleSlot(day, index),
                           ),
                         );
                       }),
-                    const SizedBox(height: 6),
-                    _QuickSettingsCard(
-                      l10n: l10n,
-                      onCopyWeekdays: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickPlaceholder),
-                          ),
-                        );
-                      },
-                      onSetWeekend: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickPlaceholder),
-                          ),
-                        );
-                      },
-                      onBlockDays: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickBlockHint),
-                          ),
-                        );
-                      },
-                    ),
                   ],
                 ),
               );
@@ -563,11 +535,15 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 class _CalendarCard extends StatefulWidget {
   final DateTime selectedDate;
   final Set<String> blockedDates;
+  final Set<String> activeDays;
+  final Set<String> overrideDates;
   final ValueChanged<DateTime> onDateTapped;
 
   const _CalendarCard({
     required this.selectedDate,
     required this.blockedDates,
+    required this.activeDays,
+    required this.overrideDates,
     required this.onDateTapped,
   });
 
@@ -595,6 +571,11 @@ class _CalendarCardState extends State<_CalendarCard> {
             DateTime(_displayMonth.year, _displayMonth.month + 1);
       });
 
+  static const _dayNames = [
+    '', 'Monday', 'Tuesday', 'Wednesday',
+    'Thursday', 'Friday', 'Saturday', 'Sunday',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final localeTag = Localizations.localeOf(context).toString();
@@ -621,15 +602,27 @@ class _CalendarCardState extends State<_CalendarCard> {
       final dateKey =
           '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
       final isBlocked = widget.blockedDates.contains(dateKey);
+      final isOverride = widget.overrideDates.contains(dateKey);
+      final hasWorkingHours = widget.activeDays.contains(_dayNames[date.weekday]);
+      final isPast = date.isBefore(DateTime(today.year, today.month, today.day));
 
-      dayCells.add(
-        GestureDetector(
-          onTap: () => widget.onDateTapped(date),
-          child: Container(
+      Color? dotColor;
+      if (!isPast && !isBlocked) {
+        if (isOverride) {
+          dotColor = isSelected ? Colors.white : AppColors.primary;
+        } else if (hasWorkingHours) {
+          dotColor = isSelected ? Colors.white : const Color(0xFF059669);
+        }
+      }
+
+      final cellChild = Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
             margin: const EdgeInsets.all(3),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : Colors.transparent,
+              color: isSelected && !isPast ? AppColors.primary : Colors.transparent,
               shape: BoxShape.circle,
               border: isToday && !isSelected
                   ? Border.all(color: AppColors.primary, width: 1.5)
@@ -638,21 +631,47 @@ class _CalendarCardState extends State<_CalendarCard> {
             child: Text(
               '$day',
               style: TextStyle(
-                color: isBlocked
+                color: isPast
                     ? const Color(0xFFD1D5DB)
-                    : isSelected
-                        ? Colors.white
-                        : const Color(0xFF374151),
-                fontWeight:
-                    isSelected || isToday ? FontWeight.w900 : FontWeight.w600,
+                    : isBlocked
+                        ? const Color(0xFFD1D5DB)
+                        : isSelected
+                            ? Colors.white
+                            : const Color(0xFF374151),
+                fontWeight: isPast
+                    ? FontWeight.w400
+                    : isSelected || isToday
+                        ? FontWeight.w900
+                        : FontWeight.w600,
                 fontSize: 13,
-                decoration: isBlocked
+                decoration: !isPast && isBlocked
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
               ),
             ),
           ),
-        ),
+          if (dotColor != null)
+            Positioned(
+              bottom: 5,
+              child: Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      );
+
+      dayCells.add(
+        isPast
+            ? cellChild
+            : GestureDetector(
+                onTap: () => widget.onDateTapped(date),
+                child: cellChild,
+              ),
       );
     }
 
@@ -694,6 +713,23 @@ class _CalendarCardState extends State<_CalendarCard> {
             physics: const NeverScrollableScrollPhysics(),
             childAspectRatio: 1,
             children: dayCells,
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFEEF0F3)),
+          const SizedBox(height: 10),
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Row(
+                children: [
+                  _LegendItem(color: const Color(0xFF059669), label: l10n.nurseAvailLegendWorking),
+                  const SizedBox(width: 16),
+                  _LegendItem(color: AppColors.primary, label: l10n.nurseAvailLegendCustomHours),
+                  const SizedBox(width: 16),
+                  _LegendItem(color: const Color(0xFFEF4444), label: l10n.nurseAvailLegendBlocked, isBlocked: true),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -737,6 +773,32 @@ class _WeekLabel extends StatelessWidget {
               color: Color(0xFF9CA3AF),
               fontWeight: FontWeight.w700,
               fontSize: 12)),
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool isBlocked;
+  const _LegendItem({required this.color, required this.label, this.isBlocked = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isBlocked)
+          Text('—', style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 13))
+        else
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+        const SizedBox(width: 5),
+        Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
+      ],
     );
   }
 }
@@ -1093,14 +1155,12 @@ class _DayScheduleCard extends StatelessWidget {
   final String day;
   final List<_TimeSlot> slots;
   final ValueChanged<int> onDisable;
-  final ValueChanged<int> onToggle;
 
   const _DayScheduleCard({
     required this.l10n,
     required this.day,
     required this.slots,
     required this.onDisable,
-    required this.onToggle,
   });
 
   @override
@@ -1143,14 +1203,6 @@ class _DayScheduleCard extends StatelessWidget {
                           color: slot.isActive ? const Color(0xFF374151) : const Color(0xFF9CA3AF),
                           decoration: slot.isActive ? TextDecoration.none : TextDecoration.lineThrough)),
                   const Spacer(),
-                  Tooltip(
-                    message: slot.isActive ? l10n.nurseAvailDeactivateSlot : l10n.nurseAvailActivateSlot,
-                    child: IconButton(
-                      onPressed: () => onToggle(index),
-                      icon: Icon(slot.isActive ? Icons.visibility : Icons.visibility_off,
-                          color: slot.isActive ? const Color(0xFF059669) : const Color(0xFF9CA3AF)),
-                    ),
-                  ),
                   TextButton.icon(
                     onPressed: () => onDisable(index),
                     icon: const Icon(Icons.delete_outline, size: 15),
@@ -1169,78 +1221,6 @@ class _DayScheduleCard extends StatelessWidget {
   }
 }
 
-class _QuickSettingsCard extends StatelessWidget {
-  final AppLocalizations l10n;
-  final VoidCallback onCopyWeekdays;
-  final VoidCallback onSetWeekend;
-  final VoidCallback onBlockDays;
-
-  const _QuickSettingsCard({
-    required this.l10n,
-    required this.onCopyWeekdays,
-    required this.onSetWeekend,
-    required this.onBlockDays,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: AppointmentUiColors.scheduleCardPadding,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(AppointmentUiColors.scheduleCardRadius),
-        boxShadow: AppointmentUiColors.scheduleCardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.nurseAvailQuickSettingsTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _QuickSettingButton(label: l10n.nurseAvailQuickCopyWeekdays, subtitle: l10n.nurseAvailQuickCopyWeekdaysSubtitle, onTap: onCopyWeekdays),
-          const SizedBox(height: 8),
-          _QuickSettingButton(label: l10n.nurseAvailQuickWeekend, subtitle: l10n.nurseAvailQuickWeekendSubtitle, onTap: onSetWeekend),
-          const SizedBox(height: 8),
-          _QuickSettingButton(label: l10n.nurseAvailQuickBlockDays, subtitle: l10n.nurseAvailQuickBlockDaysSubtitle, onTap: onBlockDays),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickSettingButton extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final VoidCallback onTap;
-  const _QuickSettingButton({required this.label, required this.subtitle, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
-          const SizedBox(height: 3),
-          Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.86), fontWeight: FontWeight.w500, fontSize: 11.5)),
-        ]),
-      ),
-    );
-  }
-}
 
 class _AddTimeSlotSheet extends StatefulWidget {
   const _AddTimeSlotSheet();

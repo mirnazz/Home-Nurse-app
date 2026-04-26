@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_constants.dart';
@@ -64,6 +65,8 @@ class ApiService {
     required String email,
     required String password,
   }) async {
+    print("Registering patient with email: $email");
+    print(fullName);
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.register);
     final response = await http
         .post(
@@ -112,25 +115,47 @@ class ApiService {
   }
 
   static Future<void> login({
-    required String email,
-    required String password,
-  }) async {
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.login);
-    final response = await http
-        .post(
-          url,
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"email": email, "password": password}),
-        )
-        .timeout(const Duration(seconds: 15));
+  required String email,
+  required String password,
+}) async {
+  final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.login);
 
-    if (response.statusCode != 200) {
-      throw Exception("Invalid email or password");
-    }
+  final response = await http
+      .post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email,
+          "password": password,
+        }),
+      )
+      .timeout(const Duration(seconds: 15));
 
-    final data = jsonDecode(response.body);
-    await TokenStorage.saveToken(data['token']);
+  debugPrint("LOGIN STATUS => ${response.statusCode}");
+  debugPrint("LOGIN BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(_extractErrorMessage(
+      response.body,
+      fallback: "Invalid email or password",
+    ));
   }
+
+  final data = jsonDecode(response.body);
+
+  final token = data["token"] ??
+      data["accessToken"] ??
+      data["jwtToken"] ??
+      data["jwt"];
+
+  if (token == null || token.toString().trim().isEmpty) {
+    throw Exception("Login succeeded but token was not returned");
+  }
+
+  await TokenStorage.saveToken(token.toString());
+
+  debugPrint("SAVED TOKEN => ${token.toString().substring(0, 20)}...");
+}
 
   static Future<String> forgotPassword({required String email}) async {
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.forgotPassword);
@@ -145,7 +170,10 @@ class ApiService {
 
       if (response.statusCode != 200) {
         throw Exception(
-          _extractErrorMessage(response.body, fallback: "Forgot password failed"),
+          _extractErrorMessage(
+            response.body,
+            fallback: "Forgot password failed",
+          ),
         );
       }
 
@@ -154,7 +182,8 @@ class ApiService {
         final data = jsonDecode(response.body);
         if (data is Map<String, dynamic>) {
           if (data["message"] != null) return data["message"].toString();
-          if (data["token"] != null) return "Reset token generated successfully.";
+          if (data["token"] != null)
+            return "Reset token generated successfully.";
         }
       }
       return response.body.isNotEmpty
@@ -201,12 +230,39 @@ class ApiService {
   static Future<Map<String, dynamic>> getMe() async {
     final token = await _requireToken();
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.me);
+
     final response = await http
         .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
-    if (response.statusCode != 200) throw Exception("Unauthorized");
-    return jsonDecode(response.body);
+    debugPrint("GET ME URL => $url");
+    debugPrint("GET ME STATUS => ${response.statusCode}");
+    debugPrint("GET ME BODY => ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception("Unauthorized");
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+   final rawRole =
+    data['role'] ??
+    data['Role'] ??
+    data['roleType'] ??
+    data['RoleType'] ??
+    (data['roles'] is List && data['roles'].isNotEmpty ? data['roles'][0] : null) ??
+    (data['Roles'] is List && data['Roles'].isNotEmpty ? data['Roles'][0] : null) ??
+    '';
+
+final role = rawRole.toString().trim();
+
+data['role_normalized'] = role;
+
+    data['role_normalized'] = role;
+
+    debugPrint("ROLE NORMALIZED => $role");
+
+    return data;
   }
 
   static Future<Map<String, dynamic>> getAccount() async => getMe();
@@ -225,7 +281,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load patient profile"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load patient profile",
+        ),
       );
     }
 
@@ -257,7 +316,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update personal info"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update personal info",
+        ),
       );
     }
   }
@@ -286,7 +348,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update address"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update address",
+        ),
       );
     }
   }
@@ -315,7 +380,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update medical info"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update medical info",
+        ),
       );
     }
   }
@@ -334,7 +402,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load pending review"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load pending review",
+        ),
       );
     }
 
@@ -382,21 +453,25 @@ class ApiService {
           body: jsonEncode({
             "bookingId": bookingId,
             "rating": draft.overallRating,
-            "comment": draft.reviewText.trim().isEmpty ? null : draft.reviewText.trim(),
+            "comment":
+                draft.reviewText.trim().isEmpty
+                    ? null
+                    : draft.reviewText.trim(),
           }),
         )
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to submit review"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to submit review",
+        ),
       );
     }
   }
 
-  static Future<void> dismissReviewPrompt({
-    required String bookingId,
-  }) async {
+  static Future<void> dismissReviewPrompt({required String bookingId}) async {
     final token = await _requireToken();
     final url = Uri.parse(
       "${ApiConstants.baseUrl}${ApiConstants.reviewBase}/$bookingId/dismiss",
@@ -408,14 +483,15 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to dismiss review prompt"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to dismiss review prompt",
+        ),
       );
     }
   }
 
-  static Future<void> remindReviewLater({
-    required String bookingId,
-  }) async {
+  static Future<void> remindReviewLater({required String bookingId}) async {
     final token = await _requireToken();
     final url = Uri.parse(
       "${ApiConstants.baseUrl}${ApiConstants.reviewBase}/$bookingId/later",
@@ -427,7 +503,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to postpone review prompt"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to postpone review prompt",
+        ),
       );
     }
   }
@@ -436,7 +515,7 @@ class ApiService {
   // Patient Dashboard
   // =========================
 
-  static Future<Map<String, dynamic>> getPatientDashboardSummary() async {
+ static Future<Map<String, dynamic>> getPatientDashboardSummary() async {
     final token = await _requireToken();
     final url = Uri.parse(
       ApiConstants.baseUrl + ApiConstants.patientDashboardSummary,
@@ -462,14 +541,19 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getNursePersonalInfo() async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nursePersonalInfo);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nursePersonalInfo,
+    );
     final response = await http
         .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load nurse personal info"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse personal info",
+        ),
       );
     }
     return jsonDecode(response.body);
@@ -483,7 +567,9 @@ class ApiService {
     required String bio,
   }) async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nursePersonalInfo);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nursePersonalInfo,
+    );
     final response = await http
         .put(
           url,
@@ -500,7 +586,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update personal info"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update personal info",
+        ),
       );
     }
   }
@@ -511,14 +600,19 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getNurseProfessionalDetails() async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseProfessionalDetails);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nurseProfessionalDetails,
+    );
     final response = await http
         .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load nurse professional details"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse professional details",
+        ),
       );
     }
     return jsonDecode(response.body);
@@ -530,7 +624,9 @@ class ApiService {
     required int experienceYears,
   }) async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseProfessionalDetails);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nurseProfessionalDetails,
+    );
     final response = await http
         .put(
           url,
@@ -545,7 +641,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update professional details"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update professional details",
+        ),
       );
     }
   }
@@ -563,7 +662,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load nurse profile"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse profile",
+        ),
       );
     }
     return jsonDecode(response.body);
@@ -610,17 +712,24 @@ class ApiService {
     }
     if (nationalIdImage != null) {
       request.files.add(
-        await http.MultipartFile.fromPath('nationalIdImage', nationalIdImage.path),
+        await http.MultipartFile.fromPath(
+          'nationalIdImage',
+          nationalIdImage.path,
+        ),
       );
     }
 
-    final streamedResponse =
-        await request.send().timeout(const Duration(seconds: 30));
+    final streamedResponse = await request.send().timeout(
+      const Duration(seconds: 30),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update nurse profile"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update nurse profile",
+        ),
       );
     }
 
@@ -634,14 +743,19 @@ class ApiService {
 
   static Future<List<dynamic>> getServiceCatalog() async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseServiceCatalog);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nurseServiceCatalog,
+    );
     final response = await http
         .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load service catalog"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load service catalog",
+        ),
       );
     }
     final data = jsonDecode(response.body);
@@ -657,7 +771,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load nurse services"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse services",
+        ),
       );
     }
     final data = jsonDecode(response.body);
@@ -674,7 +791,10 @@ class ApiService {
         .post(
           url,
           headers: _jsonHeaders(token),
-          body: jsonEncode({"serviceCatalogId": serviceCatalogId, "price": price}),
+          body: jsonEncode({
+            "serviceCatalogId": serviceCatalogId,
+            "price": price,
+          }),
         )
         .timeout(const Duration(seconds: 15));
 
@@ -691,32 +811,45 @@ class ApiService {
     required double price,
   }) async {
     final token = await _requireToken();
-    final url = Uri.parse("${ApiConstants.baseUrl}${ApiConstants.nurseServices}/$id");
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseServices}/$id",
+    );
     final response = await http
         .put(
           url,
           headers: _jsonHeaders(token),
-          body: jsonEncode({"serviceCatalogId": serviceCatalogId, "price": price}),
+          body: jsonEncode({
+            "serviceCatalogId": serviceCatalogId,
+            "price": price,
+          }),
         )
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to update service"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to update service",
+        ),
       );
     }
   }
 
   static Future<void> deleteNurseService(int id) async {
     final token = await _requireToken();
-    final url = Uri.parse("${ApiConstants.baseUrl}${ApiConstants.nurseServices}/$id");
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseServices}/$id",
+    );
     final response = await http
         .delete(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to delete service"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to delete service",
+        ),
       );
     }
   }
@@ -727,14 +860,19 @@ class ApiService {
 
   static Future<List<dynamic>> getWeeklyAvailability() async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseWeeklyAvailability);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nurseWeeklyAvailability,
+    );
     final response = await http
         .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load weekly availability"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load weekly availability",
+        ),
       );
     }
     final data = jsonDecode(response.body);
@@ -747,7 +885,9 @@ class ApiService {
     required String endTime,
   }) async {
     final token = await _requireToken();
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.nurseWeeklyAvailability);
+    final url = Uri.parse(
+      ApiConstants.baseUrl + ApiConstants.nurseWeeklyAvailability,
+    );
     final response = await http
         .post(
           url,
@@ -762,7 +902,10 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to add weekly availability"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to add weekly availability",
+        ),
       );
     }
   }
@@ -778,7 +921,10 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to delete weekly slot"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to delete weekly slot",
+        ),
       );
     }
   }
@@ -794,7 +940,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to toggle slot status"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to toggle slot status",
+        ),
       );
     }
   }
@@ -816,7 +965,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load day details"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load day details",
+        ),
       );
     }
     final data = jsonDecode(response.body);
@@ -861,9 +1013,7 @@ class ApiService {
         .post(
           url,
           headers: _jsonHeaders(token),
-          body: jsonEncode({
-            "date": _toIsoDateTime(date),
-          }),
+          body: jsonEncode({"date": _toIsoDateTime(date)}),
         )
         .timeout(const Duration(seconds: 15));
 
@@ -919,10 +1069,9 @@ class ApiService {
         "${ApiConstants.baseUrl}${ApiConstants.patientBrowseNurses}",
       ).replace(queryParameters: queryParams);
 
-      final response = await http.get(
-        uri,
-        headers: _jsonHeaders(token),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .get(uri, headers: _jsonHeaders(token))
+          .timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(response.body);
 
@@ -930,7 +1079,10 @@ class ApiService {
         return data is Map<String, dynamic> ? data : {};
       } else {
         throw Exception(
-          _extractErrorMessage(response.body, fallback: "Failed to browse nurses"),
+          _extractErrorMessage(
+            response.body,
+            fallback: "Failed to browse nurses",
+          ),
         );
       }
     } catch (e) {
@@ -954,7 +1106,10 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load nurse details"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load nurse details",
+        ),
       );
     }
 
@@ -1087,21 +1242,16 @@ class ApiService {
   // Nurse Requests
   // =========================
 
-  static Future<List<dynamic>> getNurseRequests({
-    String? status,
-  }) async {
+  static Future<List<dynamic>> getNurseRequests({String? status}) async {
     final token = await _requireToken();
 
     final uri = Uri.parse(
       "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}",
-    ).replace(
-      queryParameters: status == null ? null : {"status": status},
-    );
+    ).replace(queryParameters: status == null ? null : {"status": status});
 
-    final response = await http.get(
-      uri,
-      headers: _jsonHeaders(token),
-    ).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(uri, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -1125,10 +1275,9 @@ class ApiService {
       "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId",
     );
 
-    final response = await http.get(
-      uri,
-      headers: _jsonHeaders(token),
-    ).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(uri, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -1143,19 +1292,16 @@ class ApiService {
     return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
-  static Future<void> acceptNurseRequest({
-    required int bookingId,
-  }) async {
+  static Future<void> acceptNurseRequest({required int bookingId}) async {
     final token = await _requireToken();
 
     final uri = Uri.parse(
       "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/accept",
     );
 
-    final response = await http.put(
-      uri,
-      headers: _jsonHeaders(token),
-    ).timeout(const Duration(seconds: 15));
+    final response = await http
+        .put(uri, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -1167,19 +1313,16 @@ class ApiService {
     }
   }
 
-  static Future<void> declineNurseRequest({
-    required int bookingId,
-  }) async {
+  static Future<void> declineNurseRequest({required int bookingId}) async {
     final token = await _requireToken();
 
     final uri = Uri.parse(
       "${ApiConstants.baseUrl}${ApiConstants.nurseRequests}/$bookingId/decline",
     );
 
-    final response = await http.put(
-      uri,
-      headers: _jsonHeaders(token),
-    ).timeout(const Duration(seconds: 15));
+    final response = await http
+        .put(uri, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -1195,30 +1338,27 @@ class ApiService {
   // Nurse Appointments
   // =========================
   static Future<void> completeNurseAppointment({
-  required String bookingId,
-}) async {
-  final token = await _requireToken();
+    required String bookingId,
+  }) async {
+    final token = await _requireToken();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/complete",
-  );
-
-  final response = await http
-      .put(
-        url,
-        headers: _jsonHeaders(token),
-      )
-      .timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to complete nurse appointment",
-      ),
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.nurseAppointments}/$bookingId/complete",
     );
+
+    final response = await http
+        .put(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to complete nurse appointment",
+        ),
+      );
+    }
   }
-}
 
   static Future<List<Appointment>> getNurseAppointments({
     required String tab,
@@ -1230,10 +1370,7 @@ class ApiService {
     );
 
     final response = await http
-        .get(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1265,10 +1402,7 @@ class ApiService {
     );
 
     final response = await http
-        .get(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1294,10 +1428,7 @@ class ApiService {
     );
 
     final response = await http
-        .put(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .put(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1314,40 +1445,53 @@ class ApiService {
   // Patient - Appointments
   // =========================
 
-  static Future<List<Appointment>> getPatientAppointments({
-    required String tab,
-  }) async {
-    final token = await _requireToken();
+ static Future<List<Appointment>> getPatientAppointments({
+  required String tab,
+}) async {
+  final token = await _requireToken();
 
-    final url = Uri.parse(
-      "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
+  );
+
+  debugPrint("📡 PATIENT APPOINTMENTS URL => $url");
+
+  final response = await http
+      .get(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("📥 STATUS => ${response.statusCode}");
+  debugPrint("📥 BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load appointments",
+      ),
     );
-
-    final response = await http.get(
-      url,
-      headers: _jsonHeaders(token),
-    ).timeout(const Duration(seconds: 15));
-
-    if (response.statusCode != 200) {
-      throw Exception(
-        _extractErrorMessage(
-          response.body,
-          fallback: "Failed to load appointments",
-        ),
-      );
-    }
-
-    final data = jsonDecode(response.body);
-
-    if (data is! List) return [];
-
-    return data
-        .map<Appointment>(
-          (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
-        )
-        .toList();
   }
 
+  final data = jsonDecode(response.body);
+
+  if (data is! List) {
+    debugPrint("❌ RESPONSE IS NOT LIST");
+    return [];
+  }
+
+  final list = data
+      .map<Appointment>(
+        (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
+      )
+      .toList();
+
+  // 🔥 أهم print
+  for (var a in list) {
+    debugPrint("🧾 APPOINTMENT => ID: ${a.id}, STATUS: ${a.status}");
+  }
+
+  return list;
+}
   static Future<void> cancelPatientAppointment({
     required String bookingId,
   }) async {
@@ -1358,10 +1502,7 @@ class ApiService {
     );
 
     final response = await http
-        .put(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .put(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1384,10 +1525,7 @@ class ApiService {
     );
 
     final response = await http
-        .get(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1417,10 +1555,7 @@ class ApiService {
     );
 
     final response = await http
-        .get(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
@@ -1436,9 +1571,7 @@ class ApiService {
     return data is Map<String, dynamic> ? data : <String, dynamic>{};
   }
 
-  static Future<String> createPaymentIntent({
-    required String bookingId,
-  }) async {
+  static Future<String> createPaymentIntent({required String bookingId}) async {
     final token = await _requireToken();
 
     final url = Uri.parse(
@@ -1449,9 +1582,7 @@ class ApiService {
         .post(
           url,
           headers: _jsonHeaders(token),
-          body: jsonEncode({
-            "bookingId": _toInt(bookingId),
-          }),
+          body: jsonEncode({"bookingId": _toInt(bookingId)}),
         )
         .timeout(const Duration(seconds: 20));
 
@@ -1467,7 +1598,8 @@ class ApiService {
     final data = jsonDecode(response.body);
 
     if (data is Map<String, dynamic>) {
-      final secret = data["clientSecret"] ??
+      final secret =
+          data["clientSecret"] ??
           data["client_secret"] ??
           data["paymentIntentClientSecret"];
 
@@ -1485,9 +1617,7 @@ class ApiService {
   }) async {
     final token = await _requireToken();
 
-    final url = Uri.parse(
-      ApiConstants.baseUrl + ApiConstants.confirmPayment,
-    );
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.confirmPayment);
 
     final body = <String, dynamic>{
       "bookingId": _toInt(bookingId),
@@ -1496,11 +1626,7 @@ class ApiService {
     };
 
     final response = await http
-        .post(
-          url,
-          headers: _jsonHeaders(token),
-          body: jsonEncode(body),
-        )
+        .post(url, headers: _jsonHeaders(token), body: jsonEncode(body))
         .timeout(const Duration(seconds: 20));
 
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -1522,15 +1648,15 @@ class ApiService {
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.notifications);
 
     final response = await http
-        .get(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .get(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load notifications"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load notifications",
+        ),
       );
     }
 
@@ -1545,30 +1671,27 @@ class ApiService {
   }
 
   static Future<void> markNotificationAsRead(dynamic notificationId) async {
-  final token = await _requireToken();
+    final token = await _requireToken();
 
-  final id = notificationId.toString();
+    final id = notificationId.toString();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.notifications}/$id/read",
-  );
-
-  final response = await http
-      .put(
-        url,
-        headers: _jsonHeaders(token),
-      )
-      .timeout(const Duration(seconds: 15));
-
-  if (response.statusCode != 200 && response.statusCode != 204) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to mark notification as read",
-      ),
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.notifications}/$id/read",
     );
+
+    final response = await http
+        .put(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to mark notification as read",
+        ),
+      );
+    }
   }
-}
 
   static Future<void> markAllNotificationsAsRead() async {
     final token = await _requireToken();
@@ -1578,10 +1701,7 @@ class ApiService {
     );
 
     final response = await http
-        .put(
-          url,
-          headers: _jsonHeaders(token),
-        )
+        .put(url, headers: _jsonHeaders(token))
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -1594,4 +1714,3 @@ class ApiService {
     }
   }
 }
-

@@ -10,6 +10,7 @@ import 'package:nurse_app/Features/Nurse/Presentation/nurse_requests_screen.dart
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
+import 'nurse_services_screen.dart';
 
 typedef NurseDashboardNavigate = void Function(int tabIndex);
 
@@ -28,6 +29,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   int pendingRequestsCount = 0;
   List<Appointment> todayAppointments = const [];
   double todayEarnings = 0;
+  bool _hasUnreadNotifications = false;
 
   Future<void> _navigate(int tabIndex) async {
     setState(() => currentTab = tabIndex);
@@ -52,6 +54,17 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
   void initState() {
     super.initState();
     loadInitialData();
+    _loadUnreadNotifications();
+  }
+
+  Future<void> _loadUnreadNotifications() async {
+    try {
+      final notifications = await ApiService.getNotifications();
+      if (!mounted) return;
+      setState(() {
+        _hasUnreadNotifications = notifications.any((n) => !n.isRead);
+      });
+    } catch (_) {}
   }
 
   Future<void> loadInitialData() async {
@@ -157,6 +170,7 @@ class _NurseDashboardScreenState extends State<NurseDashboardScreen> {
                     todayAppointments: todayAppointments,
                     todayEarnings: todayEarnings,
                     onRefreshDashboard: loadDashboardData,
+                    hasUnreadNotifications: _hasUnreadNotifications,
                   ),
                   const NurseAvailabilityScreen(),
                   const NurseAppointmentsScreen(),
@@ -183,6 +197,7 @@ class NurseHomeScreen extends StatelessWidget {
   final List<Appointment> todayAppointments;
   final double todayEarnings;
   final Future<void> Function() onRefreshDashboard;
+  final bool hasUnreadNotifications;
 
   const NurseHomeScreen({
     super.key,
@@ -193,6 +208,7 @@ class NurseHomeScreen extends StatelessWidget {
     required this.todayAppointments,
     required this.todayEarnings,
     required this.onRefreshDashboard,
+    required this.hasUnreadNotifications,
   });
 
   @override
@@ -208,6 +224,7 @@ class NurseHomeScreen extends StatelessWidget {
             _NurseHeader(
               name: nurseName,
               onNotificationsTap: onOpenNotifications,
+              hasUnread: hasUnreadNotifications,
             ),
             const SizedBox(height: 18),
             Padding(
@@ -221,9 +238,7 @@ class NurseHomeScreen extends StatelessWidget {
                     todayAppointmentsCount: todayAppointments.length,
                     todayEarnings: todayEarnings,
                   ),
-                  const SizedBox(height: 18),
-                  _ThisWeekSummaryCard(l10n: l10n),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   _QuickActionsTitle(l10n: l10n),
                   const SizedBox(height: 12),
                   _QuickActionsList(
@@ -255,10 +270,12 @@ class NurseHomeScreen extends StatelessWidget {
 class _NurseHeader extends StatelessWidget {
   final String name;
   final VoidCallback onNotificationsTap;
+  final bool hasUnread;
 
   const _NurseHeader({
     required this.name,
     required this.onNotificationsTap,
+    required this.hasUnread,
   });
 
   @override
@@ -347,18 +364,19 @@ class _NurseHeader extends StatelessWidget {
                             size: 24,
                           ),
                         ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            height: 8,
-                            width: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF4D4D),
-                              shape: BoxShape.circle,
+                        if (hasUnread)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              height: 8,
+                              width: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF4D4D),
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -477,84 +495,9 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _ThisWeekSummaryCard extends StatelessWidget {
-  const _ThisWeekSummaryCard({required this.l10n});
 
-  final AppLocalizations l10n;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.nurseHomeWeekSummaryTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _WeekStat(value: "18", label: l10n.nurseHomeWeekCompleted),
-              _WeekStat(value: "2", label: l10n.nurseHomeWeekCancelled),
-              _WeekStat(value: "580", label: l10n.nurseHomeWeekJodEarned),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class _WeekStat extends StatelessWidget {
-  final String value;
-  final String label;
-
-  const _WeekStat({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.85),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _QuickActionsTitle extends StatelessWidget {
   const _QuickActionsTitle({required this.l10n});
@@ -590,6 +533,24 @@ class _QuickActionsList extends StatelessWidget {
     return Column(
       children: [
         _QuickActionTile(
+          onTap: () {
+            Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const NurseServicesScreen(),
+              ),
+            );
+          },
+          icon: Icons.medical_services_outlined,
+          title: l10n.nurseProfileMyServicesTitle,
+          subtitle: l10n.nurseProfileMyServicesSubtitle,
+          trailing: const Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _QuickActionTile(
           onTap: () => onNavigate(1),
           icon: Icons.calendar_month_outlined,
           title: l10n.nurseHomeActionManageAvailabilityTitle,
@@ -608,8 +569,7 @@ class _QuickActionsList extends StatelessWidget {
           subtitle: l10n.nurseHomeActionViewRequestsSubtitle,
           trailing: pendingCount > 0
               ? Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF8A00),
                     borderRadius: BorderRadius.circular(999),

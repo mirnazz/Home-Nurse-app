@@ -3,6 +3,7 @@ import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/nurse_personal_info_screen.dart';
+import 'package:nurse_app/Features/Nurse/nurse_services_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_earnings_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_report_problem_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_ratings_screen.dart';
@@ -92,6 +93,19 @@ class NurseProfileScreen extends StatelessWidget {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
                     builder: (_) => const NursePersonalInfoScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _ProfileSettingsTile(
+              icon: Icons.medical_services_outlined,
+              title: l10n.nurseProfileMyServicesTitle,
+              subtitle: l10n.nurseProfileMyServicesSubtitle,
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NurseServicesScreen(),
                   ),
                 );
               },
