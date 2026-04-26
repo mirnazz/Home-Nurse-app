@@ -49,12 +49,15 @@ class PaymentMethodsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          PaymentCardWidget(card: _primaryCard, primaryLabel: "Primary"),
+          PaymentCardWidget(card: _primaryCard, primaryLabel: l10n.paymentPrimaryLabel),
 
           const SizedBox(height: 24),
 
           /// 🚫 Add Card (Disabled but clear)
-          _DisabledAddCard(),
+          _DisabledAddCard(
+            title: l10n.paymentAddNewCard,
+            subtitle: l10n.paymentAddNewCardSubtitle,
+          ),
 
           const SizedBox(height: 28),
 
@@ -80,7 +83,8 @@ class PaymentMethodsScreen extends StatelessWidget {
           _SupportedItem(
             icon: Icons.attach_money_rounded,
             title: l10n.paymentCashComingSoon,
-            subtitle: "Pay at visit",
+            subtitle: l10n.paymentCashSubtitle,
+            comingSoonLabel: l10n.paymentComingSoon,
             isActive: false,
           ),
         ],
@@ -91,6 +95,11 @@ class PaymentMethodsScreen extends StatelessWidget {
 
 /// 🔥 Add card disabled (clean UX)
 class _DisabledAddCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _DisabledAddCard({required this.title, required this.subtitle});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -108,18 +117,18 @@ class _DisabledAddCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  "Add new card",
-                  style: TextStyle(
+                  title,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF6B7280),
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  "Available in a future update",
-                  style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                  subtitle,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
                 ),
               ],
             ),
@@ -138,12 +147,14 @@ class _SupportedItem extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isActive;
+  final String? comingSoonLabel;
 
   const _SupportedItem({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.isActive,
+    this.comingSoonLabel,
   });
 
   @override
@@ -195,9 +206,9 @@ class _SupportedItem extends StatelessWidget {
                 color: const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Text(
-                "Coming soon",
-                style: TextStyle(
+              child: Text(
+                comingSoonLabel ?? 'Coming soon',
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF6B7280),

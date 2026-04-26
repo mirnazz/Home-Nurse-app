@@ -284,6 +284,8 @@
   "patientMoreLanguage": "اللغة",
   "patientMoreLanguageEnglish": "English",
   "patientMoreLanguageArabic": "العربية",
+  "patientMoreLanguageSubtitle": "تغيير لغة التطبيق",
+  "patientMoreSignOutSubtitle": "تسجيل الخروج من حسابك",
   "languageSelectorTitle": "اختر اللغة",
   "languageSelectorSubtitle": "تغيير لغة التطبيق",
   "nurseHomeWelcomeBack": "مرحبًا بعودتك،",
@@ -553,6 +555,7 @@
   "nursePersonalExperience": "الخبرة",
   "nursePersonalServicesOffered": "الخدمات المقدمة",
   "nursePersonalNoServicesFound": "لا توجد خدمات حالياً.",
+  "nurseServicesAddHint": "اضغط على \"+ إضافة\" أعلاه لإضافة أول خدمة لك",
   "nurseServiceAddTitle": "إضافة خدمة",
   "nurseServiceAddSubtitle": "أضف خدمة تقدمها",
   "nurseServiceEditTitle": "تعديل الخدمة",
@@ -619,6 +622,7 @@
       }
     }
   },
+  "nurseRatingsEmpty": "لا توجد تقييمات بعد",
   "nurseRatingsRecentReviews": "أحدث التقييمات",
   "nurseRatingsMockName1": "أحمد م.",
   "nurseRatingsMockComment1": "ممرضة متميزة ومنتظمة في المواعيد. أنصح بها جدًا.",
@@ -971,6 +975,10 @@
   "paymentSupportedMethods": "طرق الدفع المدعومة",
   "paymentCreditDebitCards": "بطاقات الائتمان/الخصم",
   "paymentCashComingSoon": "نقداً (قريباً)",
+  "paymentAddNewCard": "إضافة بطاقة جديدة",
+  "paymentAddNewCardSubtitle": "متاح في تحديث قادم",
+  "paymentCashSubtitle": "الدفع عند الزيارة",
+  "paymentComingSoon": "قريباً",
   "paymentNoTransactions": "لا توجد معاملات بعد.",
 
   "patientMoreReportIssueTitle": "الإبلاغ عن مشكلة",

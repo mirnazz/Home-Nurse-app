@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:intl/intl.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
-import 'package:nurse_app/Core/theme/api/api_service.dart';
+ import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_failed_screen.dart';
-import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.dart';
+ import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Appointment appointment;
@@ -38,8 +39,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'NurseNow',
           style: ThemeMode.light,
-
-          // 🔥 مهم
           allowsDelayedPaymentMethods: false,
         ),
       );
@@ -82,6 +81,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
         setState(() => _isSubmitting = false);
       }
     }
+    
+
+    try {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Payment temporarily disabled — restore Stripe block in _confirmPayment.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   String _formatAmount(double amount) {
@@ -92,15 +107,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final apt = widget.appointment;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppointmentUiColors.pageBackground,
       appBar: AppBar(
         backgroundColor: AppointmentUiColors.tealHeader,
         elevation: 0,
-        title: const Text(
-          'Payment',
-          style: TextStyle(fontWeight: FontWeight.w800),
+        title: Text(
+          l10n.patientPaymentTitle,
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: SafeArea(
@@ -112,27 +128,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Booking Summary',
-                    style: TextStyle(
+                  Text(
+                    l10n.patientPaymentBookingSummary,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
                       color: Color(0xFF111827),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _SummaryRow(label: 'Nurse', value: apt.nurseName),
-                  _SummaryRow(label: 'Service', value: apt.serviceName),
+                  _SummaryRow(label: l10n.patientPaymentLabelNurse, value: apt.nurseName),
+                  _SummaryRow(label: l10n.patientPaymentLabelService, value: apt.serviceName),
                   _SummaryRow(
-                    label: 'Date',
+                    label: l10n.patientPaymentLabelDate,
                     value: DateFormat('EEE, dd MMM yyyy').format(apt.dateTime),
                   ),
                   _SummaryRow(
-                    label: 'Time',
+                    label: l10n.patientPaymentLabelTime,
                     value: DateFormat('hh:mm a').format(apt.dateTime),
                   ),
                   _SummaryRow(
-                    label: 'Amount',
+                    label: l10n.patientPaymentLabelAmount,
                     value: _formatAmount(apt.price),
                     isLast: true,
                     highlight: true,
@@ -144,19 +160,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
             _Card(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    'Payment Method',
-                    style: TextStyle(
+                    l10n.patientPaymentMethod,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
                       color: Color(0xFF111827),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
-                    'Stripe Payment Sheet will open when you confirm payment.',
-                    style: TextStyle(
+                    l10n.patientPaymentStripeDisabled,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF6B7280),
@@ -185,9 +201,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           strokeWidth: 2.2,
                         ),
                       )
-                      : const Text(
-                        'Confirm Payment',
-                        style: TextStyle(
+                      : Text(
+                        l10n.patientPaymentConfirm,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),

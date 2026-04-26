@@ -59,14 +59,14 @@ class PatientMoreScreen extends StatelessWidget {
           _MoreTileCard(
             icon: Icons.language_rounded,
             title: l10n.patientMoreLanguage,
-            subtitle: 'Switch app language',
+            subtitle: l10n.patientMoreLanguageSubtitle,
             onTap: () => showLanguageSelectorSheet(context),
           ),
           const SizedBox(height: 12),
           _MoreTileCard(
             icon: Icons.logout_rounded,
             title: l10n.patientLogout,
-            subtitle: 'Sign out of your account',
+            subtitle: l10n.patientMoreSignOutSubtitle,
             isDestructive: true,
             onTap: () async {
               await TokenStorage.clearToken();

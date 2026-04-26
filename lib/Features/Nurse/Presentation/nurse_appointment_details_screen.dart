@@ -298,17 +298,9 @@ class _NurseAppointmentDetailsScreenState
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        leadingWidth: 72,
-        leading: TextButton.icon(
+        leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 14, color: Colors.white),
-          label: Text(
-            l10n.profileCancel,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
         title: Text(
           l10n.nurseAppointmentDetailsTitle,

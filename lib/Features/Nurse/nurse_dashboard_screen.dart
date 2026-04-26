@@ -11,7 +11,6 @@ import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart
 import 'nurse_availability_screen.dart';
 import 'nurse_profile_screen.dart';
 import 'nurse_services_screen.dart';
-import 'package:nurse_app/Features/Nurse/add_service_screen.dart';
 
 typedef NurseDashboardNavigate = void Function(int tabIndex);
 
@@ -492,7 +491,7 @@ class _QuickActionsList extends StatelessWidget {
           onTap: () {
             Navigator.of(context).push<void>(
               MaterialPageRoute<void>(
-                builder: (_) => const AddServiceScreen(),
+                builder: (_) => const NurseServicesScreen(),
               ),
             );
           },

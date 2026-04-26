@@ -62,8 +62,7 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
-    Locale('en'),
+    Locale('en')
   ];
 
   /// No description provided for @welcomeBackTitle.
@@ -431,7 +428,7 @@ abstract class AppLocalizations {
   /// No description provided for @patientTotalBookings.
   ///
   /// In en, this message translates to:
-  /// **'Total Bookings'**
+  /// **'All Appointments'**
   String get patientTotalBookings;
 
   /// No description provided for @patientActiveRequests.
@@ -1375,6 +1372,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Arabic'**
   String get patientMoreLanguageArabic;
+
+  /// No description provided for @patientMoreLanguageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch app language'**
+  String get patientMoreLanguageSubtitle;
+
+  /// No description provided for @patientMoreSignOutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of your account'**
+  String get patientMoreSignOutSubtitle;
 
   /// No description provided for @languageSelectorTitle.
   ///
@@ -2390,6 +2399,12 @@ abstract class AppLocalizations {
   /// **'No services found.'**
   String get nursePersonalNoServicesFound;
 
+  /// No description provided for @nurseServicesAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \"+Add\" above to add your first service'**
+  String get nurseServicesAddHint;
+
   /// No description provided for @nurseServiceAddTitle.
   ///
   /// In en, this message translates to:
@@ -2575,6 +2590,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Based on {count} reviews'**
   String nurseRatingsBasedOn(int count);
+
+  /// No description provided for @nurseRatingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get nurseRatingsEmpty;
 
   /// No description provided for @nurseRatingsRecentReviews.
   ///
@@ -4106,6 +4127,30 @@ abstract class AppLocalizations {
   /// **'Cash (Coming Soon)'**
   String get paymentCashComingSoon;
 
+  /// No description provided for @paymentAddNewCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new card'**
+  String get paymentAddNewCard;
+
+  /// No description provided for @paymentAddNewCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available in a future update'**
+  String get paymentAddNewCardSubtitle;
+
+  /// No description provided for @paymentCashSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at visit'**
+  String get paymentCashSubtitle;
+
+  /// No description provided for @paymentComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get paymentComingSoon;
+
   /// No description provided for @paymentNoTransactions.
   ///
   /// In en, this message translates to:
@@ -4292,6 +4337,42 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get reportIssueCatOther;
 
+  /// No description provided for @patientReportCatTechnical.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical'**
+  String get patientReportCatTechnical;
+
+  /// No description provided for @patientReportCatPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get patientReportCatPayment;
+
+  /// No description provided for @patientReportCatServiceIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Issue'**
+  String get patientReportCatServiceIssue;
+
+  /// No description provided for @patientReportCatAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get patientReportCatAccount;
+
+  /// No description provided for @patientReportCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get patientReportCatOther;
+
+  /// No description provided for @patientReportSubmittedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue submitted successfully'**
+  String get patientReportSubmittedSuccess;
+
   /// No description provided for @nurseEarningsSubtitle.
   ///
   /// In en, this message translates to:
@@ -4441,6 +4522,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'False reports are taken seriously and may result in account suspension. Only report genuine issues.'**
   String get nurseReportNoticeBody;
+
+  /// No description provided for @nurseReportSubmittedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem report submitted successfully.'**
+  String get nurseReportSubmittedSuccess;
 
   /// No description provided for @nurseReportSubmit.
   ///
@@ -4621,10 +4708,129 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to Dashboard'**
   String get welcomeDialogButton;
+
+  /// No description provided for @onboardingPage1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Home\nNursing Care'**
+  String get onboardingPage1Title;
+
+  /// No description provided for @onboardingPage1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with verified registered nurses\nfor quality healthcare services in the\ncomfort of your home'**
+  String get onboardingPage1Desc;
+
+  /// No description provided for @onboardingPage2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified & Trusted\nNurses'**
+  String get onboardingPage2Title;
+
+  /// No description provided for @onboardingPage2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'All nurses are licensed professionals,\nbackground-checked and verified by\nour admin team'**
+  String get onboardingPage2Desc;
+
+  /// No description provided for @onboardingPage3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Anytime,\nAnywhere'**
+  String get onboardingPage3Title;
+
+  /// No description provided for @onboardingPage3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule nursing services 24/7 with\ninstant booking confirmations and\nreal-time updates'**
+  String get onboardingPage3Desc;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next  >'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
+
+  /// No description provided for @nursePendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Application Under Review'**
+  String get nursePendingTitle;
+
+  /// No description provided for @nursePendingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for registering as a nurse.\nYour application is currently being reviewed by the admin.\n\nYou will be notified once your account is approved.'**
+  String get nursePendingDescription;
+
+  /// No description provided for @nursePendingReviewTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated review time: 24–48 hours'**
+  String get nursePendingReviewTime;
+
+  /// No description provided for @nursePendingLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get nursePendingLogout;
+
+  /// No description provided for @nurseRejectedVerificationResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Result'**
+  String get nurseRejectedVerificationResult;
+
+  /// No description provided for @nurseRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Rejected'**
+  String get nurseRejectedTitle;
+
+  /// No description provided for @nurseRejectedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile needs updates before\napproval.'**
+  String get nurseRejectedSubtitle;
+
+  /// No description provided for @nurseRejectedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get nurseRejectedReason;
+
+  /// No description provided for @nurseRejectedRejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Your uploaded license is unclear.\nPlease re-upload a clear document with\nall details visible.'**
+  String get nurseRejectedRejectionReason;
+
+  /// No description provided for @nurseRejectedUpdateResubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update & Resubmit'**
+  String get nurseRejectedUpdateResubmit;
+
+  /// No description provided for @nurseRejectedLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get nurseRejectedLogout;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -4633,26 +4839,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['ar', 'en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'en':
-      return AppLocalizationsEn();
+    case 'ar': return AppLocalizationsAr();
+    case 'en': return AppLocalizationsEn();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }
