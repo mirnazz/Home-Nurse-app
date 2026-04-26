@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
-
-// ── Reusable field widgets ────────────────────────────────────────────────────
 
 class ReportDropdownField extends StatelessWidget {
   final String label;
@@ -28,23 +27,14 @@ class ReportDropdownField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1C1C1C),
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: hasError
-                  ? const Color(0xFFD32F2F)
-                  : const Color(0xFFE0E0E0),
+              color: hasError ? const Color(0xFFD32F2F) : const Color(0xFFE0E0E0),
               width: 1.5,
             ),
           ),
@@ -53,20 +43,12 @@ class ReportDropdownField extends StatelessWidget {
               value: value,
               hint: Padding(
                 padding: const EdgeInsetsDirectional.only(start: 14),
-                child: Text(
-                  hint,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF9CA3AF),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child: Text(hint, style: const TextStyle(color: Color(0xFF9CA3AF))),
               ),
               isExpanded: true,
               borderRadius: BorderRadius.circular(12),
               padding: const EdgeInsetsDirectional.only(start: 14, end: 8),
-              icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFF6B7280)),
+              icon: const Icon(Icons.keyboard_arrow_down_rounded),
               items: items,
               onChanged: onChanged,
             ),
@@ -74,17 +56,7 @@ class ReportDropdownField extends StatelessWidget {
         ),
         if (hasError) ...[
           const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 4),
-            child: Text(
-              errorText!,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFFD32F2F),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          Text(errorText!, style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F))),
         ],
       ],
     );
@@ -118,80 +90,39 @@ class ReportTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1C1C1C),
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
           maxLength: maxLength,
-          buildCounter: (_,
-                  {required currentLength,
-                  required isFocused,
-                  required maxLength}) =>
-              null,
+          buildCounter: (_, {required currentLength, required isFocused, required maxLength}) => null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF9CA3AF),
-              fontWeight: FontWeight.w400,
-            ),
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: hasError
-                    ? const Color(0xFFD32F2F)
-                    : const Color(0xFFE0E0E0),
+                color: hasError ? const Color(0xFFD32F2F) : const Color(0xFFE0E0E0),
                 width: 1.5,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: hasError
-                    ? const Color(0xFFD32F2F)
-                    : const Color(0xFFD32F2F),
-                width: 1.5,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
             ),
           ),
         ),
         if (maxLength != null && currentLength != null)
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: Text(
-              '$currentLength/$maxLength',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: Text('$currentLength/$maxLength', style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
           ),
         if (hasError) ...[
           const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 4),
-            child: Text(
-              errorText!,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFFD32F2F),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          Text(errorText!, style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F))),
         ],
       ],
     );
@@ -224,44 +155,19 @@ class ReportCheckbox extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                onChanged: onChanged,
-                activeColor: const Color(0xFFD32F2F),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
+            Checkbox(
+              value: value,
+              onChanged: onChanged,
+              activeColor: const Color(0xFFD32F2F),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1C1C1C),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
                 ],
               ),
             ),
@@ -272,14 +178,11 @@ class ReportCheckbox extends StatelessWidget {
   }
 }
 
-// ── Main screen ───────────────────────────────────────────────────────────────
-
 class PatientReportIssueScreen extends StatefulWidget {
   const PatientReportIssueScreen({super.key});
 
   @override
-  State<PatientReportIssueScreen> createState() =>
-      _PatientReportIssueScreenState();
+  State<PatientReportIssueScreen> createState() => _PatientReportIssueScreenState();
 }
 
 class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
@@ -290,13 +193,22 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
   String? _selectedCategory;
   final _subjectController = TextEditingController();
   final _descController = TextEditingController();
+
   bool _isUrgent = false;
+  bool _isSubmitting = false;
   int _descLength = 0;
 
-  // Validation error state
   bool _showCategoryError = false;
   bool _showSubjectError = false;
   bool _showDescError = false;
+
+  final List<String> _categories = const [
+    "Technical",
+    "Payment",
+    "Service Issue",
+    "Account",
+    "Other",
+  ];
 
   @override
   void initState() {
@@ -313,23 +225,7 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
     super.dispose();
   }
 
-  List<String> _categories(AppLocalizations l10n) => [
-        l10n.reportIssueCatLateArrival,
-        l10n.reportIssueCatUnprofessional,
-        l10n.reportIssueCatPoorService,
-        l10n.reportIssueCatCommunication,
-        l10n.reportIssueCatHygiene,
-        l10n.reportIssueCatBillingDispute,
-        l10n.reportIssueCatInappropriate,
-        l10n.reportIssueCatHarassment,
-        l10n.reportIssueCatSafety,
-        l10n.reportIssueCatFraud,
-        l10n.reportIssueCatViolence,
-        l10n.reportIssueCatOtherSerious,
-        l10n.reportIssueCatOther,
-      ];
-
-  void _submit(AppLocalizations l10n) {
+  Future<void> _submit(AppLocalizations l10n) async {
     final categoryEmpty = _selectedCategory == null;
     final subjectEmpty = _subjectController.text.trim().isEmpty;
     final descEmpty = _descController.text.trim().isEmpty;
@@ -342,14 +238,37 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
 
     if (categoryEmpty || subjectEmpty || descEmpty) return;
 
-    // All fields valid — wire backend submission here.
-    Navigator.of(context).pop();
+    setState(() => _isSubmitting = true);
+
+    try {
+      await ApiService.submitPatientIssue(
+        category: _selectedCategory!,
+        subject: _subjectController.text.trim(),
+        description: _descController.text.trim(),
+        isUrgent: _isUrgent,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Issue submitted successfully")),
+      );
+
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst("Exception: ", ""))),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final categories = _categories(l10n);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -358,14 +277,11 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text(
-          l10n.reportIssueTitle,
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
+        title: Text(l10n.reportIssueTitle, style: const TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             icon: const Icon(Icons.close_rounded),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
           ),
         ],
       ),
@@ -374,35 +290,28 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Category dropdown ─────────────────────────────────────────
             ReportDropdownField(
               label: l10n.reportIssueCategoryLabel,
               hint: l10n.reportIssueCategoryHint,
               value: _selectedCategory,
               errorText: _showCategoryError ? l10n.reportIssueCategoryRequired : null,
-              items: categories
+              items: _categories
                   .map(
                     (c) => DropdownMenuItem(
                       value: c,
-                      child: Text(
-                        c,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1C1C1C),
-                        ),
-                      ),
+                      child: Text(c, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                     ),
                   )
                   .toList(),
-              onChanged: (val) => setState(() {
-                _selectedCategory = val;
-                if (val != null) _showCategoryError = false;
-              }),
+              onChanged: _isSubmitting
+                  ? (_) {}
+                  : (val) => setState(() {
+                        _selectedCategory = val;
+                        if (val != null) _showCategoryError = false;
+                      }),
             ),
             const SizedBox(height: 20),
 
-            // ── Subject ───────────────────────────────────────────────────
             ReportTextField(
               label: l10n.reportIssueSubjectLabel,
               hint: l10n.reportIssueSubjectHint,
@@ -411,7 +320,6 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ── Detailed description ──────────────────────────────────────
             ReportTextField(
               label: l10n.reportIssueDescriptionLabel,
               hint: l10n.reportIssueDescriptionHint,
@@ -423,72 +331,64 @@ class _PatientReportIssueScreenState extends State<PatientReportIssueScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ── Mark as Urgent checkbox ───────────────────────────────────
             ReportCheckbox(
               title: l10n.reportIssueMarkUrgent,
               subtitle: l10n.reportIssueUrgentSubtitle,
               value: _isUrgent,
-              onChanged: (val) => setState(() => _isUrgent = val ?? false),
+              onChanged: _isSubmitting ? (_) {} : (val) => setState(() => _isUrgent = val ?? false),
             ),
             const SizedBox(height: 24),
 
-            // ── Important Notice ──────────────────────────────────────────
             _ImportantNotice(
               title: l10n.reportIssueNoticeTitle,
               body: l10n.reportIssueNoticeBody,
             ),
             const SizedBox(height: 32),
 
-            // ── Submit button ─────────────────────────────────────────────
             ElevatedButton(
-              onPressed: () => _submit(l10n),
+              onPressed: _isSubmitting ? null : () => _submit(l10n),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _red,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
-              child: Text(
-                l10n.reportIssueSubmit,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.2,
+                      ),
+                    )
+                  : Text(
+                      l10n.reportIssueSubmit,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    ),
             ),
             const SizedBox(height: 12),
 
-            // ── Cancel button ─────────────────────────────────────────────
             OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF6B7280),
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 side: const BorderSide(color: Color(0xFFE0E0E0), width: 1.5),
               ),
               child: Text(
                 l10n.reportIssueCancel,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 }
-
-// ── Important Notice box ──────────────────────────────────────────────────────
 
 class _ImportantNotice extends StatelessWidget {
   final String title;
@@ -508,37 +408,15 @@ class _ImportantNotice extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 2),
-            child: Icon(
-              Icons.warning_amber_rounded,
-              color: Color(0xFFF59E0B),
-              size: 22,
-            ),
-          ),
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF92400E),
-                  ),
-                ),
+                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF92400E))),
                 const SizedBox(height: 4),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF92400E),
-                    height: 1.4,
-                  ),
-                ),
+                Text(body, style: const TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.4)),
               ],
             ),
           ),

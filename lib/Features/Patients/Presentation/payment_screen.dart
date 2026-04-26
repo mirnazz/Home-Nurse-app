@@ -10,10 +10,7 @@ import 'package:nurse_app/Features/Patients/Presentation/payment_success_screen.
 class PaymentScreen extends StatefulWidget {
   final Appointment appointment;
 
-  const PaymentScreen({
-    super.key,
-    required this.appointment,
-  });
+  const PaymentScreen({super.key, required this.appointment});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -41,24 +38,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'NurseNow',
           style: ThemeMode.light,
+
+          // 🔥 مهم
+          allowsDelayedPaymentMethods: false,
         ),
       );
-
       // 3) present payment sheet to user
       await Stripe.instance.presentPaymentSheet();
 
       // 4) notify backend after Stripe success
-      await ApiService.confirmPayment(
-        bookingId: bookingId,
-      );
+      await ApiService.confirmPayment(bookingId: bookingId);
 
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PaymentSuccessScreen(
-            amount: widget.appointment.price,
-          ),
+          builder:
+              (_) => PaymentSuccessScreen(amount: widget.appointment.price),
         ),
       );
     } on StripeException {
@@ -66,23 +62,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PaymentFailedScreen(
-            appointment: widget.appointment,
-          ),
+          builder: (_) => PaymentFailedScreen(appointment: widget.appointment),
         ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Payment error: $e')));
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PaymentFailedScreen(
-            appointment: widget.appointment,
-          ),
+          builder: (_) => PaymentFailedScreen(appointment: widget.appointment),
         ),
       );
     } finally {
@@ -183,22 +175,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.2,
+              child:
+                  _isSubmitting
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.2,
+                        ),
+                      )
+                      : const Text(
+                        'Confirm Payment',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
                       ),
-                    )
-                  : const Text(
-                      'Confirm Payment',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
             ),
           ],
         ),
@@ -262,9 +255,10 @@ class _SummaryRow extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: highlight
-                  ? AppointmentUiColors.tealHeader
-                  : const Color(0xFF111827),
+              color:
+                  highlight
+                      ? AppointmentUiColors.tealHeader
+                      : const Color(0xFF111827),
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -273,4 +267,3 @@ class _SummaryRow extends StatelessWidget {
     );
   }
 }
-

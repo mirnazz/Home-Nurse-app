@@ -115,47 +115,44 @@ class ApiService {
   }
 
   static Future<void> login({
-  required String email,
-  required String password,
-}) async {
-  final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.login);
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.login);
 
-  final response = await http
-      .post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": email,
-          "password": password,
-        }),
-      )
-      .timeout(const Duration(seconds: 15));
+    final response = await http
+        .post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"email": email, "password": password}),
+        )
+        .timeout(const Duration(seconds: 15));
 
-  debugPrint("LOGIN STATUS => ${response.statusCode}");
-  debugPrint("LOGIN BODY => ${response.body}");
+    debugPrint("LOGIN STATUS => ${response.statusCode}");
+    debugPrint("LOGIN BODY => ${response.body}");
 
-  if (response.statusCode != 200) {
-    throw Exception(_extractErrorMessage(
-      response.body,
-      fallback: "Invalid email or password",
-    ));
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Invalid email or password",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+
+    final token =
+        data["token"] ?? data["accessToken"] ?? data["jwtToken"] ?? data["jwt"];
+
+    if (token == null || token.toString().trim().isEmpty) {
+      throw Exception("Login succeeded but token was not returned");
+    }
+
+    await TokenStorage.saveToken(token.toString());
+
+    debugPrint("SAVED TOKEN => ${token.toString().substring(0, 20)}...");
   }
-
-  final data = jsonDecode(response.body);
-
-  final token = data["token"] ??
-      data["accessToken"] ??
-      data["jwtToken"] ??
-      data["jwt"];
-
-  if (token == null || token.toString().trim().isEmpty) {
-    throw Exception("Login succeeded but token was not returned");
-  }
-
-  await TokenStorage.saveToken(token.toString());
-
-  debugPrint("SAVED TOKEN => ${token.toString().substring(0, 20)}...");
-}
 
   static Future<String> forgotPassword({required String email}) async {
     final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.forgotPassword);
@@ -245,18 +242,22 @@ class ApiService {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
 
-   final rawRole =
-    data['role'] ??
-    data['Role'] ??
-    data['roleType'] ??
-    data['RoleType'] ??
-    (data['roles'] is List && data['roles'].isNotEmpty ? data['roles'][0] : null) ??
-    (data['Roles'] is List && data['Roles'].isNotEmpty ? data['Roles'][0] : null) ??
-    '';
+    final rawRole =
+        data['role'] ??
+        data['Role'] ??
+        data['roleType'] ??
+        data['RoleType'] ??
+        (data['roles'] is List && data['roles'].isNotEmpty
+            ? data['roles'][0]
+            : null) ??
+        (data['Roles'] is List && data['Roles'].isNotEmpty
+            ? data['Roles'][0]
+            : null) ??
+        '';
 
-final role = rawRole.toString().trim();
+    final role = rawRole.toString().trim();
 
-data['role_normalized'] = role;
+    data['role_normalized'] = role;
 
     data['role_normalized'] = role;
 
@@ -515,7 +516,7 @@ data['role_normalized'] = role;
   // Patient Dashboard
   // =========================
 
- static Future<Map<String, dynamic>> getPatientDashboardSummary() async {
+  static Future<Map<String, dynamic>> getPatientDashboardSummary() async {
     final token = await _requireToken();
     final url = Uri.parse(
       ApiConstants.baseUrl + ApiConstants.patientDashboardSummary,
@@ -527,7 +528,10 @@ data['role_normalized'] = role;
 
     if (response.statusCode != 200) {
       throw Exception(
-        _extractErrorMessage(response.body, fallback: "Failed to load dashboard summary"),
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load dashboard summary",
+        ),
       );
     }
 
@@ -1445,53 +1449,56 @@ data['role_normalized'] = role;
   // Patient - Appointments
   // =========================
 
- static Future<List<Appointment>> getPatientAppointments({
-  required String tab,
-}) async {
-  final token = await _requireToken();
+  static Future<List<Appointment>> getPatientAppointments({
+    required String tab,
+  }) async {
+    final token = await _requireToken();
 
-  final url = Uri.parse(
-    "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
-  );
-
-  debugPrint("📡 PATIENT APPOINTMENTS URL => $url");
-
-  final response = await http
-      .get(url, headers: _jsonHeaders(token))
-      .timeout(const Duration(seconds: 15));
-
-  debugPrint("📥 STATUS => ${response.statusCode}");
-  debugPrint("📥 BODY => ${response.body}");
-
-  if (response.statusCode != 200) {
-    throw Exception(
-      _extractErrorMessage(
-        response.body,
-        fallback: "Failed to load appointments",
-      ),
+    final url = Uri.parse(
+      "${ApiConstants.baseUrl}${ApiConstants.patientAppointments}?tab=$tab",
     );
+
+    debugPrint("📡 PATIENT APPOINTMENTS URL => $url");
+
+    final response = await http
+        .get(url, headers: _jsonHeaders(token))
+        .timeout(const Duration(seconds: 15));
+
+    debugPrint("📥 STATUS => ${response.statusCode}");
+    debugPrint("📥 BODY => ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to load appointments",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+
+    if (data is! List) {
+      debugPrint("❌ RESPONSE IS NOT LIST");
+      return [];
+    }
+
+    final list =
+        data
+            .map<Appointment>(
+              (item) =>
+                  Appointment.fromPatientJson(item as Map<String, dynamic>),
+            )
+            .toList();
+
+    // 🔥 أهم print
+    for (var a in list) {
+      debugPrint("🧾 APPOINTMENT => ID: ${a.id}, STATUS: ${a.status}");
+    }
+
+    return list;
   }
 
-  final data = jsonDecode(response.body);
-
-  if (data is! List) {
-    debugPrint("❌ RESPONSE IS NOT LIST");
-    return [];
-  }
-
-  final list = data
-      .map<Appointment>(
-        (item) => Appointment.fromPatientJson(item as Map<String, dynamic>),
-      )
-      .toList();
-
-  // 🔥 أهم print
-  for (var a in list) {
-    debugPrint("🧾 APPOINTMENT => ID: ${a.id}, STATUS: ${a.status}");
-  }
-
-  return list;
-}
   static Future<void> cancelPatientAppointment({
     required String bookingId,
   }) async {
@@ -1572,73 +1579,65 @@ data['role_normalized'] = role;
   }
 
   static Future<String> createPaymentIntent({required String bookingId}) async {
-    final token = await _requireToken();
+  final token = await _requireToken();
 
-    final url = Uri.parse(
-      ApiConstants.baseUrl + ApiConstants.createPaymentIntent,
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}/api/Patient/payments/create-intent/$bookingId",
+  );
+
+  final response = await http
+      .post(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 20));
+
+  debugPrint("CREATE INTENT URL => $url");
+  debugPrint("CREATE INTENT STATUS => ${response.statusCode}");
+  debugPrint("CREATE INTENT BODY => ${response.body}");
+
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to create payment intent",
+      ),
     );
+  }
 
-    final response = await http
-        .post(
-          url,
-          headers: _jsonHeaders(token),
-          body: jsonEncode({"bookingId": _toInt(bookingId)}),
-        )
-        .timeout(const Duration(seconds: 20));
+  final data = jsonDecode(response.body);
+  final secret = data["clientSecret"];
 
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception(
-        _extractErrorMessage(
-          response.body,
-          fallback: "Failed to create payment intent",
-        ),
-      );
-    }
-
-    final data = jsonDecode(response.body);
-
-    if (data is Map<String, dynamic>) {
-      final secret =
-          data["clientSecret"] ??
-          data["client_secret"] ??
-          data["paymentIntentClientSecret"];
-
-      if (secret != null && secret.toString().isNotEmpty) {
-        return secret.toString();
-      }
-    }
-
+  if (secret == null || secret.toString().isEmpty) {
     throw Exception("Client secret was not returned by backend");
   }
 
-  static Future<void> confirmPayment({
-    required String bookingId,
-    String? paymentIntentId,
-  }) async {
-    final token = await _requireToken();
+  return secret.toString();
+}
+static Future<void> confirmPayment({
+  required String bookingId,
+  String? paymentIntentId,
+}) async {
+  final token = await _requireToken();
 
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.confirmPayment);
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}/api/Patient/payments/confirm/$bookingId",
+  );
 
-    final body = <String, dynamic>{
-      "bookingId": _toInt(bookingId),
-      if (paymentIntentId != null && paymentIntentId.trim().isNotEmpty)
-        "paymentIntentId": paymentIntentId.trim(),
-    };
+  final response = await http
+      .post(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 20));
 
-    final response = await http
-        .post(url, headers: _jsonHeaders(token), body: jsonEncode(body))
-        .timeout(const Duration(seconds: 20));
+  debugPrint("CONFIRM PAYMENT URL => $url");
+  debugPrint("CONFIRM PAYMENT STATUS => ${response.statusCode}");
+  debugPrint("CONFIRM PAYMENT BODY => ${response.body}");
 
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception(
-        _extractErrorMessage(
-          response.body,
-          fallback: "Failed to confirm payment",
-        ),
-      );
-    }
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to confirm payment",
+      ),
+    );
   }
-
+}
   // =========================
   // Notifications
   // =========================
@@ -1713,4 +1712,214 @@ data['role_normalized'] = role;
       );
     }
   }
+
+  static Future<Map<String, dynamic>> submitProblem({
+    required String category,
+    required String subject,
+    required String description,
+    required bool isUrgent,
+  }) async {
+    final token = await _requireToken();
+
+    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.submitProblem);
+
+    debugPrint("SUBMIT PROBLEM URL => $url");
+    debugPrint(
+      "SUBMIT PROBLEM BODY => ${jsonEncode({"category": category, "subject": subject, "description": description, "isUrgent": isUrgent})}",
+    );
+
+    final response = await http
+        .post(
+          url,
+          headers: _jsonHeaders(token),
+          body: jsonEncode({
+            "category": category,
+            "subject": subject,
+            "description": description,
+            "isUrgent": isUrgent,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    debugPrint("SUBMIT PROBLEM STATUS => ${response.statusCode}");
+    debugPrint("SUBMIT PROBLEM BODY RESPONSE => ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractErrorMessage(
+          response.body,
+          fallback: "Failed to submit problem",
+        ),
+      );
+    }
+
+    final data = jsonDecode(response.body);
+    return data is Map<String, dynamic> ? data : <String, dynamic>{};
+  }
+
+  static Future<List<dynamic>> getMyReports() async {
+    final token = await _requireToken();
+
+    final response = await http.get(
+      Uri.parse(ApiConstants.baseUrl + ApiConstants.myReports),
+      headers: _jsonHeaders(token),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load reports");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+
+  static Future<Map<String, dynamic>> getProblemDetails(int id) async {
+    final token = await _requireToken();
+
+    final response = await http.get(
+      Uri.parse("${ApiConstants.baseUrl}${ApiConstants.problemDetails}/$id"),
+      headers: _jsonHeaders(token),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load details");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> getNurseReviews() async {
+  final token = await _requireToken();
+
+  final url = Uri.parse("${ApiConstants.baseUrl}/api/Nurse/reviews");
+
+  final response = await http
+      .get(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200) {
+    throw Exception("Failed to load nurse reviews");
+  }
+
+  final data = jsonDecode(response.body);
+  return data is Map<String, dynamic> ? data : <String, dynamic>{};
+}
+
+static Future<List<dynamic>> getPatientPaymentHistory() async {
+  final token = await _requireToken();
+
+  final url = Uri.parse("${ApiConstants.baseUrl}/api/patient/payments/history");
+
+  final response = await http
+      .get(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("PAYMENT HISTORY URL => $url");
+  debugPrint("PAYMENT HISTORY STATUS => ${response.statusCode}");
+  debugPrint("PAYMENT HISTORY BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load payment history",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  return data is List ? data : [];
+}
+static Future<Map<String, dynamic>> submitPatientIssue({
+  required String category,
+  required String subject,
+  required String description,
+  required bool isUrgent,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse("${ApiConstants.baseUrl}/api/patient/issues");
+
+  final response = await http
+      .post(
+        url,
+        headers: _jsonHeaders(token),
+        body: jsonEncode({
+          "category": category,
+          "subject": subject,
+          "description": description,
+          "isUrgent": isUrgent,
+        }),
+      )
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("SUBMIT PATIENT ISSUE STATUS => ${response.statusCode}");
+  debugPrint("SUBMIT PATIENT ISSUE BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to submit issue",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  return data is Map<String, dynamic> ? data : <String, dynamic>{};
+}
+static Future<Map<String, dynamic>> getNursePaymentSummary() async {
+  final token = await _requireToken();
+
+  final url = Uri.parse("${ApiConstants.baseUrl}/api/nurse/payments/summary");
+
+  final response = await http
+      .get(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("NURSE PAYMENT SUMMARY STATUS => ${response.statusCode}");
+  debugPrint("NURSE PAYMENT SUMMARY BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load earnings summary",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  return data is Map<String, dynamic> ? data : <String, dynamic>{};
+}
+
+static Future<List<dynamic>> getNursePaymentHistory({
+  required String tab,
+}) async {
+  final token = await _requireToken();
+
+  final url = Uri.parse(
+    "${ApiConstants.baseUrl}/api/nurse/payments/history?tab=$tab",
+  );
+
+  final response = await http
+      .get(url, headers: _jsonHeaders(token))
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("NURSE PAYMENT HISTORY URL => $url");
+  debugPrint("NURSE PAYMENT HISTORY STATUS => ${response.statusCode}");
+  debugPrint("NURSE PAYMENT HISTORY BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        fallback: "Failed to load earnings history",
+      ),
+    );
+  }
+
+  final data = jsonDecode(response.body);
+  return data is List ? data : [];
+}
 }

@@ -11,6 +11,9 @@ import 'package:nurse_app/Features/Patients/Presentation/patient_more_screen.dar
 import 'package:nurse_app/Features/Patients/Presentation/patient_payments_screen.dart';
 import 'package:nurse_app/Features/Shared/Presentation/notifications_screen.dart';
 import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
+import 'package:nurse_app/Core/models/appointment.dart';
+import 'package:nurse_app/Core/widgets/appointment_list_card.dart';
+import 'package:nurse_app/Features/Patients/Presentation/patient_appointment_details_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final List<PatientPendingReviewItem> pendingReviewRequests;
@@ -1041,26 +1044,314 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _UpcomingAppointments extends StatelessWidget {
+class _UpcomingAppointments extends StatefulWidget {
   const _UpcomingAppointments();
+
+  @override
+  State<_UpcomingAppointments> createState() => _UpcomingAppointmentsState();
+}
+
+class _UpcomingAppointmentsState extends State<_UpcomingAppointments> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<Appointment> _appointments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUpcomingAppointments();
+  }
+
+  Future<void> _loadUpcomingAppointments() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final appointments = await ApiService.getPatientAppointments(
+        tab: 'upcoming',
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointments = appointments.take(2).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _appointments = [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _openDetails(Appointment appointment) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder:
+            (_) => PatientAppointmentDetailsScreen(appointment: appointment),
+      ),
+    );
+
+    if (!mounted) return;
+    await _loadUpcomingAppointments();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8ECF2)),
-      ),
-      child: Text(
-        l10n.patientAppointmentsPlaceholder,
-        style: const TextStyle(
-          color: Color(0xFF6B7280),
-          fontWeight: FontWeight.w600,
+    if (_isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        width: double.infinity,
+        decoration: _boxDecoration(),
+        child: const Center(
+          child: SizedBox(
+            height: 22,
+            width: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.2),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        decoration: _boxDecoration(),
+        child: Text(
+          _errorMessage!,
+          style: const TextStyle(
+            color: Color(0xFFD32F2F),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    if (_appointments.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        decoration: _boxDecoration(),
+        child: Text(
+          l10n.patientAppointmentsNoUpcoming,
+          style: const TextStyle(
+            color: Color(0xFF6B7280),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children:
+          _appointments.map((apt) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MiniAppointmentCard(
+                appointment: apt,
+                onTap: () => _openDetails(apt),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  BoxDecoration _boxDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: const Color(0xFFE8ECF2)),
+    );
+  }
+}
+
+class _MiniAppointmentCard extends StatelessWidget {
+  final Appointment appointment;
+  final VoidCallback onTap;
+
+  const _MiniAppointmentCard({required this.appointment, required this.onTap});
+
+  Color get _statusBg {
+    switch (appointment.status.name.toLowerCase()) {
+      case 'accepted':
+      case 'confirmed':
+        return const Color(0xFFE0F2FE);
+      case 'active':
+      case 'paid':
+        return const Color(0xFFDCFCE7);
+      case 'pending':
+        return const Color(0xFFFEF3C7);
+      default:
+        return const Color(0xFFF3F4F6);
+    }
+  }
+
+  Color get _statusFg {
+    switch (appointment.status.name.toLowerCase()) {
+      case 'accepted':
+      case 'confirmed':
+        return const Color(0xFF0369A1);
+      case 'active':
+      case 'paid':
+        return const Color(0xFF15803D);
+      case 'pending':
+        return const Color(0xFFD97706);
+      default:
+        return const Color(0xFF6B7280);
+    }
+  }
+
+  String _timeText(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '${dt.day}/${dt.month} • $h:$m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2F7F8D);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE8ECF2)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x08000000),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(
+                    appointment.nurseName.isNotEmpty
+                        ? appointment.nurseName[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      color: primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appointment.serviceName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14.5,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      appointment.nurseName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF6B7280),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _timeText(appointment.dateTime),
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF6B7280),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '${appointment.price.toStringAsFixed(0)} JOD',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _statusBg,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      appointment.status.name,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: _statusFg,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

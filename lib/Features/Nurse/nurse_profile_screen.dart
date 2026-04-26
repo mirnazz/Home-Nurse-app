@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/token_storage.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
 import 'package:nurse_app/Features/Nurse/nurse_personal_info_screen.dart';
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_earnings_screen.dart';
@@ -8,9 +9,43 @@ import 'package:nurse_app/Features/Nurse/Presentation/nurse_report_problem_scree
 import 'package:nurse_app/Features/Nurse/Presentation/nurse_ratings_screen.dart';
 import 'package:nurse_app/Core/widgets/language_selector_sheet.dart';
 
-/// Settings-style hub: deep links to sub-screens (no API changes here).
-class NurseProfileScreen extends StatelessWidget {
+class NurseProfileScreen extends StatefulWidget {
   const NurseProfileScreen({super.key});
+
+  @override
+  State<NurseProfileScreen> createState() => _NurseProfileScreenState();
+}
+
+class _NurseProfileScreenState extends State<NurseProfileScreen> {
+  String? _nurseId;
+  bool _isLoadingMe = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMe();
+  }
+
+  Future<void> _loadMe() async {
+    try {
+      final me = await ApiService.getMe();
+
+      if (!mounted) return;
+
+      setState(() {
+        _nurseId = (me['userId'] ?? '').toString();
+        _isLoadingMe = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isLoadingMe = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
 
   Future<void> _logout(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
@@ -19,11 +54,9 @@ class NurseProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text(
           l10n.nurseProfileLogoutDialogTitle,
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
-        content: Text(
-          l10n.nurseProfileLogoutDialogMessage,
-        ),
+        content: Text(l10n.nurseProfileLogoutDialogMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -33,7 +66,7 @@ class NurseProfileScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               l10n.nurseProfileLogoutTitle,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFFDC2626),
                 fontWeight: FontWeight.w800,
               ),
@@ -57,9 +90,25 @@ class NurseProfileScreen extends StatelessWidget {
     }
   }
 
+  void _openRatings() {
+    if (_nurseId == null || _nurseId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load nurse ID')),
+      );
+      return;
+    }
+
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const NurseRatingsScreen( ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -68,7 +117,7 @@ class NurseProfileScreen extends StatelessWidget {
           children: [
             Text(
               l10n.nurseProfileTitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF1D2433),
@@ -84,6 +133,7 @@ class NurseProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+
             _ProfileSettingsTile(
               icon: Icons.person_outline_rounded,
               title: l10n.nurseProfilePersonalInfoTitle,
@@ -97,19 +147,17 @@ class NurseProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 10),
+
             _ProfileSettingsTile(
               icon: Icons.star_outline_rounded,
               title: l10n.nurseProfileRatingsTitle,
-              subtitle: l10n.nurseProfileRatingsSubtitle,
-              onTap: () {
-                Navigator.of(context).push<void>(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const NurseRatingsScreen(),
-                  ),
-                );
-              },
+              subtitle: _isLoadingMe
+                  ? 'Loading...'
+                  : l10n.nurseProfileRatingsSubtitle,
+              onTap: _openRatings,
             ),
             const SizedBox(height: 10),
+
             _ProfileSettingsTile(
               icon: Icons.account_balance_wallet_outlined,
               title: l10n.nurseProfileEarningsTitle,
@@ -123,6 +171,7 @@ class NurseProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 10),
+
             _ProfileSettingsTile(
               icon: Icons.flag_outlined,
               title: l10n.nurseProfileReportTitle,
@@ -136,6 +185,7 @@ class NurseProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
+
             _ProfileSettingsTile(
               icon: Icons.language_rounded,
               title: l10n.patientMoreLanguage,
@@ -143,6 +193,7 @@ class NurseProfileScreen extends StatelessWidget {
               onTap: () => showLanguageSelectorSheet(context),
             ),
             const SizedBox(height: 10),
+
             _ProfileSettingsTile(
               icon: Icons.logout_rounded,
               title: l10n.nurseProfileLogoutTitle,

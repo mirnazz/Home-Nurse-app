@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:nurse_app/Core/theme/api/api_service.dart';
 import 'package:nurse_app/Core/theme/app_colors.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 
 class _ReviewItem {
   final String patientName;
@@ -17,64 +19,95 @@ class _ReviewItem {
   });
 }
 
-/// Nurse ratings & reviews (UI + placeholder data until API exists).
-class NurseRatingsScreen extends StatelessWidget {
-  const NurseRatingsScreen({super.key});
+class NurseRatingsScreen extends StatefulWidget {
+ const NurseRatingsScreen({super.key});
 
-  static const _mockAverage = 4.7;
-  static const _mockTotalReviews = 24;
+  @override
+  State<NurseRatingsScreen> createState() => _NurseRatingsScreenState();
+}
+
+class _NurseRatingsScreenState extends State<NurseRatingsScreen> {
+  double _average = 0;
+  int _totalReviews = 0;
+  List<_ReviewItem> _reviews = [];
+
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    try {
+       final data = await ApiService.getNurseReviews();
+
+      final avg = (data["averageRating"] ?? 0).toDouble();
+      final count = data["reviewsCount"] ?? 0;
+      final list = data["reviews"] as List;
+
+      final mapped = list.map((r) {
+        return _ReviewItem(
+          patientName: r["patientName"] ?? "",
+          rating: (r["rating"] ?? 0).toDouble(),
+          comment: r["comment"] ?? "",
+          date: DateTime.parse(r["createdAt"]),
+        );
+      }).toList();
+
+      setState(() {
+        _average = avg;
+        _totalReviews = count;
+        _reviews = mapped;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dateFmt = DateFormat.yMMMd(Localizations.localeOf(context).toString());
-    final mockReviews = [
-      _ReviewItem(
-        patientName: l10n.nurseRatingsMockName1,
-        rating: 5,
-        comment: l10n.nurseRatingsMockComment1,
-        date: DateTime(2026, 2, 2),
-      ),
-      _ReviewItem(
-        patientName: l10n.nurseRatingsMockName2,
-        rating: 5,
-        comment: l10n.nurseRatingsMockComment2,
-        date: DateTime(2026, 1, 28),
-      ),
-      _ReviewItem(
-        patientName: l10n.nurseRatingsMockName3,
-        rating: 4,
-        comment: l10n.nurseRatingsMockComment3,
-        date: DateTime(2026, 1, 15),
-      ),
-    ];
+    final dateFmt =
+        DateFormat.yMMMd(Localizations.localeOf(context).toString());
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        body: Center(child: Text(_error!)),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           l10n.nurseProfileRatingsTitle,
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
+          /// Average Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: Row(
               children: [
@@ -82,113 +115,82 @@ class NurseRatingsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _mockAverage.toStringAsFixed(1),
+                      _average.toStringAsFixed(1),
                       style: const TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF1D2433),
                       ),
                     ),
                     Row(
                       children: List.generate(5, (i) {
-                        final filled = i < _mockAverage.floor();
-                        final half = i == _mockAverage.floor() &&
-                            _mockAverage % 1 >= 0.5;
                         return Icon(
-                          filled
+                          i < _average.round()
                               ? Icons.star_rounded
-                              : half
-                                  ? Icons.star_half_rounded
-                                  : Icons.star_outline_rounded,
+                              : Icons.star_outline_rounded,
                           color: const Color(0xFFF59E0B),
-                          size: 22,
                         );
                       }),
                     ),
                   ],
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Text(
-                    l10n.nurseRatingsBasedOn(_mockTotalReviews),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.grey.shade700,
-                    ),
+                    l10n.nurseRatingsBasedOn(_totalReviews),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 22),
+
+          const SizedBox(height: 20),
+
           Text(
             l10n.nurseRatingsRecentReviews,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF1D2433),
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w900),
           ),
+
           const SizedBox(height: 12),
-          ...mockReviews.map((r) {
+
+          if (_reviews.isEmpty)
+            const Center(child: Text("No reviews yet")),
+
+          ..._reviews.map((r) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              r.patientName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 15,
-                                color: Color(0xFF1D2433),
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(5, (i) {
-                              return Icon(
-                                i < r.rating.round()
-                                    ? Icons.star_rounded
-                                    : Icons.star_outline_rounded,
-                                color: const Color(0xFFF59E0B),
-                                size: 18,
-                              );
-                            }),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        r.comment,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          height: 1.35,
-                          color: Colors.grey.shade800,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(r.patientName)),
+                        Row(
+                          children: List.generate(5, (i) {
+                            return Icon(
+                              i < r.rating.round()
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              size: 18,
+                              color: const Color(0xFFF59E0B),
+                            );
+                          }),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        dateFmt.format(r.date),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(r.comment),
+                    const SizedBox(height: 6),
+                    Text(
+                      dateFmt.format(r.date),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
             );

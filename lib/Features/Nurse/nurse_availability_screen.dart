@@ -69,9 +69,10 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
         mapped.putIfAbsent(day, () => []);
         mapped[day]!.add(
           _TimeSlot(
-            id: item['weeklyAvailabilityId'] is int
-                ? item['weeklyAvailabilityId'] as int
-                : int.tryParse(item['weeklyAvailabilityId'].toString()),
+            id:
+                item['weeklyAvailabilityId'] is int
+                    ? item['weeklyAvailabilityId'] as int
+                    : int.tryParse(item['weeklyAvailabilityId'].toString()),
             start: (item['startTime'] ?? '').toString(),
             end: (item['endTime'] ?? '').toString(),
             isActive: item['isActive'] == true,
@@ -96,9 +97,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
   Future<void> _saveAvailability() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.nurseAvailSaveAutoMessage)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.nurseAvailSaveAutoMessage)));
   }
 
   Future<void> _openAddTimeSlotSheet() async {
@@ -121,9 +122,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       await _loadAvailability();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.nurseAvailTimeSlotAdded)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.nurseAvailTimeSlotAdded)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,7 +160,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
           final start = dayOverride['startTime']?.toString() ?? '';
           final end = dayOverride['endTime']?.toString() ?? '';
           if (start.isNotEmpty && end.isNotEmpty) {
-            daySlots = [{'startTime': start, 'endTime': end}];
+            daySlots = [
+              {'startTime': start, 'endTime': end},
+            ];
           }
         }
       } else {
@@ -172,7 +175,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
           final start = defaultHours['startTime']?.toString() ?? '';
           final end = defaultHours['endTime']?.toString() ?? '';
           if (start.isNotEmpty && end.isNotEmpty) {
-            daySlots = [{'startTime': start, 'endTime': end}];
+            daySlots = [
+              {'startTime': start, 'endTime': end},
+            ];
           }
         }
       }
@@ -200,71 +205,72 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _ManageDaySheet(
-        date: date,
-        slots: slots,
-        apiDaySlots: daySlots,
-        hasOverride: hasOverride,
-        isBlocked: blocked,
-        onBlock: () async {
-          try {
-            await ApiService.blockDayAvailability(date: dateKey);
-            nav.pop();
-            if (!mounted) return;
-            setState(() => _blockedDates.add(dateKey));
-            messenger.showSnackBar(
-              SnackBar(content: Text(l10n.nurseAvailDayBlocked)),
-            );
-          } catch (e) {
-            nav.pop();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(e.toString().replaceFirst('Exception: ', '')),
-              ),
-            );
-          }
-        },
-        onUnblock: () async {
-          try {
-            await ApiService.unblockDayAvailability(date: dateKey);
-            nav.pop();
-            if (!mounted) return;
-            setState(() => _blockedDates.remove(dateKey));
-            messenger.showSnackBar(
-              SnackBar(content: Text(l10n.nurseAvailDayUnblocked)),
-            );
-          } catch (e) {
-            nav.pop();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(e.toString().replaceFirst('Exception: ', '')),
-              ),
-            );
-          }
-        },
-        onOverrideHours: (start, end) async {
-          try {
-            await ApiService.overrideDayAvailability(
-              date: dateKey,
-              startTime: start,
-              endTime: end,
-            );
-            nav.pop();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(l10n.nurseAvailOverrideSuccess(start, end)),
-              ),
-            );
-          } catch (e) {
-            nav.pop();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(e.toString().replaceFirst('Exception: ', '')),
-              ),
-            );
-          }
-        },
-      ),
+      builder:
+          (ctx) => _ManageDaySheet(
+            date: date,
+            slots: slots,
+            apiDaySlots: daySlots,
+            hasOverride: hasOverride,
+            isBlocked: blocked,
+            onBlock: () async {
+              try {
+                await ApiService.blockDayAvailability(date: dateKey);
+                nav.pop();
+                if (!mounted) return;
+                setState(() => _blockedDates.add(dateKey));
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.nurseAvailDayBlocked)),
+                );
+              } catch (e) {
+                nav.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceFirst('Exception: ', '')),
+                  ),
+                );
+              }
+            },
+            onUnblock: () async {
+              try {
+                await ApiService.unblockDayAvailability(date: dateKey);
+                nav.pop();
+                if (!mounted) return;
+                setState(() => _blockedDates.remove(dateKey));
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.nurseAvailDayUnblocked)),
+                );
+              } catch (e) {
+                nav.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceFirst('Exception: ', '')),
+                  ),
+                );
+              }
+            },
+            onOverrideHours: (start, end) async {
+              try {
+                await ApiService.overrideDayAvailability(
+                  date: dateKey,
+                  startTime: start,
+                  endTime: end,
+                );
+                nav.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.nurseAvailOverrideSuccess(start, end)),
+                  ),
+                );
+              } catch (e) {
+                nav.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceFirst('Exception: ', '')),
+                  ),
+                );
+              }
+            },
+          ),
     );
   }
 
@@ -277,9 +283,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       await _loadAvailability();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.nurseAvailSlotDeleted)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.nurseAvailSlotDeleted)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -297,9 +303,9 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
       await _loadAvailability();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.nurseAvailSlotStatusUpdated)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.nurseAvailSlotStatusUpdated)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,8 +319,14 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 
   String _weekdayName(int weekday) {
     const names = [
-      '', 'Monday', 'Tuesday', 'Wednesday',
-      'Thursday', 'Friday', 'Saturday', 'Sunday',
+      '',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
     return names[weekday];
   }
@@ -324,94 +336,99 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
     final l10n = AppLocalizations.of(context)!;
     final daysWithSlots = _weeklySlots.keys.toList();
 
-    final scrollPadding = widget.embedded
-        ? const EdgeInsets.fromLTRB(
-            AppointmentUiColors.scheduleListHorizontalPadding,
-            12,
-            AppointmentUiColors.scheduleListHorizontalPadding,
-            16,
-          )
-        : const EdgeInsets.fromLTRB(16, 18, 16, 110);
+    final scrollPadding =
+        widget.embedded
+            ? const EdgeInsets.fromLTRB(
+              AppointmentUiColors.scheduleListHorizontalPadding,
+              12,
+              AppointmentUiColors.scheduleListHorizontalPadding,
+              16,
+            )
+            : const EdgeInsets.fromLTRB(16, 18, 16, 110);
 
-    final scrollBody = _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-                padding: scrollPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (widget.embedded) ...[
-                      Text(
-                        l10n.nurseAvailEmbeddedTitle,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1D2433),
-                        ),
+    final scrollBody =
+        _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+              padding: scrollPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.embedded) ...[
+                    Text(
+                      l10n.nurseAvailEmbeddedTitle,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1D2433),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.nurseAvailTapDateHint,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ] else ...[
-                      Text(
-                        l10n.nurseAvailManageTitle,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1D2433),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.nurseAvailTapDateHint,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    _CalendarCard(
-                      selectedDate: _selectedDate,
-                      blockedDates: _blockedDates,
-                      onDateTapped: (date) {
-                        setState(() => _selectedDate = date);
-                        _openManageDaySheet(date);
-                      },
                     ),
-                    const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
-                    Container(
-                      padding: AppointmentUiColors.scheduleCardPadding,
-                      decoration: AppointmentUiColors.scheduleCardDecoration(),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.nurseAvailWeeklySchedule,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
-                                color: Color(0xFF1D2433),
-                              ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.nurseAvailTapDateHint,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ] else ...[
+                    Text(
+                      l10n.nurseAvailManageTitle,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1D2433),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.nurseAvailTapDateHint,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  _CalendarCard(
+                    selectedDate: _selectedDate,
+                    blockedDates: _blockedDates,
+                    onDateTapped: (date) {
+                      setState(() => _selectedDate = date);
+                      _openManageDaySheet(date);
+                    },
+                  ),
+                  const SizedBox(
+                    height: AppointmentUiColors.scheduleListVerticalGap,
+                  ),
+                  Container(
+                    padding: AppointmentUiColors.scheduleCardPadding,
+                    decoration: AppointmentUiColors.scheduleCardDecoration(),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l10n.nurseAvailWeeklySchedule,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              color: Color(0xFF1D2433),
                             ),
                           ),
-                          FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        ),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            onPressed: _isSaving ? null : _openAddTimeSlotSheet,
-                            icon: _isSaving
-                                ? const SizedBox(
+                          ),
+                          onPressed: _isSaving ? null : _openAddTimeSlotSheet,
+                          icon:
+                              _isSaving
+                                  ? const SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
@@ -419,91 +436,90 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Icon(Icons.add, size: 18),
-                            label: Text(l10n.nurseAvailAddTimeSlot),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppointmentUiColors.scheduleListVerticalGap),
-                    if (daysWithSlots.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.calendar_month_outlined,
-                                size: 52,
-                                color: Colors.grey.shade300,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                l10n.nurseAvailNoScheduleYet,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.nurseAvailNoScheduleHint,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade400,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
+                                  : const Icon(Icons.add, size: 18),
+                          label: Text(l10n.nurseAvailAddTimeSlot),
                         ),
-                      )
-                    else
-                      ...daysWithSlots.map((day) {
-                        final daySlots =
-                            _weeklySlots[day] ?? const <_TimeSlot>[];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppointmentUiColors.scheduleListVerticalGap,
-                          ),
-                          child: _DayScheduleCard(
-                            l10n: l10n,
-                            day: day,
-                            slots: daySlots,
-                            onDisable: (index) => _disableSlot(day, index),
-                            onToggle: (index) => _toggleSlot(day, index),
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 6),
-                    _QuickSettingsCard(
-                      l10n: l10n,
-                      onCopyWeekdays: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickPlaceholder),
-                          ),
-                        );
-                      },
-                      onSetWeekend: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickPlaceholder),
-                          ),
-                        );
-                      },
-                      onBlockDays: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.nurseAvailQuickBlockHint),
-                          ),
-                        );
-                      },
+                      ],
                     ),
-                  ],
-                ),
-              );
+                  ),
+                  const SizedBox(
+                    height: AppointmentUiColors.scheduleListVerticalGap,
+                  ),
+                  if (daysWithSlots.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.calendar_month_outlined,
+                              size: 52,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              l10n.nurseAvailNoScheduleYet,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.nurseAvailNoScheduleHint,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...daysWithSlots.map((day) {
+                      final daySlots = _weeklySlots[day] ?? const <_TimeSlot>[];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: AppointmentUiColors.scheduleListVerticalGap,
+                        ),
+                        child: _DayScheduleCard(
+                          l10n: l10n,
+                          day: day,
+                          slots: daySlots,
+                          onDisable: (index) => _disableSlot(day, index),
+                          onToggle: (index) => _toggleSlot(day, index),
+                        ),
+                      );
+                    }),
+                  const SizedBox(height: 6),
+                  _QuickSettingsCard(
+                    l10n: l10n,
+                    onCopyWeekdays: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.nurseAvailQuickPlaceholder),
+                        ),
+                      );
+                    },
+                    onSetWeekend: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.nurseAvailQuickPlaceholder),
+                        ),
+                      );
+                    },
+                    onBlockDays: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.nurseAvailQuickBlockHint)),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
 
     final saveBar = SafeArea(
       top: false,
@@ -515,15 +531,17 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
           icon: const Icon(Icons.save_outlined, color: Colors.white),
           label: Text(
             l10n.nurseAvailSave,
             style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 16),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
@@ -534,12 +552,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
         color: AppointmentUiColors.pageBackground,
         child: Column(
           children: [
-            Expanded(
-              child: SafeArea(
-                bottom: false,
-                child: scrollBody,
-              ),
-            ),
+            Expanded(child: SafeArea(bottom: false, child: scrollBody)),
             saveBar,
           ],
         ),
@@ -548,9 +561,7 @@ class _NurseAvailabilityScreenState extends State<NurseAvailabilityScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: scrollBody,
-      ),
+      body: SafeArea(child: scrollBody),
       bottomNavigationBar: saveBar,
     );
   }
@@ -581,19 +592,19 @@ class _CalendarCardState extends State<_CalendarCard> {
   @override
   void initState() {
     super.initState();
-    _displayMonth =
-        DateTime(widget.selectedDate.year, widget.selectedDate.month);
+    _displayMonth = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+    );
   }
 
   void _prevMonth() => setState(() {
-        _displayMonth =
-            DateTime(_displayMonth.year, _displayMonth.month - 1);
-      });
+    _displayMonth = DateTime(_displayMonth.year, _displayMonth.month - 1);
+  });
 
   void _nextMonth() => setState(() {
-        _displayMonth =
-            DateTime(_displayMonth.year, _displayMonth.month + 1);
-      });
+    _displayMonth = DateTime(_displayMonth.year, _displayMonth.month + 1);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -612,10 +623,12 @@ class _CalendarCardState extends State<_CalendarCard> {
 
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(year, month, day);
-      final isSelected = date.year == widget.selectedDate.year &&
+      final isSelected =
+          date.year == widget.selectedDate.year &&
           date.month == widget.selectedDate.month &&
           date.day == widget.selectedDate.day;
-      final isToday = date.year == today.year &&
+      final isToday =
+          date.year == today.year &&
           date.month == today.month &&
           date.day == today.day;
       final dateKey =
@@ -631,24 +644,27 @@ class _CalendarCardState extends State<_CalendarCard> {
             decoration: BoxDecoration(
               color: isSelected ? AppColors.primary : Colors.transparent,
               shape: BoxShape.circle,
-              border: isToday && !isSelected
-                  ? Border.all(color: AppColors.primary, width: 1.5)
-                  : null,
+              border:
+                  isToday && !isSelected
+                      ? Border.all(color: AppColors.primary, width: 1.5)
+                      : null,
             ),
             child: Text(
               '$day',
               style: TextStyle(
-                color: isBlocked
-                    ? const Color(0xFFD1D5DB)
-                    : isSelected
+                color:
+                    isBlocked
+                        ? const Color(0xFFD1D5DB)
+                        : isSelected
                         ? Colors.white
                         : const Color(0xFF374151),
                 fontWeight:
                     isSelected || isToday ? FontWeight.w900 : FontWeight.w600,
                 fontSize: 13,
-                decoration: isBlocked
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
+                decoration:
+                    isBlocked
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
               ),
             ),
           ),
@@ -712,11 +728,13 @@ class _NavButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 32, height: 32,
+        width: 32,
+        height: 32,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(8)),
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Icon(icon, size: 20, color: const Color(0xFF374151)),
       ),
     );
@@ -731,12 +749,15 @@ class _WeekLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 32,
-      child: Text(text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontWeight: FontWeight.w700,
-              fontSize: 12)),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xFF9CA3AF),
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
@@ -781,7 +802,10 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<void> _pickStart() async {
-    final p = await showTimePicker(context: context, initialTime: _overrideStart);
+    final p = await showTimePicker(
+      context: context,
+      initialTime: _overrideStart,
+    );
     if (p != null && mounted) setState(() => _overrideStart = p);
   }
 
@@ -794,12 +818,16 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toString();
-    final fallbackHours = widget.slots.isNotEmpty
-        ? '${widget.slots.first.start} - ${widget.slots.first.end}'
-        : null;
-    final apiHours = widget.apiDaySlots.isNotEmpty
-        ? widget.apiDaySlots.map((e) => '${e['startTime']} - ${e['endTime']}').join('\n')
-        : null;
+    final fallbackHours =
+        widget.slots.isNotEmpty
+            ? '${widget.slots.first.start} - ${widget.slots.first.end}'
+            : null;
+    final apiHours =
+        widget.apiDaySlots.isNotEmpty
+            ? widget.apiDaySlots
+                .map((e) => '${e['startTime']} - ${e['endTime']}')
+                .join('\n')
+            : null;
     final defaultHours = apiHours ?? fallbackHours;
     final dateStr = DateFormat.yMMMMEEEEd(localeTag).format(widget.date);
 
@@ -808,7 +836,12 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 28),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        18,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 28,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -816,38 +849,58 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
           children: [
             Center(
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(99)),
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(99),
+                ),
               ),
             ),
             Row(
               children: [
                 Container(
-                  width: 42, height: 42,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.calendar_today_outlined,
-                      color: AppColors.primary, size: 20),
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l10n.nurseAvailManageDayTitle,
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1D2433))),
-                      Text(dateStr,
-                          style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text(
+                        l10n.nurseAvailManageDayTitle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 22,
+                          color: Color(0xFF1D2433),
+                        ),
+                      ),
+                      Text(
+                        dateStr,
+                        style: const TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Color(0xFF374151))),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Color(0xFF374151)),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -864,32 +917,48 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    const Icon(Icons.access_time_outlined, color: AppColors.primary, size: 15),
-                    const SizedBox(width: 6),
-                    Text(l10n.nurseAvailWorkingHours, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
-                  ]),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_outlined,
+                        color: AppColors.primary,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.nurseAvailWorkingHours,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     defaultHours ?? l10n.nurseAvailNoHoursThisDay,
                     style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: defaultHours != null ? 20 : 14,
-                        color: const Color(0xFF1D2433)),
+                      fontWeight: FontWeight.w900,
+                      fontSize: defaultHours != null ? 20 : 14,
+                      color: const Color(0xFF1D2433),
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     widget.isBlocked
                         ? l10n.nurseAvailDayBlockedShort
                         : widget.hasOverride
-                            ? l10n.nurseAvailCustomOverrideApplied
-                            : l10n.nurseAvailFromWeeklySchedule,
+                        ? l10n.nurseAvailCustomOverrideApplied
+                        : l10n.nurseAvailFromWeeklySchedule,
                     style: TextStyle(
-                        color: widget.isBlocked
-                            ? const Color(0xFFDC2626)
-                            : const Color(0xFF6B7280),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500),
+                      color:
+                          widget.isBlocked
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF6B7280),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -908,15 +977,24 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
               ),
               const SizedBox(height: 8),
               _ActionTile(
-                icon: widget.isBlocked ? Icons.check_circle_outline : Icons.block,
-                iconColor: widget.isBlocked ? const Color(0xFF059669) : const Color(0xFFDC2626),
-                label: widget.isBlocked ? l10n.nurseAvailUnblockDayTitle : l10n.nurseAvailBlockDayTitle,
-                subtitle: widget.isBlocked
-                    ? l10n.nurseAvailUnblockDaySubtitle
-                    : l10n.nurseAvailBlockDaySubtitle,
-                onTap: widget.isBlocked
-                    ? widget.onUnblock
-                    : () => setState(() => _mode = _SheetMode.block),
+                icon:
+                    widget.isBlocked ? Icons.check_circle_outline : Icons.block,
+                iconColor:
+                    widget.isBlocked
+                        ? const Color(0xFF059669)
+                        : const Color(0xFFDC2626),
+                label:
+                    widget.isBlocked
+                        ? l10n.nurseAvailUnblockDayTitle
+                        : l10n.nurseAvailBlockDayTitle,
+                subtitle:
+                    widget.isBlocked
+                        ? l10n.nurseAvailUnblockDaySubtitle
+                        : l10n.nurseAvailBlockDaySubtitle,
+                onTap:
+                    widget.isBlocked
+                        ? widget.onUnblock
+                        : () => setState(() => _mode = _SheetMode.block),
               ),
             ],
 
@@ -925,49 +1003,99 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                    color: const Color(0xFFE6F4F7),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFBFDFE8))),
+                  color: const Color(0xFFE6F4F7),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFBFDFE8)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.nurseAvailOverrideHoursForDate(dateStr),
-                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      l10n.nurseAvailOverrideHoursForDate(dateStr),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 14),
-                    Text(l10n.nurseAvailStartTime, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      l10n.nurseAvailStartTime,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    _TimePickerField(value: _overrideStart.format(context), onTap: _pickStart),
+                    _TimePickerField(
+                      value: _overrideStart.format(context),
+                      onTap: _pickStart,
+                    ),
                     const SizedBox(height: 12),
-                    Text(l10n.nurseAvailEndTime, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      l10n.nurseAvailEndTime,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    _TimePickerField(value: _overrideEnd.format(context), onTap: _pickEnd),
+                    _TimePickerField(
+                      value: _overrideEnd.format(context),
+                      onTap: _pickEnd,
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => setState(() => _mode = _SheetMode.normal),
-                    style: OutlinedButton.styleFrom(
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed:
+                          () => setState(() => _mode = _SheetMode.normal),
+                      style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: Text(l10n.nurseAvailCancel, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        l10n.nurseAvailCancel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => widget.onOverrideHours(_time24(_overrideStart), _time24(_overrideEnd)),
-                    style: ElevatedButton.styleFrom(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          () => widget.onOverrideHours(
+                            _time24(_overrideStart),
+                            _time24(_overrideEnd),
+                          ),
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: Text(l10n.nurseAvailSaveOverride, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        l10n.nurseAvailSaveOverride,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ],
 
             if (_mode == _SheetMode.block) ...[
@@ -975,45 +1103,78 @@ class _ManageDaySheetState extends State<_ManageDaySheet> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFFECACA))),
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.nurseAvailBlockConfirmTitle,
-                        style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w800, fontSize: 15)),
+                    Text(
+                      l10n.nurseAvailBlockConfirmTitle,
+                      style: const TextStyle(
+                        color: Color(0xFFDC2626),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Text(
-                        l10n.nurseAvailBlockConfirmMessage,
-                        style: const TextStyle(color: Color(0xFF991B1B), fontSize: 13, fontWeight: FontWeight.w500)),
+                      l10n.nurseAvailBlockConfirmMessage,
+                      style: const TextStyle(
+                        color: Color(0xFF991B1B),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => setState(() => _mode = _SheetMode.normal),
-                    style: OutlinedButton.styleFrom(
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed:
+                          () => setState(() => _mode = _SheetMode.normal),
+                      style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: Text(l10n.nurseAvailCancel, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF374151))),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        l10n.nurseAvailCancel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: widget.onBlock,
-                    style: ElevatedButton.styleFrom(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: widget.onBlock,
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDC2626),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: Text(l10n.nurseAvailBlockDay, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        l10n.nurseAvailBlockDay,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ],
           ],
         ),
@@ -1036,14 +1197,24 @@ class _TimePickerField extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFDCE3ED))),
-        child: Row(children: [
-          const Icon(Icons.access_time, color: Color(0xFF94A3B8), size: 18),
-          const SizedBox(width: 10),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF334155), fontSize: 14)),
-        ]),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFDCE3ED)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.access_time, color: Color(0xFF94A3B8), size: 18),
+            const SizedBox(width: 10),
+            Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF334155),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1057,8 +1228,11 @@ class _ActionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ActionTile({
-    required this.icon, required this.iconColor,
-    required this.label, required this.subtitle, required this.onTap,
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
   });
 
   @override
@@ -1069,20 +1243,40 @@ class _ActionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE5E7EB))),
-        child: Row(children: [
-          Icon(icon, color: iconColor, size: 22),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF1D2433))),
-              const SizedBox(height: 2),
-              Text(subtitle, style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12.5, fontWeight: FontWeight.w500)),
-            ]),
-          ),
-        ]),
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: Color(0xFF1D2433),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1112,16 +1306,34 @@ class _DayScheduleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Text(_nurseAvailDayLabel(l10n, day), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1D2433))),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(99)),
-              child: Text(l10n.nurseAvailSlotCount(slots.length),
-                  style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.w800, fontSize: 11.5)),
-            ),
-          ]),
+          Row(
+            children: [
+              Text(
+                _nurseAvailDayLabel(l10n, day),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D2433),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  l10n.nurseAvailSlotCount(slots.length),
+                  style: const TextStyle(
+                    color: Color(0xFF059669),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 10),
           ...slots.asMap().entries.map((entry) {
             final index = entry.key;
@@ -1132,34 +1344,64 @@ class _DayScheduleCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(12)),
-                child: Row(children: [
-                  Icon(slot.isActive ? Icons.access_time : Icons.block,
-                      size: 16, color: slot.isActive ? AppColors.primary : const Color(0xFF9CA3AF)),
-                  const SizedBox(width: 6),
-                  Text('${slot.start} - ${slot.end}',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: slot.isActive ? const Color(0xFF374151) : const Color(0xFF9CA3AF),
-                          decoration: slot.isActive ? TextDecoration.none : TextDecoration.lineThrough)),
-                  const Spacer(),
-                  Tooltip(
-                    message: slot.isActive ? l10n.nurseAvailDeactivateSlot : l10n.nurseAvailActivateSlot,
-                    child: IconButton(
-                      onPressed: () => onToggle(index),
-                      icon: Icon(slot.isActive ? Icons.visibility : Icons.visibility_off,
-                          color: slot.isActive ? const Color(0xFF059669) : const Color(0xFF9CA3AF)),
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      slot.isActive ? Icons.access_time : Icons.block,
+                      size: 16,
+                      color:
+                          slot.isActive
+                              ? AppColors.primary
+                              : const Color(0xFF9CA3AF),
                     ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => onDisable(index),
-                    icon: const Icon(Icons.delete_outline, size: 15),
-                    label: Text(l10n.nurseAvailDelete),
-                    style: TextButton.styleFrom(
+                    const SizedBox(width: 6),
+                    Text(
+                      '${slot.start} - ${slot.end}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color:
+                            slot.isActive
+                                ? const Color(0xFF374151)
+                                : const Color(0xFF9CA3AF),
+                        decoration:
+                            slot.isActive
+                                ? TextDecoration.none
+                                : TextDecoration.lineThrough,
+                      ),
+                    ),
+                    const Spacer(),
+                    Tooltip(
+                      message:
+                          slot.isActive
+                              ? l10n.nurseAvailDeactivateSlot
+                              : l10n.nurseAvailActivateSlot,
+                      child: IconButton(
+                        onPressed: () => onToggle(index),
+                        icon: Icon(
+                          slot.isActive
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color:
+                              slot.isActive
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFF9CA3AF),
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => onDisable(index),
+                      icon: const Icon(Icons.delete_outline, size: 15),
+                      label: Text(l10n.nurseAvailDelete),
+                      style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFFDC2626),
-                        visualDensity: VisualDensity.compact),
-                  ),
-                ]),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }),
@@ -1189,7 +1431,9 @@ class _QuickSettingsCard extends StatelessWidget {
       padding: AppointmentUiColors.scheduleCardPadding,
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(AppointmentUiColors.scheduleCardRadius),
+        borderRadius: BorderRadius.circular(
+          AppointmentUiColors.scheduleCardRadius,
+        ),
         boxShadow: AppointmentUiColors.scheduleCardShadow,
       ),
       child: Column(
@@ -1204,11 +1448,23 @@ class _QuickSettingsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          _QuickSettingButton(label: l10n.nurseAvailQuickCopyWeekdays, subtitle: l10n.nurseAvailQuickCopyWeekdaysSubtitle, onTap: onCopyWeekdays),
+          _QuickSettingButton(
+            label: l10n.nurseAvailQuickCopyWeekdays,
+            subtitle: l10n.nurseAvailQuickCopyWeekdaysSubtitle,
+            onTap: onCopyWeekdays,
+          ),
           const SizedBox(height: 8),
-          _QuickSettingButton(label: l10n.nurseAvailQuickWeekend, subtitle: l10n.nurseAvailQuickWeekendSubtitle, onTap: onSetWeekend),
+          _QuickSettingButton(
+            label: l10n.nurseAvailQuickWeekend,
+            subtitle: l10n.nurseAvailQuickWeekendSubtitle,
+            onTap: onSetWeekend,
+          ),
           const SizedBox(height: 8),
-          _QuickSettingButton(label: l10n.nurseAvailQuickBlockDays, subtitle: l10n.nurseAvailQuickBlockDaysSubtitle, onTap: onBlockDays),
+          _QuickSettingButton(
+            label: l10n.nurseAvailQuickBlockDays,
+            subtitle: l10n.nurseAvailQuickBlockDaysSubtitle,
+            onTap: onBlockDays,
+          ),
         ],
       ),
     );
@@ -1219,7 +1475,11 @@ class _QuickSettingButton extends StatelessWidget {
   final String label;
   final String subtitle;
   final VoidCallback onTap;
-  const _QuickSettingButton({required this.label, required this.subtitle, required this.onTap});
+  const _QuickSettingButton({
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1230,13 +1490,31 @@ class _QuickSettingButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
-          const SizedBox(height: 3),
-          Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.86), fontWeight: FontWeight.w500, fontSize: 11.5)),
-        ]),
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.86),
+                fontWeight: FontWeight.w500,
+                fontSize: 11.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1254,7 +1532,10 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
   TimeOfDay endTime = const TimeOfDay(hour: 16, minute: 0);
 
   Future<void> _pickStartTime() async {
-    final picked = await showTimePicker(context: context, initialTime: startTime);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: startTime,
+    );
     if (picked != null && mounted) setState(() => startTime = picked);
   }
 
@@ -1269,102 +1550,218 @@ class _AddTimeSlotSheetState extends State<_AddTimeSlotSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final durationMinutes = (endTime.hour * 60 + endTime.minute) - (startTime.hour * 60 + startTime.minute);
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    final durationMinutes =
+        (endTime.hour * 60 + endTime.minute) -
+        (startTime.hour * 60 + startTime.minute);
     final validDuration = durationMinutes > 0;
-    final summaryDuration = validDuration
-        ? l10n.nurseAvailDurationHoursMinutes(
-            durationMinutes ~/ 60,
-            durationMinutes % 60,
-          )
-        : l10n.nurseAvailInvalidTimeRange;
+    final summaryDuration =
+        validDuration
+            ? l10n.nurseAvailDurationHoursMinutes(
+              durationMinutes ~/ 60,
+              durationMinutes % 60,
+            )
+            : l10n.nurseAvailInvalidTimeRange;
 
     return Container(
       decoration: const BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
-      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        18,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(99)))),
-            Row(children: [
-              const Icon(Icons.access_time_rounded, color: AppColors.primary),
-              const SizedBox(width: 10),
-              Expanded(child: Text(l10n.nurseAvailAddWorkingHoursTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF1F2937)))),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-            ]),
-            Text(l10n.nurseAvailAddWorkingHoursSubtitle,
-                style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded, color: AppColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.nurseAvailAddWorkingHoursTitle,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            Text(
+              l10n.nurseAvailAddWorkingHoursSubtitle,
+              style: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(height: 18),
-            Text('${l10n.nurseAvailSelectDay} *', style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text(
+              '${l10n.nurseAvailSelectDay} *',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 8, runSpacing: 8,
-              children: days.map((day) {
-                final isSelected = selectedDay == day;
-                return ChoiceChip(
-                  label: Text(_nurseAvailDayLabel(l10n, day)), selected: isSelected,
-                  onSelected: (_) => setState(() => selectedDay = day),
-                  selectedColor: AppColors.primary,
-                  labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF4B5563),
-                      fontWeight: FontWeight.w700),
-                  backgroundColor: const Color(0xFFF8FAFC),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                );
-              }).toList(),
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  days.map((day) {
+                    final isSelected = selectedDay == day;
+                    return ChoiceChip(
+                      label: Text(_nurseAvailDayLabel(l10n, day)),
+                      selected: isSelected,
+                      onSelected: (_) => setState(() => selectedDay = day),
+                      selectedColor: AppColors.primary,
+                      labelStyle: TextStyle(
+                        color:
+                            isSelected ? Colors.white : const Color(0xFF4B5563),
+                        fontWeight: FontWeight.w700,
+                      ),
+                      backgroundColor: const Color(0xFFF8FAFC),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 16),
-            _TimeField(label: '${l10n.nurseAvailStartTime} *', value: startTime.format(context), onTap: _pickStartTime),
+            _TimeField(
+              label: '${l10n.nurseAvailStartTime} *',
+              value: startTime.format(context),
+              onTap: _pickStartTime,
+            ),
             const SizedBox(height: 12),
-            _TimeField(label: '${l10n.nurseAvailEndTime} *', value: endTime.format(context), onTap: _pickEndTime),
+            _TimeField(
+              label: '${l10n.nurseAvailEndTime} *',
+              value: endTime.format(context),
+              onTap: _pickEndTime,
+            ),
             const SizedBox(height: 14),
             Container(
-              width: double.infinity, padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFFE6F4F7), borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFBFE5EA))),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  const Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 16),
-                  const SizedBox(width: 6),
-                  Text(l10n.nurseAvailSummary, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F2937))),
-                ]),
-                const SizedBox(height: 8),
-                _SummaryRow(label: '${l10n.nurseAvailSummaryDay}:', value: _nurseAvailDayLabel(l10n, selectedDay)),
-                _SummaryRow(label: '${l10n.nurseAvailSummaryHours}:', value: '${startTime.format(context)} - ${endTime.format(context)}'),
-                _SummaryRow(label: '${l10n.nurseAvailSummaryDuration}:', value: summaryDuration),
-              ]),
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE6F4F7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFBFE5EA)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        color: AppColors.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.nurseAvailSummary,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _SummaryRow(
+                    label: '${l10n.nurseAvailSummaryDay}:',
+                    value: _nurseAvailDayLabel(l10n, selectedDay),
+                  ),
+                  _SummaryRow(
+                    label: '${l10n.nurseAvailSummaryHours}:',
+                    value:
+                        '${startTime.format(context)} - ${endTime.format(context)}',
+                  ),
+                  _SummaryRow(
+                    label: '${l10n.nurseAvailSummaryDuration}:',
+                    value: summaryDuration,
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFDE68A))),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
               child: Text(
                 l10n.nurseAvailBookingNote,
-                style: const TextStyle(color: Color(0xFF92400E), fontSize: 12, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Color(0xFF92400E),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             SizedBox(
-              width: double.infinity, height: 50,
+              width: double.infinity,
+              height: 50,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
                 onPressed: () {
                   if (!validDuration) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.nurseAvailEndAfterStart)));
+                      SnackBar(content: Text(l10n.nurseAvailEndAfterStart)),
+                    );
                     return;
                   }
-                  Navigator.pop(context, _AddSlotResult(day: selectedDay, start: _time24(startTime), end: _time24(endTime)));
+                  Navigator.pop(
+                    context,
+                    _AddSlotResult(
+                      day: selectedDay,
+                      start: _time24(startTime),
+                      end: _time24(endTime),
+                    ),
+                  );
                 },
-                child: Text(l10n.nurseAvailAddButton,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+                child: Text(
+                  l10n.nurseAvailAddButton,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
               ),
             ),
           ],
@@ -1386,8 +1783,22 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w600, fontSize: 13)),
-          Text(value, style: const TextStyle(color: Color(0xFF1D2433), fontWeight: FontWeight.w800, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF1D2433),
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -1398,7 +1809,11 @@ class _TimeField extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
-  const _TimeField({required this.label, required this.value, required this.onTap});
+  const _TimeField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1413,13 +1828,24 @@ class _TimeField extends StatelessWidget {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFDCE3ED))),
-            child: Row(children: [
-              const Icon(Icons.access_time, color: Color(0xFF94A3B8)),
-              const SizedBox(width: 10),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF334155))),
-            ]),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFDCE3ED)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.access_time, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 10),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF334155),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -1433,12 +1859,21 @@ class _TimeSlot {
   final String end;
   final bool isActive;
 
-  const _TimeSlot({this.id, required this.start, required this.end, this.isActive = true});
+  const _TimeSlot({
+    this.id,
+    required this.start,
+    required this.end,
+    this.isActive = true,
+  });
 }
 
 class _AddSlotResult {
   final String day;
   final String start;
   final String end;
-  const _AddSlotResult({required this.day, required this.start, required this.end});
+  const _AddSlotResult({
+    required this.day,
+    required this.start,
+    required this.end,
+  });
 }

@@ -87,10 +87,10 @@ class ApiConstants {
   // =========================
   // Patient - Profile
   // =========================
-  static const String patientProfile = "/api/patientprofile"; 
+  static const String patientProfile = "/api/patientprofile";
   static const String patientProfilePersonalInfo =
-      "/api/patientprofile/personal-info"; 
-  
+      "/api/patientprofile/personal-info";
+
   static const String patientProfileAddress = "/api/patientprofile/address";
   static const String patientProfileMedicalInfo =
       "/api/patientprofile/medical-info";
@@ -124,4 +124,10 @@ class ApiConstants {
   // Notifications
   // =========================
   static const String notifications = "/api/notification";
+  // Nurse Problems
+  static const String nurseProblems = "/api/nurse/problems";
+  static const String submitProblem = nurseProblems;
+
+  static const String myReports = "/nurse/problems/my-reports";
+  static const String problemDetails = "/nurse/problems"; // + /{id}
 }
