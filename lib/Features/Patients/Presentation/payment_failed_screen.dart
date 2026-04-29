@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/models/appointment.dart';
 import 'package:nurse_app/Core/theme/appointment_ui_colors.dart';
 import 'package:nurse_app/Features/Patients/Presentation/payment_screen.dart';

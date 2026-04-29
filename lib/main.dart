@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 import 'package:nurse_app/Features/onboarding/Presentation/splash_screen.dart';
 
