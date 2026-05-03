@@ -17,10 +17,6 @@ const Map<String, String> _kMedicalConditionLabels = {
   'arthritis': 'Arthritis',
 };
 
-/// Steps 2–4 after account creation (step 1 is [SignUpScreen]).
-///
-/// [initialPageIndex]: `0` = step 2 (personal), `1` = step 3 (address),
-/// `2` = step 4 (medical). Use for dev/testing when skipping signup.
 class PatientOnboardingScreen extends StatefulWidget {
   const PatientOnboardingScreen({
     super.key,
@@ -30,16 +26,12 @@ class PatientOnboardingScreen extends StatefulWidget {
     this.email,
     this.password,
   }) : assert(
-         initialPageIndex >= 0 && initialPageIndex <= 2,
-         'initialPageIndex must be 0, 1, or 2',
-       );
+          initialPageIndex >= 0 && initialPageIndex <= 2,
+          'initialPageIndex must be 0, 1, or 2',
+        );
 
   final PatientOnboardingData data;
-
-  /// First onboarding page shown: 0 personal, 1 address, 2 medical.
   final int initialPageIndex;
-
-  /// Account credentials passed from SignUpScreen — used to register at the end.
   final String? fullName;
   final String? email;
   final String? password;
@@ -95,9 +87,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
   int get _displayStep => _pageIndex + 2;
 
   void _goPatientHome() {
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/patientHome', (route) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil('/patientHome', (_) => false);
   }
 
   void _skip() {
@@ -113,115 +103,142 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
 
   Future<void> _showWelcomeDialog() async {
     final l10n = AppLocalizations.of(context)!;
+
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (_) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: _primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      color: _primary,
-                      size: 42,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.welcomeDialogTitle,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: PatientOnboardingTokens.text,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    l10n.welcomeDialogBody,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: PatientOnboardingTokens.muted,
-                      height: 1.45,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _goPatientHome();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        l10n.welcomeDialogButton,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: _primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: _primary,
+                  size: 42,
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.welcomeDialogTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: PatientOnboardingTokens.text,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.welcomeDialogBody,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: PatientOnboardingTokens.muted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _goPatientHome();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    l10n.welcomeDialogButton,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
   Future<void> _register() async {
-    _syncDataFromForm();
-    setState(() => _isSubmitting = true);
+  _syncDataFromForm();
 
-    try {
-      await ApiService.registerPatient(
-        fullName: widget.fullName ?? '',
-        email: widget.email ?? '',
-        password: widget.password ?? '',
-      );
+  setState(() => _isSubmitting = true);
 
-      await ApiService.login(
-        email: widget.email ?? '',
-        password: widget.password ?? '',
-      );
+  try {
+    debugPrint("ONBOARDING PHONE => ${widget.data.phoneNumber}");
 
-      if (!mounted) return;
-      await _showWelcomeDialog();
-    } catch (e) {
-      if (!mounted) return;
-      final errorText = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorText)));
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+    await ApiService.registerPatient(
+      fullName: widget.fullName ?? '',
+      email: widget.email ?? '',
+      password: widget.password ?? '',
+      phoneNumber: widget.data.phoneNumber,
+    );
+
+    await ApiService.login(
+      email: widget.email ?? '',
+      password: widget.password ?? '',
+    );
+
+    await ApiService.updatePatientPersonalInfo(
+      gender: widget.data.gender,
+      dateOfBirth: widget.data.dateOfBirth,
+      bloodType: widget.data.bloodType,
+    );
+
+    await ApiService.updatePatientAddress(
+      governorate: widget.data.governorate,
+      area: widget.data.area,
+      address: widget.data.addressLine,
+    );
+
+    await ApiService.updatePatientMedicalInfo(
+      conditions: widget.data.allMedicalConditions.isEmpty
+          ? null
+          : widget.data.allMedicalConditions.join(', '),
+      allergies: widget.data.allergies.isEmpty
+          ? null
+          : widget.data.allergies.join(', '),
+      notes: widget.data.notes,
+    );
+
+    if (!mounted) return;
+    await _showWelcomeDialog();
+  } catch (e, stackTrace) {
+    debugPrint("PATIENT ONBOARDING ERROR => $e");
+    debugPrint("PATIENT ONBOARDING STACK => $stackTrace");
+
+    // ممنوع SnackBar هون.
+    // أخطاء الباسورد/الإيميل/التلفون لازم تنمسك من SignUpScreen قبل الوصول لهون.
+  } finally {
+    if (mounted) {
+      setState(() => _isSubmitting = false);
     }
   }
-
+}
   void _onConditionToggle(String key, bool selected) {
     setState(() {
       if (key == 'none') {
@@ -255,25 +272,26 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
 
   void _syncDataFromForm() {
     final d = widget.data;
+
     d.gender = _gender;
     d.dateOfBirth = _dateOfBirth;
     d.bloodType = _bloodType;
+
     d.governorate = _governorate;
-    d.area =
-        _areaController.text.trim().isEmpty
-            ? null
-            : _areaController.text.trim();
-    d.addressLine =
-        _addressController.text.trim().isEmpty
-            ? null
-            : _addressController.text.trim();
+    d.area = _areaController.text.trim().isEmpty
+        ? null
+        : _areaController.text.trim();
+    d.addressLine = _addressController.text.trim().isEmpty
+        ? null
+        : _addressController.text.trim();
+
     d.conditionKeys = Set<String>.from(_conditionKeys);
-    final customConditionParts =
-        _otherConditionController.text
-            .split(RegExp(r'[,;\n]'))
-            .map((s) => s.trim())
-            .where((s) => s.isNotEmpty)
-            .toList();
+
+    final customConditionParts = _otherConditionController.text
+        .split(RegExp(r'[,;\n]'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
 
     if (_conditionKeys.contains('none')) {
       d.allMedicalConditions = ['None', ...customConditionParts];
@@ -290,11 +308,12 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         .split(RegExp(r'[,;\n]'))
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty);
+
     d.allergies = [..._selectedAllergyLabels, ...customAllergyParts];
-    d.notes =
-        _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim();
+
+    d.notes = _notesController.text.trim().isEmpty
+        ? null
+        : _notesController.text.trim();
   }
 
   Future<void> _next() async {
@@ -315,13 +334,14 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
         curve: Curves.easeOutCubic,
       );
     } else {
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -361,6 +381,7 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
               child: Row(
                 children: List.generate(3, (i) {
                   final active = i <= _pageIndex;
+
                   return Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(right: i < 2 ? 8 : 0),
@@ -368,10 +389,9 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                         duration: const Duration(milliseconds: 220),
                         height: 4,
                         decoration: BoxDecoration(
-                          color:
-                              active
-                                  ? _primary
-                                  : PatientOnboardingTokens.border,
+                          color: active
+                              ? _primary
+                              : PatientOnboardingTokens.border,
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -390,15 +410,19 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
                     gender: _gender,
                     onGenderChanged: (v) => setState(() => _gender = v),
                     dateOfBirth: _dateOfBirth,
-                    onDateOfBirthChanged:
-                        (v) => setState(() => _dateOfBirth = v),
+                    onDateOfBirthChanged: (v) {
+                      setState(() => _dateOfBirth = v);
+                    },
                     bloodType: _bloodType,
-                    onBloodTypeChanged: (v) => setState(() => _bloodType = v),
+                    onBloodTypeChanged: (v) {
+                      setState(() => _bloodType = v);
+                    },
                   ),
                   PatientOnboardingAddressStep(
                     governorate: _governorate,
-                    onGovernorateChanged:
-                        (v) => setState(() => _governorate = v),
+                    onGovernorateChanged: (v) {
+                      setState(() => _governorate = v);
+                    },
                     areaController: _areaController,
                     addressController: _addressController,
                   ),
@@ -418,70 +442,65 @@ class _PatientOnboardingScreenState extends State<PatientOnboardingScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: SafeArea(
                 top: false,
-                child: Column(
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: _skip,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: PatientOnboardingTokens.muted,
-                              side: const BorderSide(
-                                color: PatientOnboardingTokens.border,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              l10n.patientOnboardSkipForNow,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
-                              ),
-                            ),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isSubmitting ? null : _skip,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: PatientOnboardingTokens.muted,
+                          side: const BorderSide(
+                            color: PatientOnboardingTokens.border,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _primary,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                        child: Text(
+                          l10n.patientOnboardSkipForNow,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: _isSubmitting ? null : _next,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  _pageIndex == 2
+                                      ? l10n.signUp
+                                      : l10n.patientOnboardNext,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
-                              ),
-                              onPressed: _isSubmitting ? null : _next,
-                              child:
-                                  _isSubmitting
-                                      ? const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.4,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                      : Text(
-                                        _pageIndex == 2
-                                            ? l10n.signUp
-                                            : l10n.patientOnboardNext,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                            ),
-                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

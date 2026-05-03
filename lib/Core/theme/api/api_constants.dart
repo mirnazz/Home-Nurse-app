@@ -2,7 +2,7 @@ class ApiConstants {
   // =========================
   // Base
   // =========================
-  static const String baseUrl = "http://172.20.10.10:7053";
+  static const String baseUrl = "http://172.20.10.6:5235";
 
   // =========================
   // Auth

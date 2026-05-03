@@ -60,34 +60,46 @@ class ApiService {
   // Auth
   // =========================
 
-  static Future<void> registerPatient({
-    required String fullName,
-    required String email,
-    required String password,
-  }) async {
-    print("Registering patient with email: $email");
-    print(fullName);
-    final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.register);
-    final response = await http
-        .post(
-          url,
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "fullName": fullName,
-            "email": email,
-            "password": password,
-            "role": "Patient",
-          }),
-        )
-        .timeout(const Duration(seconds: 15));
+static Future<void> registerPatient({
+  required String fullName,
+  required String email,
+  required String password,
+  required String phoneNumber,
+}) async {
+  final url = Uri.parse(ApiConstants.baseUrl + ApiConstants.register);
 
-    if (response.statusCode != 200) {
-      throw Exception(
-        _extractErrorMessage(response.body, fallback: "Registration failed"),
-      );
-    }
+ debugPrint("API REGISTER PHONE => $phoneNumber");
+debugPrint("API REGISTER BODY => ${jsonEncode({
+  "fullName": fullName,
+  "email": email,
+  "password": password,
+  "phoneNumber": phoneNumber,
+  "role": "Patient",
+})}");
+
+  final response = await http
+      .post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "fullName": fullName,
+          "email": email,
+          "password": password,
+          "phoneNumber": phoneNumber,
+          "role": "Patient",
+        }),
+      )
+      .timeout(const Duration(seconds: 15));
+
+  debugPrint("REGISTER STATUS => ${response.statusCode}");
+  debugPrint("REGISTER BODY => ${response.body}");
+
+  if (response.statusCode != 200) {
+    throw Exception(
+      _extractErrorMessage(response.body, fallback: "Registration failed"),
+    );
   }
-
+}
   static Future<void> registerNurse({
     required String fullName,
     required String email,

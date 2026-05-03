@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/theme/api/api_service.dart';
-import 'package:nurse_app/Features/auth/Presentation/reset_password_screen.dart';
+import 'package:nurse_app/l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -11,8 +10,18 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
+
   bool isLoading = false;
+  bool requestSent = false;
+  String? pageError;
+
+  static const Color bg = Color(0xFFF6F7F9);
+  static const Color primary = Color(0xFF2F7F8D);
+  static const Color text = Color(0xFF1D2433);
+  static const Color muted = Color(0xFF6B7280);
+  static const Color border = Color(0xFFE8ECF2);
 
   @override
   void dispose() {
@@ -20,98 +29,223 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  bool _isValidNurseNowEmail(String email) {
+    return RegExp(r'^[\w\.-]+@nursenow\.com$').hasMatch(email);
+  }
+
   Future<void> handleForgotPassword() async {
-    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
-    final localPart = emailController.text.trim();
+    if (!_formKey.currentState!.validate()) return;
 
-    if (localPart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.forgotEnterEmail)),
-      );
-      return;
-    }
+    final email = emailController.text.trim();
 
-    final fullEmail = '$localPart@nursenow.com';
-
-    setState(() => isLoading = true);
-
-    String? errorMessage;
-    String? successResult;
+    setState(() {
+      isLoading = true;
+      requestSent = false;
+      pageError = null;
+    });
 
     try {
-      successResult = await ApiService.forgotPassword(email: fullEmail);
+      await ApiService.forgotPassword(email: email);
+
+      if (!mounted) return;
+
+      setState(() {
+        requestSent = true;
+      });
     } catch (e) {
-      final errorText = e.toString().replaceFirst('Exception: ', '');
-      if (errorText.contains('SocketException') ||
-          errorText.contains('Connection timed out') ||
-          errorText.contains('timed out')) {
-        errorMessage = l10n.forgotServerTimeoutMessage;
-      } else {
-        errorMessage = errorText;
+      debugPrint("FORGOT PASSWORD ERROR => $e");
+
+      if (!mounted) return;
+
+      setState(() {
+        pageError =
+            "We couldn’t find an account with this email. Please check it and try again.";
+      });
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
       }
     }
+  }
 
-    if (!mounted) return;
-    setState(() => isLoading = false);
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      hintText: "username@nursenow.com",
+      prefixIcon: const Icon(
+        Icons.email_outlined,
+        color: Color(0xFF94A3B8),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      errorMaxLines: 2,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: primary, width: 1.4),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.3),
+      ),
+    );
+  }
 
-    if (errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-      return;
-    }
+  Widget _softInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF4F6),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.support_agent_rounded,
+              color: primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 13),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "We’ll help you recover access",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: text,
+                    height: 1.25,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  "Enter your registered NurseNow email. The Home Nurse team will review your request and contact you soon to help reset your password.",
+                  style: TextStyle(
+                    fontSize: 13.2,
+                    fontWeight: FontWeight.w600,
+                    color: muted,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (successResult != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successResult)),
-      );
-    }
+  Widget _successCard() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFFAF6),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFC7EEDC)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF15803D),
+            size: 24,
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "Request received. The Home Nurse team will contact you soon to help reset your password.",
+              style: TextStyle(
+                color: Color(0xFF166534),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ResetPasswordScreen(email: fullEmail),
+  Widget _errorCard() {
+    if (pageError == null) return const SizedBox.shrink();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFFFD6D6)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFFE11D48),
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              pageError!,
+              style: const TextStyle(
+                color: Color(0xFF9F1239),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final l10n = AppLocalizations.of(context)!;
-    const bg = Color(0xFFF6F7F9);
-    const primary = Color(0xFF2F7F8D);
-
-    InputDecoration deco() {
-      return InputDecoration(
-        hintText: l10n.emailLocalPartHint,
-        prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9CA3AF)),
-        suffixText: l10n.emailDomainSuffix,
-        suffixStyle: const TextStyle(
-          color: Color(0xFF6B7280),
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFE8ECF2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: primary, width: 1.2),
-        ),
-      );
-    }
 
     return Scaffold(
       backgroundColor: bg,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: primary,
         elevation: 0,
@@ -124,94 +258,183 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         title: Text(
           l10n.forgotTitle,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              Text(
-                l10n.forgotResetPasswordTitle,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF2F5D6E),
-                ),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.fromLTRB(24, 26, 24, bottomInset + 22),
+          child: Form(
+            key: _formKey,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    kToolbarHeight -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    48,
               ),
-              const SizedBox(height: 10),
-              Text(
-                l10n.forgotResetPasswordSubtitle,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 26),
-              Text(
-                l10n.emailAddressLabel,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF2F5D6E),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => handleForgotPassword(),
-                decoration: deco(),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                l10n.forgotResetLinkHint,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : handleForgotPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEAF4F6),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFD7EBEF)),
+                      ),
+                      child: const Icon(
+                        Icons.lock_reset_rounded,
+                        color: primary,
+                        size: 38,
+                      ),
                     ),
-                    elevation: 0,
                   ),
-                  child:
-                      isLoading
+
+                  const SizedBox(height: 22),
+
+                  const Center(
+                    child: Text(
+                      "Reset your password",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900,
+                        color: text,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const Center(
+                    child: Text(
+                      "No worries — we’ll help you recover your account safely.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: muted,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  const Text(
+                    "Email address",
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: text,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  TextFormField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    decoration: _inputDecoration(),
+                    onChanged: (_) {
+                      if (pageError != null || requestSent) {
+                        setState(() {
+                          pageError = null;
+                          requestSent = false;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      final email = value?.trim() ?? "";
+
+                      if (email.isEmpty) {
+                        return "Email address is required";
+                      }
+
+                      if (!_isValidNurseNowEmail(email)) {
+                        return "Please enter a valid NurseNow email address";
+                      }
+
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  _softInfoCard(),
+
+                  if (pageError != null) ...[
+                    const SizedBox(height: 14),
+                    _errorCard(),
+                  ],
+
+                  if (requestSent) ...[
+                    const SizedBox(height: 14),
+                    _successCard(),
+                  ],
+
+                  const SizedBox(height: 30),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : handleForgotPassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: isLoading
                           ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                              color: Colors.white,
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "Request reset support",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                          : Text(
-                            l10n.forgotSendResetLink,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Back to sign in",
+                        style: TextStyle(
+                          color: primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

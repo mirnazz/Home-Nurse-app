@@ -795,18 +795,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               color: PatientProfileScreen.text,
             ),
           ),
-        if (_model.phone.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            _model.phone,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: PatientProfileScreen.muted,
-            ),
-          ),
-        ],
+       
       ],
     );
   }

@@ -35,7 +35,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isLoading = false;
 
   static const Color _bg = Color(0xFFF6F8FA);
-  static const Color _text = Color(0xFF1E293B); // أسود مريح
+  static const Color _text = Color(0xFF1E293B);
   static const Color _muted = Color(0xFF64748B);
   static const Color _border = Color(0xFFE2E8F0);
   static const Color _soft = Color(0xFFF1F5F9);
@@ -50,6 +50,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  String? _validatePassword(String? value) {
+    final password = value ?? '';
+
+    if (password.isEmpty) {
+      return "Password is required";
+    }
+
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      return "Password must include at least one lowercase letter";
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      return "Password must include at least one uppercase letter";
+    }
+
+    return null;
   }
 
   @override
@@ -184,11 +206,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         label: l10n.fullNameLabel,
                         hint: l10n.fullNameHint,
                         textInputAction: TextInputAction.next,
-                        validator:
-                            (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? l10n.validationFullNameRequired
-                                    : null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return l10n.validationFullNameRequired;
+                          }
+                          return null;
+                        },
                       ),
 
                       const SizedBox(height: 14),
@@ -204,17 +227,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hint: l10n.phoneNumberHint,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          validator: (value) {
-                            final v = value?.trim() ?? '';
-                            if (v.isEmpty) return l10n.validationPhoneRequired;
-                            if (v.length < 8 || v.length > 15) {
-                              return l10n.validationPhoneInvalid;
-                            }
-                            return null;
-                          },
+                         inputFormatters: [
+  FilteringTextInputFormatter.digitsOnly,
+  LengthLimitingTextInputFormatter(10),
+],
+                    validator: (value) {
+  final v = value?.trim() ?? '';
+
+  if (v.isEmpty) {
+    return l10n.validationPhoneRequired;
+  }
+
+  if (!RegExp(r'^07\d{8}$').hasMatch(v)) {
+    return "Phone number must start with 07 and be exactly 10 digits";
+  }
+
+  return null;
+},
                         ),
                         const SizedBox(height: 14),
                       ],
@@ -237,11 +266,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             setState(() => obscurePassword = !obscurePassword);
                           },
                         ),
-                        validator:
-                            (value) =>
-                                value == null || value.length < 6
-                                    ? l10n.validationPasswordMin
-                                    : null,
+                        validator: _validatePassword,
                       ),
 
                       const SizedBox(height: 14),
@@ -261,18 +286,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             color: _muted,
                           ),
                           onPressed: () {
-                            setState(
-                              () =>
-                                  obscureConfirmPassword =
-                                      !obscureConfirmPassword,
-                            );
+                            setState(() {
+                              obscureConfirmPassword =
+                                  !obscureConfirmPassword;
+                            });
                           },
                         ),
-                        validator:
-                            (value) =>
-                                value != passwordController.text
-                                    ? l10n.validationPasswordsMismatch
-                                    : null,
+                        validator: (value) {
+                          if (value != passwordController.text) {
+                            return l10n.validationPasswordsMismatch;
+                          }
+                          return null;
+                        },
                       ),
 
                       const SizedBox(height: 18),
@@ -290,23 +315,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             elevation: 0,
                           ),
                           onPressed: isLoading ? null : _submit,
-                          child:
-                              isLoading
-                                  ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                  : Text(
-                                    l10n.continueButton,
-                                    style: const TextStyle(
-                                      fontSize: 16.5,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
                                   ),
+                                )
+                              : Text(
+                                  l10n.continueButton,
+                                  style: const TextStyle(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                         ),
                       ),
 
@@ -354,7 +378,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: _muted),
+            const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 18,
+              color: _muted,
+            ),
             const SizedBox(width: 6),
             Text(
               l10n.backToLogin,
@@ -481,13 +509,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.6),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.6,
+              ),
             ),
           ),
-          validator: (value) =>
-              value == null || value.trim().isEmpty
-                  ? l10n.validationEmailInvalid
-                  : null,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return l10n.validationEmailInvalid;
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -507,12 +540,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 0),
         Text(
           label,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
-            color: _text, // ✅ أسود مريح
+            color: _text,
             fontSize: 14,
           ),
         ),
@@ -529,6 +561,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
             filled: true,
             fillColor: Colors.white,
+            errorMaxLines: 3,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 14,
@@ -590,6 +623,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       } else {
         if (!mounted) return;
         final phone = phoneController.text.trim();
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(
@@ -602,12 +636,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.signUpErrorFailed(e.toString()))),
-      );
+    } catch (e, stackTrace) {
+      debugPrint("SIGNUP ERROR => $e");
+      debugPrint("SIGNUP STACK => $stackTrace");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
