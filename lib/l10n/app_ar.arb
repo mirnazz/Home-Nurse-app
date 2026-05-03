@@ -1068,5 +1068,62 @@
   "resetPasswordSuccess": "تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول.",
   "welcomeDialogTitle": "أنت جاهز تمامًا!",
   "welcomeDialogBody": "ملفك الشخصي جاهز. ابدأ الاستكشاف واحجز أول موعد مع ممرضتك.",
-  "welcomeDialogButton": "انتقل إلى لوحة التحكم"
+  "welcomeDialogButton": "انتقل إلى لوحة التحكم",
+
+  "nursePendingTitle": "الطلب قيد المراجعة",
+  "nursePendingDescription": "شكراً لتسجيلك كممرضة.\nطلبك قيد المراجعة حالياً من قِبل المسؤول.\n\nسيتم إشعارك فور الموافقة على حسابك.",
+  "nursePendingReviewTime": "وقت المراجعة المتوقع: 24–48 ساعة",
+  "nursePendingLogout": "تسجيل الخروج",
+
+  "nurseRejectedVerificationResult": "نتيجة التحقق",
+  "nurseRejectedTitle": "تم رفض التحقق",
+  "nurseRejectedSubtitle": "يحتاج ملفك الشخصي إلى تحديثات قبل\nالموافقة.",
+  "nurseRejectedReason": "السبب",
+  "nurseRejectedRejectionReason": "الترخيص الذي رفعته غير واضح.\nيرجى إعادة رفع مستند واضح يظهر\nجميع التفاصيل.",
+  "nurseRejectedUpdateResubmit": "تحديث وإعادة تقديم",
+  "nurseRejectedLogout": "تسجيل الخروج",
+
+  "nurseReportSubmittedSuccess": "تم إرسال تقرير المشكلة بنجاح.",
+
+  "onboardingPage1Title": "رعاية تمريضية منزلية\nاحترافية",
+  "onboardingPage1Desc": "تواصل مع ممرضات مرخصات ومعتمدات\nللحصول على خدمات رعاية صحية عالية الجودة\nفي راحة منزلك",
+  "onboardingPage2Title": "ممرضات موثوقات\nومعتمدات",
+  "onboardingPage2Desc": "جميع الممرضات محترفات مرخصات،\nخضعن للتحقق من الخلفية من قِبل\nفريقنا الإداري",
+  "onboardingPage3Title": "احجز في أي وقت\nومن أي مكان",
+  "onboardingPage3Desc": "احجز خدمات تمريضية على مدار الساعة\nمع تأكيدات حجز فورية\nوتحديثات في الوقت الفعلي",
+  "onboardingGetStarted": "ابدأ الآن",
+  "onboardingNext": "التالي  >",
+  "onboardingSkip": "تخطي",
+
+  "patientReportCatTechnical": "تقني",
+  "patientReportCatPayment": "دفع",
+  "patientReportCatServiceIssue": "مشكلة في الخدمة",
+  "patientReportCatAccount": "حساب",
+  "patientReportCatOther": "أخرى",
+  "patientReportSubmittedSuccess": "تم إرسال المشكلة بنجاح",
+
+  "signupValidationPasswordRequired": "كلمة المرور مطلوبة",
+  "signupValidationPasswordMin": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+  "signupValidationPasswordLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+  "signupValidationPasswordUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+  "signupValidationPhoneFormat": "يجب أن يبدأ رقم الهاتف بـ 07 ويكون 10 أرقام بالضبط",
+
+  "loginErrorSignInFailed": "فشل تسجيل الدخول",
+  "loginValidationEmailRequired": "البريد الإلكتروني مطلوب",
+  "loginValidationEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
+  "loginValidationPasswordRequired": "كلمة المرور مطلوبة",
+  "loginErrorNurseStatusUnknown": "حالة حساب الممرضة غير معروفة. يرجى التواصل مع الدعم.",
+  "loginErrorAccountTypeUnknown": "تعذّر التعرف على نوع حسابك. يرجى التواصل مع الدعم.",
+  "loginErrorSignInGeneral": "لم نتمكن من تسجيل دخولك. يرجى مراجعة بريدك الإلكتروني وكلمة المرور والمحاولة مجدداً.",
+
+  "forgotEmailHint": "username@nursenow.com",
+  "forgotInfoCardDescription": "أدخل بريدك الإلكتروني المسجل في NurseNow. سيراجع فريق Home Nurse طلبك وسيتواصل معك قريباً لمساعدتك في إعادة تعيين كلمة المرور.",
+  "forgotSuccessMessage": "تم استلام الطلب. سيتواصل معك فريق Home Nurse قريباً لمساعدتك في إعادة تعيين كلمة المرور.",
+  "forgotNoWorries": "لا تقلق — سنساعدك في استعادة حسابك بأمان.",
+  "forgotEmailLabel": "عنوان البريد الإلكتروني",
+  "forgotValidationEmailRequired": "البريد الإلكتروني مطلوب",
+  "forgotValidationEmailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح من NurseNow",
+  "forgotButtonText": "طلب دعم إعادة الضبط",
+  "forgotBackToSignIn": "العودة إلى تسجيل الدخول",
+  "forgotErrorEmailNotFound": "لم نتمكن من العثور على حساب بهذا البريد الإلكتروني. يرجى التحقق منه والمحاولة مجدداً."
 }

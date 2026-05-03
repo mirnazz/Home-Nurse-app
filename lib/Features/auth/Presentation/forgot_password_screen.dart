@@ -34,6 +34,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> handleForgotPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
@@ -61,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       setState(() {
         pageError =
-            "We couldn’t find an account with this email. Please check it and try again.";
+            l10n.forgotErrorEmailNotFound;
       });
     } finally {
       if (mounted) {
@@ -70,9 +71,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  InputDecoration _inputDecoration() {
+  InputDecoration _inputDecoration(AppLocalizations l10n) {
     return InputDecoration(
-      hintText: "username@nursenow.com",
+      hintText: l10n.forgotEmailHint,
       prefixIcon: const Icon(
         Icons.email_outlined,
         color: Color(0xFF94A3B8),
@@ -100,7 +101,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _softInfoCard() {
+  Widget _softInfoCard(AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -133,23 +134,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
           ),
           const SizedBox(width: 13),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "We’ll help you recover access",
-                  style: TextStyle(
+                  l10n.forgotNoWorries,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
                     color: text,
                     height: 1.25,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  "Enter your registered NurseNow email. The Home Nurse team will review your request and contact you soon to help reset your password.",
-                  style: TextStyle(
+                  l10n.forgotInfoCardDescription,
+                  style: const TextStyle(
                     fontSize: 13.2,
                     fontWeight: FontWeight.w600,
                     color: muted,
@@ -164,7 +165,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _successCard() {
+  Widget _successCard(AppLocalizations l10n) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
@@ -175,19 +176,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFC7EEDC)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.check_circle_rounded,
             color: Color(0xFF15803D),
             size: 24,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
-              "Request received. The Home Nurse team will contact you soon to help reset your password.",
-              style: TextStyle(
+              l10n.forgotSuccessMessage,
+              style: const TextStyle(
                 color: Color(0xFF166534),
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
@@ -300,11 +301,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   const SizedBox(height: 22),
 
-                  const Center(
+                  Center(
                     child: Text(
-                      "Reset your password",
+                      l10n.forgotResetPasswordTitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.w900,
                         color: text,
@@ -315,11 +316,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   const SizedBox(height: 10),
 
-                  const Center(
+                  Center(
                     child: Text(
-                      "No worries — we’ll help you recover your account safely.",
+                      l10n.forgotNoWorries,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                         color: muted,
@@ -330,9 +331,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   const SizedBox(height: 28),
 
-                  const Text(
-                    "Email address",
-                    style: TextStyle(
+                  Text(
+                    l10n.forgotEmailLabel,
+                    style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w800,
                       color: text,
@@ -345,7 +346,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
-                    decoration: _inputDecoration(),
+                    decoration: _inputDecoration(l10n),
                     onChanged: (_) {
                       if (pageError != null || requestSent) {
                         setState(() {
@@ -358,11 +359,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       final email = value?.trim() ?? "";
 
                       if (email.isEmpty) {
-                        return "Email address is required";
+                        return l10n.forgotValidationEmailRequired;
                       }
 
                       if (!_isValidNurseNowEmail(email)) {
-                        return "Please enter a valid NurseNow email address";
+                        return l10n.forgotValidationEmailInvalid;
                       }
 
                       return null;
@@ -371,7 +372,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   const SizedBox(height: 18),
 
-                  _softInfoCard(),
+                  _softInfoCard(l10n),
 
                   if (pageError != null) ...[
                     const SizedBox(height: 14),
@@ -380,7 +381,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   if (requestSent) ...[
                     const SizedBox(height: 14),
-                    _successCard(),
+                    _successCard(l10n),
                   ],
 
                   const SizedBox(height: 30),
@@ -407,9 +408,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              "Request reset support",
-                              style: TextStyle(
+                          : Text(
+                              l10n.forgotButtonText,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
@@ -423,9 +424,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Center(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "Back to sign in",
-                        style: TextStyle(
+                      child: Text(
+                        l10n.forgotBackToSignIn,
+                        style: const TextStyle(
                           color: primary,
                           fontWeight: FontWeight.w800,
                         ),

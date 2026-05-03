@@ -1098,5 +1098,30 @@
   "nurseRejectedReason": "Reason",
   "nurseRejectedRejectionReason": "Your uploaded license is unclear.\nPlease re-upload a clear document with\nall details visible.",
   "nurseRejectedUpdateResubmit": "Update & Resubmit",
-  "nurseRejectedLogout": "Logout"
+  "nurseRejectedLogout": "Logout",
+
+  "signupValidationPasswordRequired": "Password is required",
+  "signupValidationPasswordMin": "Password must be at least 6 characters",
+  "signupValidationPasswordLowercase": "Password must include at least one lowercase letter",
+  "signupValidationPasswordUppercase": "Password must include at least one uppercase letter",
+  "signupValidationPhoneFormat": "Phone number must start with 07 and be exactly 10 digits",
+
+  "loginErrorSignInFailed": "Sign in unsuccessful",
+  "loginValidationEmailRequired": "Email is required",
+  "loginValidationEmailInvalid": "Please enter a valid email address",
+  "loginValidationPasswordRequired": "Password is required",
+  "loginErrorNurseStatusUnknown": "Your nurse account status is unknown. Please contact support.",
+  "loginErrorAccountTypeUnknown": "Unable to identify your account type. Please contact support.",
+  "loginErrorSignInGeneral": "We couldn't sign you in. Please review your email and password, then try again.",
+
+  "forgotEmailHint": "username@nursenow.com",
+  "forgotInfoCardDescription": "Enter your registered NurseNow email. The Home Nurse team will review your request and contact you soon to help reset your password.",
+  "forgotSuccessMessage": "Request received. The Home Nurse team will contact you soon to help reset your password.",
+  "forgotNoWorries": "No worries — we'll help you recover your account safely.",
+  "forgotEmailLabel": "Email address",
+  "forgotValidationEmailRequired": "Email address is required",
+  "forgotValidationEmailInvalid": "Please enter a valid NurseNow email address",
+  "forgotButtonText": "Request reset support",
+  "forgotBackToSignIn": "Back to sign in",
+  "forgotErrorEmailNotFound": "We couldn't find an account with this email. Please check it and try again."
 }

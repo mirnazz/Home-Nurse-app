@@ -62,8 +62,7 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
-    Locale('en'),
+    Locale('en')
   ];
 
   /// No description provided for @welcomeBackTitle.
@@ -4831,10 +4828,141 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get nurseRejectedLogout;
+
+  /// No description provided for @signupValidationPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get signupValidationPasswordRequired;
+
+  /// No description provided for @signupValidationPasswordMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get signupValidationPasswordMin;
+
+  /// No description provided for @signupValidationPasswordLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must include at least one lowercase letter'**
+  String get signupValidationPasswordLowercase;
+
+  /// No description provided for @signupValidationPasswordUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must include at least one uppercase letter'**
+  String get signupValidationPasswordUppercase;
+
+  /// No description provided for @signupValidationPhoneFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number must start with 07 and be exactly 10 digits'**
+  String get signupValidationPhoneFormat;
+
+  /// No description provided for @loginErrorSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in unsuccessful'**
+  String get loginErrorSignInFailed;
+
+  /// No description provided for @loginValidationEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get loginValidationEmailRequired;
+
+  /// No description provided for @loginValidationEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get loginValidationEmailInvalid;
+
+  /// No description provided for @loginValidationPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get loginValidationPasswordRequired;
+
+  /// No description provided for @loginErrorNurseStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nurse account status is unknown. Please contact support.'**
+  String get loginErrorNurseStatusUnknown;
+
+  /// No description provided for @loginErrorAccountTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to identify your account type. Please contact support.'**
+  String get loginErrorAccountTypeUnknown;
+
+  /// No description provided for @loginErrorSignInGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t sign you in. Please review your email and password, then try again.'**
+  String get loginErrorSignInGeneral;
+
+  /// No description provided for @forgotEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'username@nursenow.com'**
+  String get forgotEmailHint;
+
+  /// No description provided for @forgotInfoCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your registered NurseNow email. The Home Nurse team will review your request and contact you soon to help reset your password.'**
+  String get forgotInfoCardDescription;
+
+  /// No description provided for @forgotSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Request received. The Home Nurse team will contact you soon to help reset your password.'**
+  String get forgotSuccessMessage;
+
+  /// No description provided for @forgotNoWorries.
+  ///
+  /// In en, this message translates to:
+  /// **'No worries — we\'ll help you recover your account safely.'**
+  String get forgotNoWorries;
+
+  /// No description provided for @forgotEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get forgotEmailLabel;
+
+  /// No description provided for @forgotValidationEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address is required'**
+  String get forgotValidationEmailRequired;
+
+  /// No description provided for @forgotValidationEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid NurseNow email address'**
+  String get forgotValidationEmailInvalid;
+
+  /// No description provided for @forgotButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'Request reset support'**
+  String get forgotButtonText;
+
+  /// No description provided for @forgotBackToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get forgotBackToSignIn;
+
+  /// No description provided for @forgotErrorEmailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find an account with this email. Please check it and try again.'**
+  String get forgotErrorEmailNotFound;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -4843,26 +4971,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['ar', 'en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'en':
-      return AppLocalizationsEn();
+    case 'ar': return AppLocalizationsAr();
+    case 'en': return AppLocalizationsEn();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

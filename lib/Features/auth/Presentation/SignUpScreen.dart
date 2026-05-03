@@ -52,23 +52,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  String? _validatePassword(String? value) {
+  String? _validatePassword(String? value, AppLocalizations l10n) {
     final password = value ?? '';
 
     if (password.isEmpty) {
-      return "Password is required";
+      return l10n.signupValidationPasswordRequired;
     }
 
     if (password.length < 6) {
-      return "Password must be at least 6 characters";
+      return l10n.signupValidationPasswordMin;
     }
 
     if (!RegExp(r'[a-z]').hasMatch(password)) {
-      return "Password must include at least one lowercase letter";
+      return l10n.signupValidationPasswordLowercase;
     }
 
     if (!RegExp(r'[A-Z]').hasMatch(password)) {
-      return "Password must include at least one uppercase letter";
+      return l10n.signupValidationPasswordUppercase;
     }
 
     return null;
@@ -239,7 +239,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   if (!RegExp(r'^07\d{8}$').hasMatch(v)) {
-    return "Phone number must start with 07 and be exactly 10 digits";
+    return l10n.signupValidationPhoneFormat;
   }
 
   return null;
@@ -266,7 +266,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             setState(() => obscurePassword = !obscurePassword);
                           },
                         ),
-                        validator: _validatePassword,
+                        validator: (v) => _validatePassword(v, l10n),
                       ),
 
                       const SizedBox(height: 14),

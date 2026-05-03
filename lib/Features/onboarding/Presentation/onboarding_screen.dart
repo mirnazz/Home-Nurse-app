@@ -135,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     height: 1.5,
                                     color: const Color(
                                       0xFF2F5D6E,
-                                    ).withOpacity(0.65),
+                                    ).withValues(alpha: 0.65),
                                   ),
                                 ),
                               ],

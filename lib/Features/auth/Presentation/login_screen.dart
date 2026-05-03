@@ -171,9 +171,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Sign in unsuccessful",
-                style: TextStyle(
+              Text(
+                l10n.loginErrorSignInFailed,
+                style: const TextStyle(
                   color: Color(0xFF1F2937),
                   fontSize: 14.5,
                   fontWeight: FontWeight.w900,
@@ -221,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       final email = value?.trim() ?? '';
 
                       if (email.isEmpty) {
-                        return "Email is required";
+                        return l10n.loginValidationEmailRequired;
                       }
 
                       final emailRegex = RegExp(
@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
 
                       if (!emailRegex.hasMatch(email)) {
-                        return "Please enter a valid email address";
+                        return l10n.loginValidationEmailInvalid;
                       }
 
                       return null;
@@ -267,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if ((value ?? '').trim().isEmpty) {
-                        return "Password is required";
+                        return l10n.loginValidationPasswordRequired;
                       }
 
                       return null;
@@ -382,6 +382,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
     setState(() => pageError = null);
@@ -439,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         setState(() {
           pageError =
-              "Your nurse account status is unknown. Please contact support.";
+              l10n.loginErrorNurseStatusUnknown;
         });
         return;
       }
@@ -453,7 +454,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       setState(() {
-        pageError = "Unable to identify your account type. Please contact support.";
+        pageError = l10n.loginErrorAccountTypeUnknown;
       });
     } catch (e, stackTrace) {
       debugPrint("LOGIN ERROR => $e");
@@ -462,8 +463,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       setState(() {
-       pageError =
-    "We couldn't sign you in. Please review your email and password, then try again.";
+        pageError = l10n.loginErrorSignInGeneral;
       });
     } finally {
       if (mounted) {

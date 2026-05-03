@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:nurse_app/l10n/app_localizations.dart';
 import 'package:nurse_app/Core/localization/app_language_prefs.dart';
 
@@ -7,6 +7,7 @@ import 'package:nurse_app/app_locale_scope.dart';
 import 'Features/auth/Presentation/login_screen.dart';
 import 'Features/Patients/Presentation/patient_home_screen.dart';
 import 'Features/onboarding/Presentation/splash_screen.dart';
+import 'Features/onboarding/Presentation/onboarding_screen.dart';
 import 'Features/auth/Presentation/forgot_password_screen.dart';
 import 'Features/auth/Presentation/SignUpScreen.dart';
 import 'Features/nurse_verification/nurse_pending_screen.dart';
@@ -23,9 +24,9 @@ import 'Core/theme/api/api_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Stripe.publishableKey =
-  //     'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
-  // await Stripe.instance.applySettings();
+  Stripe.publishableKey =
+      'pk_test_51TF0QgRsR0nCyJlO3Orz01hLZltiXv47BanvNiRDnGNpqFKRry9wnQkUefK0skZntq7zxMtaDcJzpPoXsN7QBEk900OJTMJ2Pt';
+  await Stripe.instance.applySettings();
 
   final code = await AppLanguagePrefs.getLanguage();
   runApp(NurseApp(initialLocale: Locale(code)));
